@@ -1,0 +1,36 @@
+# Python stuff
+*.pyc
+__pycache__
+
+# macOS
+.DS_Store
+
+# Python binaries
+*.egg-info
+dist
+build
+
+# log files
+*.log*
+
+# Virtual environment
+venv
+.venv
+.python-version
+
+# Visual Studio code settings
+.vscode
+
+# database
+*sqlite3*
+*.rdb
+
+# static
+static
+
+# cache
+.pytest_cache
+
+# settings
+config.yml
+docker-compose.override.yml

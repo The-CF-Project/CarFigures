@@ -1,0 +1,154 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Carfigures configuration",
+    "description": "Core settings for the Carfigures Discord bot",
+    "type": "object",
+    "required": ["discord-token", "text-prefix", "about", "collectible-name", "bot-name", "players-group-cog-name", "superuser-command", "prometheus", "owners"],
+    "properties": {
+        "discord-token": {
+            "description": "The Discord bot token",
+            "type": "string",
+            "minLength": 72,
+            "maxLength": 72
+        },
+        "text-prefix": {
+            "description": "The prefix for old text commands",
+            "type": "string",
+            "minLength": 1,
+            "default": "b."
+        },
+        "info": {
+            "type": "object",
+            "description": "Information used in /info status",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "description": "Defines the beginning of the description of /info status. The other parts are automatically generated"
+                },
+                "repository-link": {
+                    "type": "string",
+                    "description": "The repository for source code, if using a fork",
+                    "format": "uri"
+                },
+                "discord-invite": {
+                    "type": "string",
+                    "description": "A Discord server to link for support",
+                    "pattern": "^https?://(discord.gg|discord(app)?.com/invite)/[a-zA-Z0-9]+$"
+                },
+                "terms-of-service": {
+                    "type": "string",
+                    "description": "A link to the terms of service",
+                    "format": "uri"
+                },
+                "privacy-policy": {
+                    "type": "string",
+                    "description": "A link to the privacy policy",
+                    "format": "uri"
+                }
+            },
+            "required": ["description", "repository-link", "discord-invite", "terms-of-service", "privacy-policy"]
+        },
+        "collectible-name": {
+            "type": "string",
+            "description": "The name of the collectible, used everywhere except command descriptions. An 's' is appended to the end of this string for pluralization",
+            "example": "carfigure"
+        },                                                      
+        "bot-name": {
+            "type": "string",
+            "description": "The name of the bot, used in places such as the /showroom command",
+            "example": "CarFigures"
+        },
+        "players-group-cog-name": {
+            "type": "string",
+            "description": "Name of the slash command managing the collectibles (garage, info, showroom...). Do not add a leading slash!",
+            "example": "cars"
+        },
+        "max-favorites": {
+            "type": "integer",
+            "default": 50,
+            "description": "Maximum number of favorite countryballs allowed per player",
+            "minimum": 0
+        },
+        "superuser-command": {
+            "type": "object",
+            "description": "Manages access to the superuser command",
+            "properties": {
+                "guild-ids": {
+                    "type": ["array", "null"],
+                    "description": "IDs of guilds with the /sudo command registered",
+                    "items": {
+                        "type": "integer",
+                        "minimum": 10000000000000000,
+                        "maximum": 99999999999999999999
+                    }
+                },
+                "root-role-ids": {
+                    "type": ["array", "null"],
+                    "description": "IDs of roles with full access to /sudo",
+                    "items": {
+                        "type": "integer",
+                        "minimum": 10000000000000000,
+                        "maximum": 99999999999999999999
+                    }
+                },
+                "superuser-role-ids": {
+                    "type": ["array", "null"],
+                    "description": "IDs of roles with partial access to /super: blacklist control and guilds ownership inspection",
+                    "items": {
+                        "type": "integer",
+                        "minimum": 10000000000000000,
+                        "maximum": 99999999999999999999
+                    }
+                }
+            },
+            "required": ["guild-ids", "root-role-ids", "superuser-role-ids"]
+        },
+        "prometheus": {
+            "type": "object",
+            "description": "Prometheus metrics configuration",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Whether to enable Prometheus metrics server",
+                    "default": false
+                },
+                "host": {
+                    "type": "string",
+                    "description": "Host to bind to",
+                    "default": "0.0.0.0"
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "Port to bind to",
+                    "default": 15260
+                }
+            }
+        },
+        "log-channel": {
+            "type": ["integer", "null"],
+            "description": "ID of the channel to log events to",
+            "minimum": 10000000000000000,
+            "maximum": 99999999999999999999
+        },
+        "owners": {
+            "type": "object",
+            "description": "Manages ownership of the bot",
+            "properties": {
+                "team-members-are-owners": {
+                    "type": "boolean",
+                    "description": "Whether to consider Discord developer team members as owners",
+                    "default": false
+                },
+                "co-owners": {
+                    "type": ["array", "null"],
+                    "description": "IDs of users with ownership",
+                    "items": {
+                        "type": "integer",
+                        "minimum": 10000000000000000,
+                        "maximum": 99999999999999999999
+                    }
+                }
+            }
+        }
+    }
+}

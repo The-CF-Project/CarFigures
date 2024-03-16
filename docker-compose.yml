@@ -1,0 +1,120 @@
+version: '3.4'
+
+x-common-env-vars:
+  - &postgres-db
+    POSTGRES_DB=carfigures
+  - &postgres-user
+    POSTGRES_USER=carfigures
+  - &postgres-url
+    "CARFIGURESBOT_DB_URL=postgres://carfigures:${POSTGRES_PASSWORD}@postgres:5432/carfigures"
+
+services:
+
+  bot:
+    restart: "no"
+    image: carfigures
+    build: .
+    environment:
+      - *postgres-url
+    depends_on:
+      - postgres-db
+    # ports:
+    #   - "15260:15260"
+    networks:
+      - internal
+    volumes:
+      - type: bind
+        source: ./
+        target: /code
+    tty: true
+    command: poetry run python3 -m carfigures --dev
+
+  admin-panel:
+    image: carfigures
+    ports:
+      - "8000:8000"
+    networks:
+      - internal
+    environment:
+      - *postgres-url
+      - "CARFIGURESBOT_REDIS_URL=redis://redis"
+    depends_on:
+      - postgres-db
+      - redis-cache
+    volumes:
+      - type: bind
+        source: ./
+        target: /code
+    tty: true
+    command: poetry run uvicorn carfigures.core.admin:_app --host 0.0.0.0
+
+  postgres-db:
+    image: postgres
+    restart: always
+    hostname: postgres
+    environment:
+      - *postgres-db
+      - *postgres-user
+      - POSTGRES_PASSWORD
+    # WARNING: before exposing ports, change the default db password in the .env file!
+    # ports:
+    #   - "5432:5432"
+    networks:
+      - internal
+    volumes:  # Persist the db data
+      - database-data:/var/lib/postgresql/data
+
+  postgres-backup:
+    image: prodrigestivill/postgres-backup-local
+    restart: always
+    user: postgres:postgres
+    volumes:
+      - /var/opt/pgbackups:/backups
+    depends_on:
+      - postgres-db
+    networks:
+      - internal
+    environment:
+      - *postgres-db
+      - *postgres-user
+      - POSTGRES_PASSWORD
+      - POSTGRES_HOST=postgres
+      - SCHEDULE=@daily
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
+      - HEALTHCHECK_PORT=3928
+
+  redis-cache:
+    image: redis:latest
+    restart: always
+    hostname: redis
+    # ports:
+    #   - "6379:6379"
+    networks:
+      - internal
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - cache-data:/data
+
+  # Uncomment to enable gateway proxy feature and
+  # add "gateway-url: ws://gateway_proxy:5421" to your config.yaml
+  # Also change tag corresponding to your platform if not x86-64
+  #
+  # gateway-proxy:
+  #   container_name: gateway_proxy
+  #   image: ghcr.io/martinebot/gateway-proxy:x86-64
+  #   restart: always
+  #   volumes:
+  #     - ./gatewayproxy/config.json:/config.json
+  #   networks:
+  #     - internal
+
+volumes:
+  database-data:
+  cache-data:
+
+networks:
+  internal:
