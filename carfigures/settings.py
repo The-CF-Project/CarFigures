@@ -133,10 +133,10 @@ discord-token: YOUR DISCORD TOKEN HERE
 # prefix for old-style text commands, mostly unused
 text-prefix: c.
 
-# define the elements given with the /about command
-about:
+# define the elements given with the /info status command
+info:
 
-  # define the beginning of the description of /about
+  # define the beginning of the description of /info status
   # the other parts is automatically generated
   description: >
     Collect carfigures on Discord, exchange them and battle with friends!
@@ -163,7 +163,7 @@ bot-name: CarFigures
 # this is /cars by default, but you can change it for /animals or /rocks for example
 players-group-cog-name: cars
 
-# enables the /super command
+# enables the /sudo command
 superuser-command:
 
   # all items here are list of IDs. example on how to write IDs in a list:
@@ -171,15 +171,15 @@ superuser-command:
   #   - 1049118743101452329
   #   - 1078701108500897923
 
-  # list of guild IDs where /super should be registered
+  # list of guild IDs where /sudo should be registered
   guild-ids:
       - YOUR SERVER ID HERE
 
-  # list of role IDs having full access to /super
+  # list of role IDs having full access to /sudo
   root-role-ids:
       - YOUR ROLE ID HERE
 
-  # list of role IDs having partial access to /super
+  # list of role IDs having partial access to /sudo
   superuser-role-ids:
       - ADMIN ROLE ID HERE
 
