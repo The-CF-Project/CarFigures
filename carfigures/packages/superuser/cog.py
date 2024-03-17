@@ -442,9 +442,9 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         car: CarTransform,
         user: discord.User,
         special: SpecialTransform | None = None,
-        shiny: bool | None = None,
-        health_bonus: int | None = None,
-        attack_bonus: int | None = None,
+        limited: bool | None = None,
+        weight_bonus: int | None = None,
+        horsepower_bonus: int | None = None,
     ):
         """
         Give the specified carfigure to a player.
@@ -454,11 +454,11 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         car: Car
         user: discord.User
         special: Special | None
-        shiny: bool
+        limited: bool
             Omit this to make it random.
-        health_bonus: int | None
+        weight_bonus: int | None
             Omit this to make it random (-20/+20%).
-        attack_bonus: int | None
+        horsepower_bonus: int | None
             Omit this to make it random (-20/+20%).
         """
         # the transformers triggered a response, meaning user tried an incorrect input
@@ -470,20 +470,20 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         instance = await CarInstance.create(
             car=car,
             player=player,
-            shiny=(shiny if shiny is not None else random.randint(1, 2048) == 1),
-            attack_bonus=(attack_bonus if attack_bonus is not None else random.randint(-20, 20)),
-            health_bonus=(health_bonus if health_bonus is not None else random.randint(-20, 20)),
+            limited=(limited if limited is not None else random.randint(1, 2048) == 1),
+            horsepower_bonus=(horsepower_bonus if horsepower_bonus is not None else random.randint(-20, 20)),
+            weight_bonus=(weight_bonus if weight_bonus is not None else random.randint(-20, 20)),
             special=special,
         )
         await interaction.followup.send(
             f"`{car.full_name}` {settings.collectible_name} was successfully given to `{user}`.\n"
-            f"Special: `{special.name if special else None}` • ATK:`{instance.attack_bonus:+d}` • "
-            f"HP:`{instance.health_bonus:+d}` • Shiny: `{instance.shiny}`"
+            f"Special: `{special.name if special else None}` • ATK:`{instance.horsepower_bonus:+d}` • "
+            f"HP:`{instance.weight_bonus:+d}` • Limited: `{instance.limited}`"
         )
         await log_action(
             f"{interaction.user} gave {settings.collectible_name} {car.full_name} to {user}. "
-            f"Special={special.name if special else None} ATK={instance.attack_bonus:+d} "
-            f"HP={instance.health_bonus:+d} shiny={instance.shiny}",
+            f"Special={special.name if special else None} ATK={instance.horsepower_bonus:+d} "
+            f"HP={instance.weight_bonus:+d} limited={instance.limited}",
             self.bot,
         )
 
@@ -829,9 +829,9 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
             f"**{settings.collectible_name.title()} ID:** {car.pk}\n"
             f"**Player:** {car.player}\n"
             f"**Name:** {car.carfigure}\n"
-            f"**Attack bonus:** {car.attack_bonus}\n"
-            f"**Health bonus:** {car.health_bonus}\n"
-            f"**Shiny:** {car.shiny}\n"
+            f"**Horsepower bonus:** {car.horsepower_bonus}\n"
+            f"**Weight bonus:** {car.weight_bonus}\n"
+            f"**Limited:** {car.limited}\n"
             f"**Special:** {car.special.name if car.special else None}\n"
             f"**Caught at:** {format_dt(car.catch_date, style='R')}\n"
             f"**Caught in:** {car.server_id if car.server_id else 'N/A'}\n"
@@ -982,7 +982,7 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         interaction: discord.Interaction,
         user: discord.User | None = None,
         car: CarTransform | None = None,
-        shiny: bool | None = None,
+        limited: bool | None = None,
         special: SpecialTransform | None = None,
     ):
         """
@@ -993,7 +993,7 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         user: discord.User
             The user you want to count the cars of.
         car: Car
-        shiny: bool
+        limited: bool
         special: Special
         """
         if interaction.response.is_done():
@@ -1001,8 +1001,8 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         filters = {}
         if car:
             filters["car"] = car
-        if shiny is not None:
-            filters["shiny"] = shiny
+        if limited is not None:
+            filters["limited"] = limited
         if special:
             filters["special"] = special
         if user:
@@ -1012,15 +1012,15 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         full_name = f"{car.full_name} " if car else ""
         plural = "s" if cars > 1 or cars == 0 else ""
         special_str = f"{special.name} " if special else ""
-        shiny_str = "shiny " if shiny else ""
+        limited_str = "limited " if limited else ""
         if user:
             await interaction.followup.send(
-                f"{user} has {cars} {special_str}{shiny_str}"
+                f"{user} has {cars} {special_str}{limited_str}"
                 f"{full_name}{settings.collectible_name}{plural}."
             )
         else:
             await interaction.followup.send(
-                f"There are {cars} {special_str}{shiny_str}"
+                f"There are {cars} {special_str}{limited_str}"
                 f"{full_name}{settings.collectible_name}{plural}."
             )
 
@@ -1032,8 +1032,8 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         *,
         name: app_commands.Range[str, None, 48],
         cartype: CarTypeTransform,
-        health: int,
-        attack: int,
+        weight: int,
+        horsepower: int,
         emoji_id: app_commands.Range[str, 17, 21],
         capacity_name: app_commands.Range[str, None, 64],
         capacity_description: app_commands.Range[str, None, 256],
@@ -1053,8 +1053,8 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         name: str
         cartype: CarType
         country: Country | None
-        health: int
-        attack: int
+        weight: int
+        horsepower: int
         emoji_id: str
             An emoji ID, the bot will check if it can access the custom emote
         capacity_name: str
@@ -1121,8 +1121,8 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
                 full_name=name,
                 cartype=cartype,
                 country=country,
-                health=health,
-                attack=attack,
+                weight=weight,
+                horsepower=horsepower,
                 rarity=rarity,
                 enabled=enabled,
                 tradeable=tradeable,
@@ -1150,7 +1150,7 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
                 "The internal cache was reloaded.\n"
                 f"{missing_default}\n"
                 f"{name=} cartype={cartype.name} country={country.name if country else None} "
-                f"{health=} {attack=} {rarity=} {enabled=} {tradeable=} emoji={emoji}",
+                f"{weight=} {horsepower=} {rarity=} {enabled=} {tradeable=} emoji={emoji}",
                 files=files,
             )
 

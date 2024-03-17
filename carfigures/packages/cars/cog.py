@@ -334,12 +334,12 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
         user: discord.Member
             The user you would like to see
         """
-        user_obj = user if user else interaction.user
+        player_obj = user if user else interaction.user
         await interaction.response.defer(thinking=True)
         try:
-            user = await Player.get(discord_id=user_obj.id)
+            player = await Player.get(discord_id=player_obj.id)
         except DoesNotExist:
-            msg = f"{'You do' if user is None else f'{user_obj.display_name} does'}"
+            msg = f"{'You do' if player is None else f'{player_obj.display_name} does'}"
             await interaction.followup.send(
                 f"{msg} not have any {settings.collectible_name} yet.",
                 ephemeral=True,
@@ -347,12 +347,12 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
             return
 
         if user is not None:
-            if await inventory_privacy(self.bot, interaction, user, user_obj) is False:
+            if await inventory_privacy(self.bot, interaction, user, player_obj) is False:
                 return
 
-        carfigure = await user.cars.all().order_by("-id").first().select_related("car")
+        carfigure = await player.cars.all().order_by("-id").first().select_related("car")
         if not carfigure:
-            msg = f"{'You do' if user is None else f'{user_obj.display_name} does'}"
+            msg = f"{'You do' if [player] is None else f'{player_obj.display_name} does'}"
             await interaction.followup.send(
                 f"{msg} not have any {settings.collectible_name} yet.",
                 ephemeral=True,
@@ -377,8 +377,8 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
             return
 
         if not carfigure.favorite:
-            user = await Player.get(discord_id=interaction.user.id).prefetch_related("cars")
-            if await user.cars.filter(favorite=True).count() >= settings.max_favorites:
+            player = await Player.get(discord_id=interaction.user.id).prefetch_related("cars")
+            if await player.cars.filter(favorite=True).count() >= settings.max_favorites:
                 await interaction.response.send_message(
                     f"You cannot set more than {settings.max_favorites} "
                     f"favorite {settings.collectible_name}s.",
@@ -468,8 +468,8 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
             )
             return
 
-        carfigure.user = new_player
-        carfigure.trade_user = old_player
+        carfigure.player = new_player
+        carfigure.trade_player = old_player
         carfigure.favorite = False
         await carfigure.save()
 
@@ -520,7 +520,7 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
             filters["special"] = special
         if current_server:
             filters["server_id"] = interaction.guild.id
-        filters["user__discord_id"] = interaction.user.id
+        filters["player__discord_id"] = interaction.user.id
         await interaction.response.defer(ephemeral=True, thinking=True)
         cars = await CarInstance.filter(**filters).count()
         full_name = f"{carfigure.full_name} " if carfigure else ""
