@@ -18,14 +18,14 @@ class AcceptTOSView(View):
             Button(
                 style=discord.ButtonStyle.link,
                 label="Terms of Service",
-                url="https://www.nationdexbot.com/nationdex-tos",
+                url=settings.terms_of_service,
             )
         )
         self.add_item(
             Button(
                 style=discord.ButtonStyle.link,
                 label="Privacy policy",
-                url="https://www.nationdexbot.com/privacy-policy",
+                url=settings.privacy_policy,
             )
         )
 
