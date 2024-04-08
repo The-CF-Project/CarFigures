@@ -441,6 +441,7 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         interaction: discord.Interaction,
         car: CarTransform,
         user: discord.User,
+        amount: int,
         special: SpecialTransform | None = None,
         limited: bool | None = None,
         weight_bonus: int | None = None,
@@ -453,6 +454,7 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         ----------
         car: Car
         user: discord.User
+        amount: int
         special: Special | None
         limited: bool
             Omit this to make it random.
@@ -467,21 +469,23 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         await interaction.response.defer(ephemeral=True, thinking=True)
 
         player, created = await Player.get_or_create(discord_id=user.id)
-        instance = await CarInstance.create(
-            car=car,
-            player=player,
-            limited=(limited if limited is not None else random.randint(1, 2048) == 1),
-            horsepower_bonus=(horsepower_bonus if horsepower_bonus is not None else random.randint(-20, 20)),
-            weight_bonus=(weight_bonus if weight_bonus is not None else random.randint(-20, 20)),
-            special=special,
-        )
+
+        for i in range(amount):
+            instance = await CarInstance.create(
+                car=car,
+                player=player,
+                limited=(limited if limited is not None else random.randint(1, 2048) == 1),
+                horsepower_bonus=(horsepower_bonus if horsepower_bonus is not None else random.randint(-20, 20)),
+                weight_bonus=(weight_bonus if weight_bonus is not None else random.randint(-20, 20)),
+                special=special,
+            )
         await interaction.followup.send(
-            f"`{car.full_name}` {settings.collectible_name} was successfully given to `{user}`.\n"
+            f"`{amount}` `{car.full_name}` {settings.collectible_name} were successfully given to `{user}`.\n"
             f"Special: `{special.name if special else None}` • ATK:`{instance.horsepower_bonus:+d}` • "
             f"HP:`{instance.weight_bonus:+d}` • Limited: `{instance.limited}`"
         )
         await log_action(
-            f"{interaction.user} gave {settings.collectible_name} {car.full_name} to {user}. "
+            f"{interaction.user} gave amount={amount} {settings.collectible_name} {car.full_name} to {user}. "
             f"Special={special.name if special else None} ATK={instance.horsepower_bonus:+d} "
             f"HP={instance.weight_bonus:+d} limited={instance.limited}",
             self.bot,
