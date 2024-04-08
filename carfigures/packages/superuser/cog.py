@@ -480,12 +480,12 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
                 special=special,
             )
         await interaction.followup.send(
-            f"`{amount}` `{car.full_name}` {settings.collectible_name} were successfully given to `{user}`.\n"
+            f"`{amount}` {car.full_name + 's' if amount > 1 else car.full_name} {settings.collectible_name} were successfully given to `{user}`.\n"
             f"Special: `{special.name if special else None}` • ATK:`{instance.horsepower_bonus:+d}` • "
             f"HP:`{instance.weight_bonus:+d}` • Limited: `{instance.limited}`"
         )
         await log_action(
-            f"{interaction.user} gave amount={amount} {settings.collectible_name} {car.full_name} to {user}. "
+            f"{interaction.user} gave amount={amount} {settings.collectible_name} {car.full_name + 's' if amount > 1 else car.full_name} to {user}. "
             f"Special={special.name if special else None} ATK={instance.horsepower_bonus:+d} "
             f"HP={instance.weight_bonus:+d} limited={instance.limited}",
             self.bot,
