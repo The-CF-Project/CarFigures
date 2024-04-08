@@ -89,7 +89,7 @@ class Info(commands.GroupCog):
                 self.bot.application.id,
                 permissions=discord.Permissions(
                     manage_webhooks=True,
-                    manage_expressions=True
+                    manage_expressions=True,
                     read_messages=True,
                     send_messages=True,
                     embed_links=True,
