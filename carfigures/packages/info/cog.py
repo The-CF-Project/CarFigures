@@ -84,20 +84,17 @@ class Info(commands.GroupCog):
 
         assert self.bot.user
         assert self.bot.application
-        try:
-            assert self.bot.application.install_params
-        except AssertionError:
+        if self.bot.application.install_params is None:
             invite_link = discord.utils.oauth_url(
                 self.bot.application.id,
                 permissions=discord.Permissions(
                     manage_webhooks=True,
+                    manage_expressions=True,
                     read_messages=True,
                     send_messages=True,
-                    manage_messages=True,
                     embed_links=True,
                     attach_files=True,
                     use_external_emojis=True,
-                    add_reactions=True,
                 ),
                 scopes=("bot", "applications.commands"),
             )
