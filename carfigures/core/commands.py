@@ -90,20 +90,21 @@ class Core(commands.Cog):
         self,
         ctx: commands.Context,
         channel: discord.TextChannel | None = None,
+        amount: int = 1,
         *,
         car: str | None = None,
     ):
         """
         Force spawn a carfigure.
         """
-        if not car:
-            carfigure = await CarFigure.get_random()
-        else:
-            try:
-                car_model = await Car.get(full_name__iexact=car.lower())
-            except DoesNotExist:
-                await ctx.send("No such carfigure exists.")
-                return
-            carfigure = CarFigure(car_model)
-        await carfigure.spawn(channel or ctx.channel)
-
+        for i in range(amount):
+            if not car:
+                carfigure = await CarFigure.get_random()
+            else:
+                try:
+                    car_model = await Car.get(full_name__iexact=car.lower())
+                except DoesNotExist:
+                    await ctx.send("No such carfigure exists.")
+                    return
+                carfigure = CarFigure(car_model)
+            await carfigure.spawn(channel or ctx.channel)
