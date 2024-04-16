@@ -90,13 +90,17 @@ class Core(commands.Cog):
         self,
         ctx: commands.Context,
         channel: discord.TextChannel | None = None,
-        amount: int = 1,
+        amount: int | None = None,
         *,
         car: str | None = None,
     ):
         """
         Force spawn a carfigure.
         """
+        # If no amount is provided, default to spawning 1 car
+        if amount is None:
+            amount = 1
+            
         for i in range(amount):
             if not car:
                 carfigure = await CarFigure.get_random()
