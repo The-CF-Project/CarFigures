@@ -441,7 +441,7 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         interaction: discord.Interaction,
         car: CarTransform,
         user: discord.User,
-        amount: int,
+        amount: int | None = None,
         special: SpecialTransform | None = None,
         limited: bool | None = None,
         weight_bonus: int | None = None,
@@ -454,7 +454,7 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         ----------
         car: Car
         user: discord.User
-        amount: int
+        amount: int | None
         special: Special | None
         limited: bool
             Omit this to make it random.
@@ -469,6 +469,10 @@ class SuperUser(commands.GroupCog, group_name="sudo"):
         await interaction.response.defer(ephemeral=True, thinking=True)
 
         player, created = await Player.get_or_create(discord_id=user.id)
+
+	    # If no amount is provided, default to spawning 1 car
+        if amount is None:
+            amount = 1
 
         for i in range(amount):
             instance = await CarInstance.create(
