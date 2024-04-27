@@ -309,7 +309,7 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
                 title=f"{emoji} {carfigure.full_name} Information:",
                 description=(
                 f"**Short Name:** {carfigure.short_name}\n"
-                f"**Catch Names:** {''.join(carfigure.catch_names)}\n"
+                f"**Additional Catch Names:** {''.join(carfigure.catch_names)}\n"
                 f"**CarType:** {carfigure.cached_cartype.name}\n"
                 f"**Country:** {carfigure.cached_country.name}\n"
                 f"**Rarity:** {carfigure.rarity}\n"
