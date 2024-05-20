@@ -17,7 +17,7 @@ from carfigures.core.models import (
     CarInstance,
     Country,
     CarType,
-    Special,
+    Event,
     cars,
     countries,
     cartypes,
@@ -33,7 +33,7 @@ T = TypeVar("T", bound=Model)
 __all__ = (
     "CarTransform",
     "CarInstanceTransform",
-    "SpecialTransform",
+    "EventTransform",
     "CarTypeTransform",
     "CountryTransform",
 )
@@ -147,7 +147,7 @@ class ModelTransformer(app_commands.Transformer, Generic[T]):
 
 
 class CarInstanceTransformer(ModelTransformer[CarInstance]):
-    name = settings.collectible_name
+    name = settings.collectible_name.lower()
     model = CarInstance  # type: ignore
 
     async def get_from_pk(self, value: int) -> CarInstance:
@@ -163,8 +163,8 @@ class CarInstanceTransformer(ModelTransformer[CarInstance]):
     ) -> list[app_commands.Choice[int]]:
         cars_queryset = CarInstance.filter(player__discord_id=interaction.user.id)
 
-        if (special := getattr(interaction.namespace, "special", None)) and special.isdigit():
-            cars_queryset = cars_queryset.filter(special_id=int(special))
+        if (event := getattr(interaction.namespace, "event", None)) and event.isdigit():
+            cars_queryset = cars_queryset.filter(event_id=int(event))
         if (limited := getattr(interaction.namespace, "limited", None)) and limited is not None:
             cars_queryset = cars_queryset.filter(limited=limited)
 
@@ -250,7 +250,7 @@ class TTLModelTransformer(ModelTransformer[T]):
 
 
 class CarTransformer(TTLModelTransformer[Car]):
-    name = settings.collectible_name
+    name = settings.collectible_name.lower()
     model = Car()
 
     def key(self, model: Car) -> str:
@@ -265,17 +265,17 @@ class CarEnabledTransformer(CarTransformer):
         return {k: v for k, v in cars.items() if v.enabled}.values()
 
 
-class SpecialTransformer(TTLModelTransformer[Special]):
-    name = "special event"
-    model = Special()
+class EventTransformer(TTLModelTransformer[Event]):
+    name = "event"
+    model = Event()
 
-    def key(self, model: Special) -> str:
+    def key(self, model: Event) -> str:
         return model.name
 
 
-class SpecialEnabledTransformer(SpecialTransformer):
-    async def load_items(self) -> Iterable[Special]:
-        return await Special.filter(hidden=False).all()
+class EventEnabledTransformer(EventTransformer):
+    async def load_items(self) -> Iterable[Event]:
+        return await Event.filter(hidden=False).all()
 
 
 class CarTypeTransformer(TTLModelTransformer[CarType]):
@@ -302,8 +302,8 @@ class CountryTransformer(TTLModelTransformer[Country]):
 
 CarTransform = app_commands.Transform[Car, CarTransformer]
 CarInstanceTransform = app_commands.Transform[CarInstance, CarInstanceTransformer]
-SpecialTransform = app_commands.Transform[Special, SpecialTransformer]
+EventTransform = app_commands.Transform[Event, EventTransformer]
 CarTypeTransform = app_commands.Transform[CarType, CarTypeTransformer]
 CountryTransform = app_commands.Transform[Country, CountryTransformer]
-SpecialEnabledTransform = app_commands.Transform[Special, SpecialEnabledTransformer]
+EventEnabledTransform = app_commands.Transform[Event, EventEnabledTransformer]
 CarEnabledTransform = app_commands.Transform[Car, CarEnabledTransformer]

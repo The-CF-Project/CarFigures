@@ -1,29 +1,41 @@
 import os
 import textwrap
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 if TYPE_CHECKING:
-    from carfigures.core.models import CarInstance
-
+    from carfigures.core.models import CarInstance, Event
 
 SOURCES_PATH = Path(os.path.dirname(os.path.abspath(__file__)), "./src")
-WIDTH = 1500
-HEIGHT = 2000
 
-RECTANGLE_WIDTH = WIDTH - 40
-RECTANGLE_HEIGHT = (HEIGHT // 5) * 2
+CARD_WIDTH = 1500
+CARD_HEIGHT = 2000
 
-CORNERS = ((0, 181), (1427, 948))
-artwork_size = [b - a for a, b in zip(*CORNERS)]
+RECTANGLE_WIDTH = CARD_WIDTH - 40
+RECTANGLE_HEIGHT = (CARD_HEIGHT // 5) * 2
 
-title_font = ImageFont.truetype(str(SOURCES_PATH / "LemonMilkMedium-mLZYV.otf"), 140)
-capacity_name_font = ImageFont.truetype(str(SOURCES_PATH / "MomcakeBold-WyonA.otf"), 110)
-capacity_description_font = ImageFont.truetype(str(SOURCES_PATH / "MomcakeThin-9Y6aZ.otf"), 75)
-stats_font = ImageFont.truetype(str(SOURCES_PATH / "NewAthleticM54-31vz.ttf"), 130)
-credits_font = ImageFont.truetype(str(SOURCES_PATH / "BinomaTrialBold-1jPDj.ttf"), 40)
+card_title_font = ImageFont.truetype(str(SOURCES_PATH / "LemonMilkMedium-mLZYV.otf"), 140)
+card_capacity_name_font = ImageFont.truetype(str(SOURCES_PATH / "MomcakeBold-WyonA.otf"), 110)
+card_capacity_description_font = ImageFont.truetype(str(SOURCES_PATH / "MomcakeThin-9Y6aZ.otf"), 75)
+card_stats_font = ImageFont.truetype(str(SOURCES_PATH / "NewAthleticM54-31vz.ttf"), 130)
+card_credits_font = ImageFont.truetype(str(SOURCES_PATH / "BinomaTrialBold-1jPDj.ttf"), 40)
+
+CARD_CORNERS = ((0, 181), (1428, 948))
+artwork_size = [b - a for a, b in zip(*CARD_CORNERS)]
+
+
+EVENT_WIDTH = 1920
+Event_HEIGHT = 1080
+
+EVENT_CORNERS = ((0, 0), (1920, 1080))
+
+event_title_font = ImageFont.truetype(str(SOURCES_PATH / "LemonMilkMedium-mLZYV.otf"), 80)
+event_description_font = ImageFont.truetype(str(SOURCES_PATH / "MomcakeBold-WyonA.otf"), 60)
+event_status_font = ImageFont.truetype(str(SOURCES_PATH / "MomcakeBold-WyonA.otf"), 50)
+event_credits_font = ImageFont.truetype(str(SOURCES_PATH / "BinomaTrialBold-1jPDj.ttf"), 30)
 
 
 def draw_card(car_instance: "CarInstance"):
@@ -33,17 +45,17 @@ def draw_card(car_instance: "CarInstance"):
     if car_instance.limited:
         image = Image.open(str(SOURCES_PATH / "limited.png"))
         car_weight = (255, 255, 255, 255)
-    elif special_image := car_instance.special_card:
-        image = Image.open("." + special_image)
+    elif event_image := car_instance.event_card:
+        image = Image.open("." + event_image)
     else:
-        image = Image.open("." + car.cached_cartype.background)
-    icon = Image.open("." + car.cached_country.icon) if car.cached_country else None
+        image = Image.open("." + car.cached_cartype.image)
+    icon = Image.open("." + car.cached_country.image) if car.cached_country else None
 
     draw = ImageDraw.Draw(image)
     draw.text(
         (30, 0),
         car.short_name or car.full_name,
-        font=title_font,
+        font=card_title_font,
         fill=(255, 255, 255, 255),
         stroke_width=2,
         stroke_fill=(0, 0, 0, 255)
@@ -52,7 +64,7 @@ def draw_card(car_instance: "CarInstance"):
         draw.text(
             (100, 1050 + 100 * i),
             line,
-            font=capacity_name_font,
+            font=card_capacity_name_font,
             fill=(255, 255, 255, 255),
             stroke_width=2,
             stroke_fill=(0, 0, 0, 255),
@@ -61,14 +73,14 @@ def draw_card(car_instance: "CarInstance"):
         draw.text(
             (60, 1300 + 60 * i),
             line,
-            font=capacity_description_font,
+            font=card_capacity_description_font,
             stroke_width=1,
             stroke_fill=(0, 0, 0, 255),
         )
     draw.text(
         (320, 1660),
         str(car_instance.weight),
-        font=stats_font,
+        font=card_stats_font,
         fill=car_weight,
         stroke_width=1,
         stroke_fill=(0, 0, 0, 255),
@@ -76,7 +88,7 @@ def draw_card(car_instance: "CarInstance"):
     draw.text(
         (1120, 1660),
         str(car_instance.horsepower),
-        font=stats_font,
+        font=card_stats_font,
         fill=(255, 255, 255, 255),
         stroke_width=1,
         stroke_fill=(0, 0, 0, 255),
@@ -86,15 +98,24 @@ def draw_card(car_instance: "CarInstance"):
         (30, 1870),
         # Modifying the line below is breaking the license as you are removing credits
         # If you don't want to receive a DMCA, just don't
-        "Created by El Laggron - Modified By Array_YE\n" f"Image Credits: {car.credits}",
-        font=credits_font,
+        "Developers:\nEl Laggron - Array_YE",
+        font=card_credits_font,
         fill=(255, 255, 255, 255),
         stroke_width=2,
         stroke_fill=(0, 0, 0, 255),
     )
+    draw.text(
+        (1400, 1870),
+        f"Image Credits: {car.image_credits}\nCar Suggester:{car.car_suggester}",
+        font=card_credits_font,
+        fill=(255, 255, 255, 255),
+        stroke_width=2,
+        stroke_fill=(0, 0, 0, 255),
+        anchor="ra",
+    )
 
     artwork = Image.open("." + car.collection_picture)
-    image.paste(ImageOps.fit(artwork, artwork_size), CORNERS[0])  # type: ignore
+    image.paste(ImageOps.fit(artwork, artwork_size), CARD_CORNERS[0])  # type: ignore
 
     if icon:
         icon = ImageOps.fit(icon, (181, 181))
@@ -102,4 +123,67 @@ def draw_card(car_instance: "CarInstance"):
         icon.close()
     artwork.close()
 
+    return image
+
+
+def draw_banner(event: "Event"):
+
+    image = Image.open("." + event.banner)
+    draw = ImageDraw.Draw(image)
+    draw.text(
+        (35, 5),
+        event.name,
+        font=event_title_font,
+        fill=(0, 0, 0, 255)
+        )
+    draw.text(
+        (30, 0),
+        event.name,
+        font=event_title_font,
+        fill=(255, 255, 255, 255)
+        )
+    for i, line in enumerate(textwrap.wrap(event.description, width=100)):
+        draw.text(
+            (60, 100 + 60 * i),
+            line,
+            font=event_description_font,
+            stroke_width=1,
+            stroke_fill=(0, 0, 0, 255),
+        )
+    draw.text(
+        (30, 1015),
+        f"Event Status:",
+        font=event_status_font,
+        fill=(255, 255, 255, 255),
+        stroke_width=2,
+        stroke_fill=(0, 0, 0, 255),
+    )
+    if event.end_date > datetime.now(timezone.utc):
+        draw.text(
+            (320, 1015),
+            "Live!",
+            font=event_status_font,
+            fill=(0, 255, 0, 255),
+            stroke_width=2,
+            stroke_fill=(0, 0, 0, 255),
+        )
+    else:
+        draw.text(
+            (320, 1015),
+            "Ended!",
+            font=event_status_font,
+            fill=(255, 0, 0, 255),
+            stroke_width=2,
+            stroke_fill=(0, 0, 0, 255),
+        )
+    draw.text(
+        (1900, 1035),
+        "Created by Array_YE",
+        font=event_credits_font,
+        fill=(255, 255, 255, 255),
+        stroke_width=2,
+        stroke_fill=(0, 0, 0, 255),
+        anchor="ra",
+    )
+    image.paste(image, (EVENT_CORNERS[0]))
     return image

@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS "car" (
     "emoji_id" INT NOT NULL,
     "spawn_picture" VARCHAR(200) NOT NULL,
     "collection_picture" VARCHAR(200) NOT NULL,
-    "credits" VARCHAR(64) NOT NULL,
+    "car_suggester" VARCHAR(64) NOT NULL,
+    "image_credits" VARCHAR(64) NOT NULL,
     "capacity_name" VARCHAR(64) NOT NULL,
     "capacity_description" VARCHAR(256) NOT NULL,
     "capacity_logic" JSONB NOT NULL
@@ -23,7 +24,7 @@ COMMENT ON COLUMN "car"."rarity" IS 'Rarity of this car';
 COMMENT ON COLUMN "car"."emoji_id" IS 'Emoji ID for this car';
 COMMENT ON COLUMN "car"."spawn_picture" IS 'Image used when a new car spawns in the wild';
 COMMENT ON COLUMN "car"."collection_picture" IS 'Image used when displaying cars';
-COMMENT ON COLUMN "car"."credits" IS 'Author of the collection artwork';
+COMMENT ON COLUMN "car"."image_credits" IS 'Author of the collection artwork';
 COMMENT ON COLUMN "car"."capacity_name" IS 'Name of the carfigure''s capacity';
 COMMENT ON COLUMN "car"."capacity_description" IS 'Description of the carfigure''s capacity';
 COMMENT ON COLUMN "car"."capacity_logic" IS 'Effect of this capacity';
@@ -31,6 +32,7 @@ CREATE TABLE IF NOT EXISTS "guildconfig" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "guild_id" INT NOT NULL UNIQUE,
     "spawn_channel" INT,
+    "spawn_ping" INT,
     "enabled" BOOL NOT NULL  DEFAULT True
 );
 COMMENT ON COLUMN "guildconfig"."guild_id" IS 'Discord guild ID';
@@ -45,7 +47,7 @@ CREATE TABLE IF NOT EXISTS "carinstance" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "count" INT NOT NULL,
     "catch_date" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "special" INT NOT NULL  DEFAULT 0,
+    "event" INT NOT NULL  DEFAULT 0,
     "weight_bonus" INT NOT NULL  DEFAULT 0,
     "horsepower_bonus" INT NOT NULL  DEFAULT 0,
     "car_id" INT NOT NULL REFERENCES "car" ("id") ON DELETE CASCADE,
@@ -53,7 +55,7 @@ CREATE TABLE IF NOT EXISTS "carinstance" (
     "trade_player_id" INT NOT NULL REFERENCES "player" ("id") ON DELETE CASCADE,
     CONSTRAINT "uid_carinstanc_player__f154f9" UNIQUE ("player_id", "id")
 );
-COMMENT ON COLUMN "carinstance"."special" IS 'Defines rare instances, like a limited edition car';
+COMMENT ON COLUMN "carinstance"."event" IS 'Defines rare instances, like a limited edition car';
 CREATE TABLE IF NOT EXISTS "admin" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "username" VARCHAR(50) NOT NULL UNIQUE,

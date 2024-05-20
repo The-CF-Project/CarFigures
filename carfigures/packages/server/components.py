@@ -1,7 +1,12 @@
+from __future__ import annotations
+
+import random
+from typing import List, TYPE_CHECKING
+
 import discord
 from discord.ui import Button, View, button
 
-from carfigures.core.models import GuildConfig
+from carfigures.core.models import GuildConfig, Car, cars as carfigures
 from carfigures.settings import settings
 
 
@@ -18,14 +23,14 @@ class AcceptTOSView(View):
             Button(
                 style=discord.ButtonStyle.link,
                 label="Terms of Service",
-                url=settings.terms_of_service,
+                url=f"{settings.terms_of_service}",
             )
         )
         self.add_item(
             Button(
                 style=discord.ButtonStyle.link,
-                label="Privacy policy",
-                url=settings.privacy_policy,
+                label="Privacy Policy",
+                url=f"{settings.privacy_policy}",
             )
         )
 
@@ -65,3 +70,17 @@ class AcceptTOSView(View):
             )
         except discord.HTTPException:
             pass
+
+
+async def _get_10_cars_emojis(self) -> list[discord.Emoji]:
+    """
+    Return a list of up to 10 Discord emojis representing cars.
+    """
+    cars: list[Car] = random.choices(
+        [x for x in carfigures.values() if x.enabled], k=min(10, len(carfigures))
+    )
+    emotes: list[discord.Emoji] = []
+    for car in cars:
+        if emoji := self.bot.get_emoji(car.emoji_id):
+            emotes.append(emoji)
+    return emotes

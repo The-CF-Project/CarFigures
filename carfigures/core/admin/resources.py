@@ -12,12 +12,12 @@ from carfigures.core.models import (
     Car,
     CarInstance,
     BlacklistedGuild,
-    BlacklistedID,
+    BlacklistedUser,
     Country,
     GuildConfig,
     Player,
     CarType,
-    Special,
+    Event,
     Admin,
 )
 
@@ -34,10 +34,10 @@ upload = FileUpload(uploads_dir=os.path.join(".", "static", "uploads"))
 
 @app.register
 class AdminResource(Model):
-    label = "Admin"
+    label = "Admins"
     model = Admin
     icon = "fas fa-user"
-    page_pre_title = "admin list"
+    page_pre_title = "The List of:"
     page_title = "Admins"
     filters = [
         filters.Search(
@@ -72,41 +72,68 @@ class AdminResource(Model):
 
 
 @app.register
-class SpecialResource(Model):
-    label = "Special events"
-    model = Special
+class EventResource(Model):
+    label = "Events"
+    model = Event
     icon = "fas fa-star"
-    page_pre_title = "special list"
-    page_title = "Special events list"
+    page_pre_title = "The List of:"
+    page_title = "Events"
     filters = [
         filters.Search(
             name="name", label="Name", search_mode="icontains", placeholder="Search for events"
         )
     ]
     fields = [
-        "name",
-        "catch_phrase",
+        Field(
+            name="name",
+            label="Name",
+            display=displays.InputOnly(),
+            input_=inputs.Text(),
+        ),
+        Field(
+            name="description",
+            label="Description",
+            display=displays.InputOnly(),
+            input_=inputs.TextArea(),
+        ),
+        Field(
+            name="banner",
+            label="The Event Banner!",
+            display=displays.Image(width="40"),
+            input_=inputs.Image(upload=upload, null=False)
+        ),
+        Field(
+            name="catch_phrase",
+            label="Catch Phrase!",
+            display=displays.InputOnly(),
+            input_=inputs.Text(),
+        ),
         Field(
             name="start_date",
             label="Start date of the event",
             display=displays.DateDisplay(),
-            input_=inputs.Date(help_text="Date when special cars will start spawning"),
+            input_=inputs.Date(help_text="Date when special entities will start spawning"),
         ),
         Field(
             name="end_date",
             label="End date of the event",
             display=displays.DateDisplay(),
-            input_=inputs.Date(help_text="Date when special cars will stop spawning"),
+            input_=inputs.Date(help_text="Date when special entities will stop spawning"),
         ),
         "rarity",
         Field(
             name="background",
-            label="Special background",
+            label="The Event Card",
             display=displays.Image(width="40"),
             input_=inputs.Image(upload=upload, null=True),
         ),
         "emoji",
-        "tradeable",
+        Field(
+            name="tradeable",
+            label="Tradeable?",
+            input_=inputs.Switch(),
+            display=displays.Boolean(),
+        )
     ]
 
     async def get_actions(self, request: Request) -> List[Action]:
@@ -124,17 +151,17 @@ class SpecialResource(Model):
 
 
 @app.register
-class CarTypeResource(Model):
-    label = "CarType"
+class CardResource(Model):
+    label = "Cards"
     model = CarType
     icon = "fas fa-flag"
-    page_pre_title = "cartype list"
-    page_title = "CarTypes"
+    page_pre_title = "The List of:"
+    page_title = "Cards"
     fields = [
         "name",
         Field(
-            name="background",
-            label="Background (1428x2000)",
+            name="image",
+            label="Card Image (1428x2000)",
             display=displays.Image(width="40"),
             input_=inputs.Image(upload=upload, null=True),
         ),
@@ -142,17 +169,17 @@ class CarTypeResource(Model):
 
 
 @app.register
-class CountryResource(Model):
-    label = "Country"
+class IconResource(Model):
+    label = "Icons"
     model = Country
     icon = "fas fa-coins"
-    page_pre_title = "country list"
-    page_title = "Countries"
+    page_pre_title = "The List of:"
+    page_title = "Icons"
     fields = [
         "name",
         Field(
-            name="icon",
-            label="Icon (512x512)",
+            name="image",
+            label="Icon Image (512x512)",
             display=displays.Image(width="40"),
             input_=inputs.Image(upload=upload, null=True),
         ),
@@ -160,13 +187,13 @@ class CountryResource(Model):
 
 
 @app.register
-class CarResource(Model):
-    label = "Car"
+class EntityResource(Model):
+    label = "Entities"
     model = Car
     page_size = 50
     icon = "fas fa-globe"
-    page_pre_title = "car list"
-    page_title = "Cars"
+    page_pre_title = "The List of:"
+    page_title = "Entities"
     filters = [
         filters.Search(
             name="full_name",
@@ -174,14 +201,24 @@ class CarResource(Model):
             search_mode="icontains",
             placeholder="Search for cars",
         ),
-        filters.ForeignKey(model=CarType, name="cartype", label="CarType"),
-        filters.ForeignKey(model=Country, name="country", label="Country"),
-        filters.Boolean(name="enabled", label="Enabled"),
-        filters.Boolean(name="tradeable", label="Tradeable"),
+        filters.ForeignKey(model=CarType, name="cartype", label="Card"),
+        filters.ForeignKey(model=Country, name="country", label="Icon"),
+        filters.Boolean(name="enabled", label="Enabled?"),
+        filters.Boolean(name="tradeable", label="Tradeable?"),
     ]
     fields = [
-        "full_name",
-        "short_name",
+        Field(
+            name="full_name",
+            label="Full Name",
+            display=displays.InputOnly(),
+            input_=inputs.Text(),
+        ),
+        Field(
+            name="short_name",
+            label="Short Name",
+            display = displays.InputOnly(),
+            input_ = inputs.Text(),
+        ),
         "catch_names",
         "created_at",
         "cartype",
@@ -189,8 +226,18 @@ class CarResource(Model):
         "weight",
         "horsepower",
         "rarity",
-        "enabled",
-        "tradeable",
+        Field(
+            name="enabled",
+            label="Ready to Spawn?",
+            display=displays.Boolean(),
+            input_=inputs.Switch()
+        ),
+        Field(
+            name="tradeable",
+            label="Tradeable?",
+            display=displays.Boolean(),
+            input_=inputs.Switch()
+        ),
         Field(
             name="emoji_id",
             label="Emoji ID",
@@ -208,8 +255,12 @@ class CarResource(Model):
             input_=inputs.Image(upload=upload, null=True),
         ),
         Field(
-            name="credits",
+            name="image_credits",
             label="Image credits",
+        ),
+        Field(
+            name="car_suggester",
+            label="The Entity Suggester",
         ),
         Field(
             name="capacity_name",
@@ -236,12 +287,12 @@ class CarResource(Model):
 
 
 @app.register
-class CarInstanceResource(Model):
-    label = "Car instance"
+class InstanceResource(Model):
+    label = "Instances"
     model = CarInstance
     icon = "fas fa-atlas"
-    page_pre_title = "car instances list"
-    page_title = "Car instances"
+    page_pre_title = "The List of:"
+    page_title = "Instances"
     filters = [
         filters.Search(
             name="id",
@@ -249,10 +300,10 @@ class CarInstanceResource(Model):
             placeholder="Search for car IDs",
         ),
         filters.ForeignKey(model=Car, name="car", label="Car"),
-        filters.ForeignKey(model=Special, name="special", label="Special"),
+        filters.ForeignKey(model=Event, name="event", label="Event"),
         filters.Date(name="catch_date", label="Catch date"),
-        filters.Boolean(name="limited", label="Limited Edition"),
-        filters.Boolean(name="favorite", label="Favorite"),
+        filters.Boolean(name="limited", label="Limited Edition?"),
+        filters.Boolean(name="favorite", label="Favorite?"),
         filters.Search(
             name="user__discord_id",
             label="User ID",
@@ -272,7 +323,7 @@ class CarInstanceResource(Model):
         "catch_date",
         "server_id",
         "limited",
-        "special",
+        "event",
         "favorite",
         "weight_bonus",
         "horsepower_bonus",
@@ -282,10 +333,10 @@ class CarInstanceResource(Model):
 
 @app.register
 class PlayerResource(Model):
-    label = "Player"
+    label = "Players"
     model = Player
     icon = "fas fa-user"
-    page_pre_title = "player list"
+    page_pre_title = "The List of:"
     page_title = "Players"
     filters = [
         filters.Search(
@@ -302,11 +353,12 @@ class PlayerResource(Model):
 
 
 @app.register
-class GuildConfigResource(Model):
-    label = "Guild config"
+class ServerResource(Model):
+    label = "Server Settings"
     model = GuildConfig
     icon = "fas fa-cog"
-    page_title = "Guild configs"
+    page_pre_title = "The List of:"
+    page_title = "Server Setups"
     filters = [
         filters.Search(
             name="guild_id",
@@ -315,19 +367,39 @@ class GuildConfigResource(Model):
             placeholder="Filter by ID",
         ),
     ]
-    fields = ["guild_id", "spawn_channel", "enabled"]
+    fields = [
+        Field(
+            name="guild_id",
+            label="The Server ID",
+        ),
+        Field(
+            name="spawn_channel",
+            label="The Channel Selected for Spawning",
+        ),
+        Field(
+            name="spawn_ping",
+            label="The Role Selected for Pinging"
+        ),
+        Field(
+            name="enabled",
+            label="Is Spawning Enabled?",
+            display=displays.Boolean(),
+            input_=inputs.Switch()
+        )
+    ]
 
 
 @app.register
-class BlacklistedIDResource(Model):
-    label = "Blacklisted user ID"
-    model = BlacklistedID
+class BlacklistedUserResource(Model):
+    label = "Blacklisted Users"
+    model = BlacklistedUser
     icon = "fas fa-user-lock"
-    page_title = "Blacklisted user IDs"
+    page_pre_title = "The List of:"
+    page_title = "Blacklisted User"
     filters = [
         filters.Search(
             name="discord_id",
-            label="ID",
+            label="User ID",
             search_mode="icontains",
             placeholder="Filter by ID",
         ),
@@ -339,21 +411,28 @@ class BlacklistedIDResource(Model):
         ),
     ]
     fields = [
-        "discord_id",
-        "reason",
+        Field(
+            name="discord_id",
+            label="User ID",
+        ),
+        Field(
+            name="reason",
+            label="Reason Behind The Blacklist",
+        )
     ]
 
 
 @app.register
-class BlacklistedGuildIDResource(Model):
-    label = "Blacklisted Guild ID"
+class BlacklistedGuildResource(Model):
+    label = "Blacklisted Servers"
     model = BlacklistedGuild
     icon = "fas fa-lock"
-    page_title = "Blacklisted Guild IDs"
+    page_pre_title = "The List of:"
+    page_title = "Blacklisted Servers"
     filters = [
         filters.Search(
             name="guild_id",
-            label="ID",
+            label="Server ID",
             search_mode="icontains",
             placeholder="Filter by Guild ID",
         ),
@@ -365,6 +444,12 @@ class BlacklistedGuildIDResource(Model):
         ),
     ]
     fields = [
-        "discord_id",
-        "reason",
+        Field(
+            name="discord_id",
+            label="Server ID",
+        ),
+        Field(
+            name="reason",
+            label="Reason Behind The Blacklist",
+        )
     ]

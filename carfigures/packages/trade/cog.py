@@ -13,7 +13,7 @@ from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.core.utils.paginator import Pages
 from carfigures.core.utils.transformers import (
     CarInstanceTransform,
-    SpecialEnabledTransform,
+    EventEnabledTransform,
     TradeCommandType,
 )
 from carfigures.packages.trade.display import TradeViewFormat
@@ -127,7 +127,7 @@ class Trade(commands.GroupCog):
 
         player1, _ = await Player.get_or_create(discord_id=interaction.user.id)
         player2, _ = await Player.get_or_create(discord_id=user.id)
-        if player2.discord_id in self.bot.blacklist:
+        if player2.discord_id in self.bot.blacklist_user:
             await interaction.response.send_message(
                 "You cannot trade with a blacklisted user.", ephemeral=True
             )
@@ -145,7 +145,7 @@ class Trade(commands.GroupCog):
         self,
         interaction: discord.Interaction,
         carfigure: CarInstanceTransform,
-        special: SpecialEnabledTransform | None = None,
+        event: EventEnabledTransform | None = None,
         limited: bool | None = None,
     ):
         """
@@ -155,10 +155,10 @@ class Trade(commands.GroupCog):
         ----------
         carfigure: CarInstance
             The carfigure you want to add to your proposal
-        special: Special
-            Filter the results of autocompletion to a special event. Ignored afterwards.
+        event: Event
+            Filter the results of autocompletion to an event. Ignored afterward.
         limited: bool
-            Filter the results of autocompletion to limiteds. Ignored afterwards.
+            Filter the results of autocompletion to limited. Ignored afterward.
         """
         if not carfigure:
             return
@@ -246,6 +246,21 @@ class Trade(commands.GroupCog):
             f"{carfigure.carfigure.full_name} removed.", ephemeral=True
         )
         await carfigure.unlock()
+
+    @app_commands.command()
+    async def cancel(self, interaction: discord.Interaction):
+        """
+        Cancel the ongoing trade.
+        """
+        trade, trader = self.get_trade(interaction)
+        if not trade or not trader:
+            await interaction.response.send_message(
+                "You do not have an ongoing trade.", ephemeral=True
+            )
+            return
+
+        await trade.user_cancel(trader)
+        await interaction.response.send_message("Trade cancelled.", ephemeral=True)
 
     @app_commands.command()
     @app_commands.choices(

@@ -49,12 +49,15 @@ class CarFiguresSpawner(commands.Cog):
         guild: discord.Guild,
         channel: Optional[discord.TextChannel] = None,
         enabled: Optional[bool] = None,
+        role: Optional[discord.Role] = None
     ):
         if guild.id not in self.spawn_manager.cache:
             if enabled is False:
                 return  # do nothing
             if channel:
                 self.spawn_manager.cache[guild.id] = channel.id
+            if role:
+                self.spawn_manager.cache[role.id] = role.id
             else:
                 try:
                     config = await GuildConfig.get(guild_id=guild.id)

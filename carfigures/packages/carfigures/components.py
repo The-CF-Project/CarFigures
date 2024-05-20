@@ -10,17 +10,17 @@ from discord.ui import Button, Modal, TextInput, View
 from prometheus_client import Counter
 from tortoise.timezone import now as datetime_now
 
-from carfigures.core.models import CarInstance, Player, specials
+from carfigures.core.models import CarInstance, Player, events
 from carfigures.settings import settings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
-    from carfigures.core.models import Special
+    from carfigures.core.models import Event
     from carfigures.packages.carfigures.carfigure import CarFigure
 
 log = logging.getLogger("carfigures.packages.carfigures.components")
 caught_cars = Counter(
-    "caught_cf", "Caught carfigures", ["full_name", "limited", "special", "guild_size"]
+    "caught_cf", "Caught carfigures", ["full_name", "limited", "event", "guild_size"]
 )
 
 
@@ -65,20 +65,21 @@ class CarFigureNamePrompt(Modal, title=f"Catch this {settings.collectible_name}!
                 interaction.client, cast(discord.Member, interaction.user)
             )
 
-            special = ""
+            event = ""
             if car.limited:
-                special += f"💠 ***Its a Limited Edition {settings.collectible_name}!!!*** 💠\n"
-            if car.specialcard and car.specialcard.catch_phrase:
-                special += f"*{car.specialcard.catch_phrase}*\n"
+                event += f"💠 ***Its a Limited Edition {settings.collectible_name}!!!*** 💠\n"
+            if car.eventcard and car.eventcard.catch_phrase:
+                event += f"*{car.eventcard.catch_phrase}*\n"
             if has_caught_before:
-                special += (
+                event += (
                     f"This is a **new {settings.collectible_name}** "
                     "that has been added to your showroom!"
                 )
 
             await interaction.followup.send(
                 f"{interaction.user.mention} You caught **{self.car.name}!** "
-                f"(`#{car.pk:0X}`)\n\n{special}",
+                f"`(#{car.pk:0X}, {car.horsepower_bonus:+}%/{car.weight_bonus:+}%)`\n\n"
+                f"{event}"
             )
             self.button.disabled = True
             await interaction.followup.edit_message(self.car.message.id, view=self.button.view)
@@ -95,9 +96,9 @@ class CarFigureNamePrompt(Modal, title=f"Catch this {settings.collectible_name}!
         bonus_weight = random.randint(-50, 50)
         limited = random.randint(1, 2048) == 1
 
-        # check if we can spawn cards with a special background
-        special: "Special | None" = None
-        population = [x for x in specials.values() if x.start_date <= datetime_now() <= x.end_date]
+        # check if we can spawn cards with the event card
+        event: "Event | None" = None
+        population = [x for x in events.values() if x.start_date <= datetime_now() <= x.end_date]
         if not limited and population:
             # Here we try to determine what should be the chance of having a common card
             # since the rarity field is a value between 0 and 1, 1 being no common
@@ -108,33 +109,34 @@ class CarFigureNamePrompt(Modal, title=f"Catch this {settings.collectible_name}!
 
             weights = [x.rarity for x in population] + [common_weight]
             # None is added representing the common carfigure
-            special = random.choices(population=population + [None], weights=weights, k=1)[0]
+            event = random.choices(population=population + [None], weights=weights, k=1)[0]
 
         is_new = not await CarInstance.filter(player=player, car=self.car.model).exists()
         car = await CarInstance.create(
             car=self.car.model,
             player=player,
             limited=limited,
-            special=special,
+            event=event,
             horsepower_bonus=bonus_horsepower,
             weight_bonus=bonus_weight,
             server_id=user.guild.id,
+            spawned_time=self.car.time
         )
         if user.id in bot.catch_log:
             log.info(
                 f"{user} caught {settings.collectible_name}"
-                f" {self.car.model}, {limited=} {special=}",
+                f" {self.car.model}, {limited=} {event=}",
             )
         else:
             log.debug(
                 f"{user} caught {settings.collectible_name}"
-                f" {self.car.model}, {limited=} {special=}",
+                f" {self.car.model}, {limited=} {event=}",
             )
         if user.guild.member_count:
             caught_cars.labels(
                 full_name=self.car.model.full_name,
                 limited=limited,
-                special=special,
+                event=event,
                 # observe the size of the server, rounded to the nearest power of 10
                 guild_size=10 ** math.ceil(math.log(max(user.guild.member_count - 1, 1), 10)),
             ).inc()
