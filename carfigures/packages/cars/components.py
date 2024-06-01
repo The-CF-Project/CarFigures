@@ -97,6 +97,10 @@ class SortingChoices(enum.Enum):
     stats_bonus = "stats"
     total_stats = "total_stats"
 
+    # manual sorts are not sorted by SQL queries but by our code
+    # this may be do-able with SQL still, but I don't have much experience ngl
+    duplicates = "manualsort-duplicates"
+
 class SortingChoices2(enum.Enum):
     alphabetic = "event__name"
     expired = "expired"
