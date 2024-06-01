@@ -111,14 +111,16 @@ class Player(commands.GroupCog):
         """
 
         # Setting Up variables
+        if user == None:
+            user = interaction.user
+
         cars = await _get_10_cars_emojis(self)
-        player_obj = interaction.user
-        player, _ = await PlayerModel.get_or_create(discord_id=player_obj.id)
+        player, _ = await PlayerModel.get_or_create(discord_id=user.id)
         await player.fetch_related("cars")
 
         # Creating the Embed and Storting the variables in it
         embed = discord.Embed(
-            title=f" ❖ {interaction.user.display_name}'s Profile", color=settings.default_embed_color
+            title=f" ❖ {user.display_name}'s Profile", color=settings.default_embed_color
         )
 
         embed.description = (
