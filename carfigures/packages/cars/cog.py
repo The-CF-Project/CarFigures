@@ -97,16 +97,10 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
         filters = {"car__id": carfigure.pk} if carfigure else {}
         # Having Ifs to filter the garage
         if sort:
-            if sort == SortingChoices.duplicates:
-                carfigures = await player.cars.filter(**filters)
-                count = defaultdict(int)
-                for car in carfigures:
-                    count[car.carfigure.pk] += 1
-                carfigures.sort(key=lambda m: (-count[m.carfigure.pk], m.carfigure.pk))
-            elif sort == SortingChoices.favorite:
+            if sort == SortingChoices.favorite:
                 carfigures = await player.cars.filter(**filters).order_by("-favorite")
             elif sort == SortingChoices.limited:
-                carfigures = await playerCarType.cars.filter(**filters).order_by("limited")
+                carfigures = await player.cars.filter(**filters).order_by("-limited")
             elif sort == SortingChoices.stats_bonus:
                 carfigures = await player.cars.filter(**filters)
                 carfigures.sort(key=lambda x: x.weight_bonus + x.horsepower_bonus, reverse=True)
@@ -357,7 +351,7 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
             return
 
         if user is not None:
-            if await inventory_privacy(self.bot, interaction, user, player_obj) is False:
+            if await inventory_privacy(self.bot, interaction, player, player_obj) is False:
                 return
 
         carfigure = await player.cars.all().order_by("-id").first().select_related("car")

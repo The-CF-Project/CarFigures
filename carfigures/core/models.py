@@ -337,7 +337,7 @@ class CarInstance(models.Model):
     @property
     def event_card(self) -> str | None:
         if self.eventcard:
-            return self.eventcard.background or self.carfigure.collection_picture
+            return self.eventcard.card or self.carfigure.collection_picture
 
     @property
     def carfigure(self) -> Car:

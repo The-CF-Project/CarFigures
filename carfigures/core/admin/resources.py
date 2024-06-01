@@ -122,7 +122,7 @@ class EventResource(Model):
         ),
         "rarity",
         Field(
-            name="background",
+            name="card",
             label="The Event Card",
             display=displays.Image(width="40"),
             input_=inputs.Image(upload=upload, null=True),
