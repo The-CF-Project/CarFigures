@@ -132,7 +132,7 @@ class Player(commands.GroupCog):
             f"\u200b **⋄ Cars Collected:** {len(player.cars)}\n"
         )
 
-        embed.set_thumbnail(url=interaction.user.display_avatar.url)
+        embed.set_thumbnail(url=user.display_avatar.url)
         embed.set_footer(
             text=f"Requested by {interaction.user.display_name}",
             icon_url=interaction.user.display_avatar.url
