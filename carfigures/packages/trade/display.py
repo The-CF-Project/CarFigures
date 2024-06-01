@@ -6,6 +6,7 @@ from carfigures.core.models import Trade as TradeModel
 from carfigures.core.utils import menus
 from carfigures.core.utils.paginator import Pages
 from carfigures.packages.trade.trade_user import TradingUser
+from carfigures.settings import settings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -21,6 +22,7 @@ class TradeViewFormat(menus.ListPageSource):
         embed = discord.Embed(
             title=f"Trade history for {self.header}",
             description=f"Trade ID: {trade.pk:0X}",
+            colour=settings.default_embed_color,
             timestamp=trade.date,
         )
         embed.set_footer(

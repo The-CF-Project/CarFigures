@@ -1,4 +1,4 @@
 -- upgrade --
-ALTER TABLE "special" ADD "hidden" BOOL NOT NULL  DEFAULT False;
+ALTER TABLE "event" ADD "hidden" BOOL NOT NULL  DEFAULT False;
 -- downgrade --
-ALTER TABLE "special" DROP COLUMN "hidden";
+ALTER TABLE "event" DROP COLUMN "hidden";

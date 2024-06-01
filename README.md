@@ -9,49 +9,21 @@
 
 ## Introduction
 
-Welcome to CarFigures, the Discord bot for folks who love cars and car-related topics. Join us to discuss everything from classic cars to the latest automotive trends!
+Welcome to CarFigures, It's like a car show, but for your Discord server... and with less grease stains (hopefully).
 
 You can join our server and invite the bot from [here.](https://discord.com/api/oauth2/authorize?client_id=1127506544578277446&permissions=137439333376&scope=bot%20applications.commands)
 
-## Why CarFigures is the Best Choice for Your Dex Bot Dreams
-
-CarFigures isn't your typical fancy-pants Discord bot base. Here's why it's the bee's knees for your dex bot dreams:
-
-- **No Tech Wizardry Needed**: You don't need to be a tech whiz to use CarFigures. We made it for regular folks like you and me.
-- **Join the Fun**: You can jump right in, add your own flair, and make CarFigures your own. No stuffy suits telling you what to do here!
-- **Get Help from Real People**: Stuck on something? Our crew is here to help. No bots pretending to be humans – just real, friendly folks.
-
-So, if you're itching to make a dex bot without the headache, CarFigures is the way to go. It's all about having a good time and making something cool together.
-
 ## Getting Started with CarFigures
 
-Hey there! Ready to dive into the world of CarFigures? Follow these simple steps to get the bot up and running using Docker and Docker Compose on Windows, macOS, and Linux:
 
-### Prerequisites
+### The Stuff You Absolutely Need (No Excuses!)
 
 - Make sure you have Docker and Docker Compose installed on your machine.
 
 ### Installation
 
-1. Clone this repository to your local machine.
-2. Create a `config.yml` file in the project directory with the required configuration settings, including your Discord bot token.
-3. Open a terminal or command prompt and navigate to the project directory.
-
-#### For Windows
-
-- Run the following command to start the bot using Docker Compose:
-
-     ```powershell
-     docker compose up
-     ```
-
-#### For macOS and Linux
-
-- Run the following command to start the bot using Docker Compose:
-
-     ```bash
-     sudo docker compose up
-     ```
+1. Fork this repository
+2. git clone the new project
 
 ### Accessing the Bot and Admin Panel
 
@@ -59,7 +31,7 @@ Once you've completed the installation and configuration steps, the CarFigures b
 
 That's it! You're all set to rock and roll with CarFigures using Docker and Docker Compose on Windows, macOS, and Linux. If you run into any trouble along the way, don't hesitate to reach out for help. We're here to make sure you have a smooth ride.
 
-## How to Help Make CarFigures Even Better
+## Feeling the Need for Speed? Contribute to CarFigures!
 
 Here's how you can jump in and help make this project even better:
 
@@ -91,11 +63,8 @@ To make sure your PR can be checked out and merged smoothly, please follow these
 
 ### Code of Conduct
 
-We're all about creating a welcoming and chill community. Everyone who contributes is expected to stick to the [Code of Conduct](./CODE_OF_CONDUCT.md) when getting involved with the project and its community members.
-
-### Your First Contribution
-
-If you're new to open source and repository hosting, we've tagged some issues as "good first issue" to help you get started. If you need a hand with the contribution process, hit us up – we're here to help.
+We're all about creating a welcoming and chill community.
+Everyone who contributes is expected to stick to the [Code of Conduct](./assets/CODE_OF_CONDUCT.md) when getting involved with the project and its community members.
 
 ### Help and Feedback
 

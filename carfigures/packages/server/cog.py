@@ -5,14 +5,14 @@ from discord import app_commands
 from discord.ext import commands
 
 from carfigures.core.models import GuildConfig
-from carfigures.packages.server.components import AcceptTOSView
+from carfigures.packages.server.components import AcceptTOSView, _get_10_cars_emojis
 from carfigures.settings import settings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
 
 activation_embed = discord.Embed(
-    colour=0x00D936,
+    colour=settings.default_embed_color,
     title=f"{settings.bot_name} activation",
     description=f"To enable {settings.bot_name} in your server, you must "
     f"read and accept the [Terms of Service]({settings.terms_of_service}).\n\n"
@@ -23,7 +23,6 @@ activation_embed = discord.Embed(
 )
 
 
-@app_commands.default_permissions(manage_guild=True)
 @app_commands.guild_only()
 class Server(commands.GroupCog):
     """
@@ -34,7 +33,6 @@ class Server(commands.GroupCog):
         self.bot = bot
 
     @app_commands.command()
-    @app_commands.describe(channel="The new text channel to set.")
     async def channel(
         self,
         interaction: discord.Interaction,
@@ -70,7 +68,10 @@ class Server(commands.GroupCog):
         )
 
     @app_commands.command()
-    async def disable(self, interaction: discord.Interaction):
+    async def disable(
+        self,
+        interaction: discord.Interaction
+    ):
         """
         Disable or enable carfigures spawning.
         """
@@ -105,3 +106,85 @@ class Server(commands.GroupCog):
                     f"{settings.bot_name} is now enabled in this server, however there is no "
                     "spawning channel set. Please configure one with `/config channel`."
                 )
+
+    @app_commands.command()
+    async def spawnalert(
+            self,
+            interaction: discord.Interaction,
+            role: discord.Role
+    ):
+        """
+        Enable, Disable or Set Role spawn alert for your server
+        """
+
+        guild = cast(discord.Guild, interaction.guild)
+        user = cast(discord.Member, interaction.user)
+        if not user.guild_permissions.manage_guild:
+            await interaction.response.send_message(
+                "You need the permission to manage the server to use this."
+            )
+            return
+        if not settings.spawnalert:
+            await interaction.response.send_message(
+                "The Bot Owner has disabled this feature from the bot"
+            )
+            return
+        config, created = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
+        if role:
+            if config.spawn_ping == role.id:
+                config.spawn_ping = None  # type: ignore
+                await config.save()
+                self.bot.dispatch("carfigures_settings_change", guild, role=None)
+                await interaction.response.send_message(
+                    f"{settings.bot_name} will no longer alert {role.mention} when {settings.collectible_name}s spawn."
+                )
+            else:
+                config.spawn_ping = role.id  # type: ignore
+                await config.save()
+                self.bot.dispatch("carfigures_settings_change", guild, role=role)
+                await interaction.response.send_message(
+                    f"{settings.bot_name} will now alert {role.mention} when {settings.collectible_name}s spawn."
+                )
+                return
+        else:
+            await interaction.response.send_message(
+                "Please select a proper role."
+            )
+
+    @app_commands.command()
+    @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
+    async def profile(
+        self,
+        interaction: discord.Interaction
+    ):
+        """
+        Display information about the server.
+        """
+
+        cars = await _get_10_cars_emojis(self)
+        guild = interaction.guild
+        config, created = await GuildConfig.get_or_create(guild_id=guild.id)
+        embed = discord.Embed(
+            title=f"❖ {guild.name} Server Info",
+            color=settings.default_embed_color,
+        )
+        embed.description = (
+            f"{' '.join(str(x) for x in cars)}\n"
+            f"**◲ Server Settings**\n"
+            f"\u200b **⋄ Spawn Channel:** {config.spawn_channel or 'Not set'}\n"
+            f"\u200b **⋄ Spawn Alert Role:** {config.spawn_ping or 'Not set'}\n\n"
+            f"**Ⅲ Server Info**\n"
+            f"\u200b **⋄ Server ID:** {guild.id}\n"
+            f"\u200b **⋄ Server Owner:** {guild.owner}\n"
+            f"\u200b **⋄ Server Description:** {guild.description if guild.description else 'None'}\n\n"
+            f"\u200b **⋄ Member Count:** {guild.member_count}\n"
+            f"\u200b **⋄ Created Since:** {guild.created_at.strftime('%d/%m/%y')}\n\n"
+            )
+        embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
+        embed.set_footer(
+            text=f"Requested by {interaction.user.display_name}",
+            icon_url=interaction.user.display_avatar.url
+        )
+
+        await interaction.response.send_message(embed=embed)
+

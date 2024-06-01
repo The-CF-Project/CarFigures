@@ -31,14 +31,14 @@ from carfigures.core.metrics import PrometheusServer
 from carfigures.core.models import (
     Car,
     BlacklistedGuild,
-    BlacklistedID,
+    BlacklistedUser,
     Country,
     CarType,
-    Special,
+    Event,
     cars,
     countries,
     cartypes,
-    specials,
+    events,
 )
 from carfigures.settings import settings
 
@@ -156,7 +156,7 @@ class CarFiguresBot(commands.AutoShardedBot):
         self.add_check(owner_check)  # Only owners are able to use text commands
 
         self._shutdown = 0
-        self.blacklist: set[int] = set()
+        self.blacklist_user: set[int] = set()
         self.blacklist_guild: set[int] = set()
         self.catch_log: set[int] = set()
         self.command_log: set[int] = set()
@@ -214,15 +214,15 @@ class CarFiguresBot(commands.AutoShardedBot):
             countries[country.pk] = country
         table.add_row("Countries", str(len(countries)))
 
-        specials.clear()
-        for special in await Special.all():
-            specials[special.pk] = special
-        table.add_row("Special events", str(len(specials)))
+        events.clear()
+        for event in await Event.all():
+            events[event.pk] = event
+        table.add_row("Events", str(len(events)))
 
-        self.blacklist = set()
-        for blacklisted_id in await BlacklistedID.all().only("discord_id"):
-            self.blacklist.add(blacklisted_id.discord_id)
-        table.add_row("Blacklisted users", str(len(self.blacklist)))
+        self.blacklist_user = set()
+        for blacklisted_id in await BlacklistedUser.all().only("discord_id"):
+            self.blacklist_user.add(blacklisted_id.discord_id)
+        table.add_row("Blacklisted users", str(len(self.blacklist_user)))
 
         self.blacklist_guild = set()
         for blacklisted_id in await BlacklistedGuild.all().only("discord_id"):
@@ -289,8 +289,8 @@ class CarFiguresBot(commands.AutoShardedBot):
             )
 
         await self.load_cache()
-        if self.blacklist:
-            log.info(f"{len(self.blacklist)} blacklisted users.")
+        if self.blacklist_user:
+            log.info(f"{len(self.blacklist_user)} blacklisted users.")
 
         log.info("Loading packages...")
         await self.add_cog(Core(self))
@@ -326,7 +326,7 @@ class CarFiguresBot(commands.AutoShardedBot):
                 if not guild:
                     continue
                 synced_commands = await self.tree.sync(guild=guild)
-                log.info(f"Synced {len(synced_commands)} super commands for guild {guild.id}.")
+                log.info(f"Synced {len(synced_commands)} {settings.superuser_group_cog_name} commands for guild {guild.id}.")
 
         if settings.prometheus_enabled:
             try:
@@ -340,7 +340,7 @@ class CarFiguresBot(commands.AutoShardedBot):
         )
 
     async def blacklist_check(self, interaction: discord.Interaction) -> bool:
-        if interaction.user.id in self.blacklist:
+        if interaction.user.id in self.blacklist_user:
             if interaction.type != discord.InteractionType.autocomplete:
                 await interaction.response.send_message(
                     "You are blacklisted from the bot."

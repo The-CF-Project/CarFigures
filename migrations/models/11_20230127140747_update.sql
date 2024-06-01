@@ -1,4 +1,4 @@
 -- upgrade --
-ALTER TABLE "blacklistedid" ADD "reason" TEXT;
+ALTER TABLE "blacklisteduser" ADD "reason" TEXT;
 -- downgrade --
-ALTER TABLE "blacklistedid" DROP COLUMN "reason";
+ALTER TABLE "blacklisteduser" DROP COLUMN "reason";

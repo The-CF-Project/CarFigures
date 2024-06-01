@@ -1,19 +1,18 @@
 import discord
 import logging
-import random
-import re
-from datetime import datetime
 
 from typing import TYPE_CHECKING
 
-from discord.utils import get
 from discord import app_commands
 from discord.ext import commands
-from discord.ui import Button
 
-from carfigures.core.models import DonationPolicy, PrivacyPolicy, CarInstance
-from carfigures.core.models import Player as PlayerModel
-from carfigures.packages.carfigures.carfigure import CarFigure
+from carfigures.core.models import (
+    DonationPolicy,
+    PrivacyPolicy,
+    Player as PlayerModel
+)
+from carfigures.packages.players.components import _get_10_cars_emojis
+
 
 from carfigures.settings import settings
 
@@ -21,6 +20,7 @@ if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
 
 log = logging.getLogger("carfigures.packages.players")
+
 
 class Player(commands.GroupCog):
     """
@@ -99,3 +99,40 @@ class Player(commands.GroupCog):
             await interaction.response.send_message("Invalid input!")
             return
         await user.save()  # do not save if the input is invalid
+
+    @app_commands.command()
+    async def profile(
+        self,
+        interaction: discord.Interaction,
+        user: discord.User | None = None
+        ):
+        """
+        Show your/other profile.
+        """
+
+        # Setting Up variables
+        cars = await _get_10_cars_emojis(self)
+        player_obj = interaction.user
+        player, _ = await PlayerModel.get_or_create(discord_id=player_obj.id)
+        await player.fetch_related("cars")
+
+        # Creating the Embed and Storting the variables in it
+        embed = discord.Embed(
+            title=f" ❖ {interaction.user.display_name}'s Profile", color=settings.default_embed_color
+        )
+
+        embed.description = (
+            f"{' '.join(str(x) for x in cars)}\n"
+            f"**∨ Player Settings**\n"
+            f"\u200b **⋄ Privacy Policy:** {player.privacy_policy.name}\n"
+            f"\u200b **⋄ Donation Policy:** {player.donation_policy.name}\n\n"
+            f"**∧ Player Info\n**"
+            f"\u200b **⋄ Cars Collected:** {len(player.cars)}\n"
+        )
+
+        embed.set_thumbnail(url=interaction.user.display_avatar.url)
+        embed.set_footer(
+            text=f"Requested by {interaction.user.display_name}",
+            icon_url=interaction.user.display_avatar.url
+        )
+        await interaction.response.send_message(embed=embed)

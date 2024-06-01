@@ -16,10 +16,10 @@ from discord.ext.commands import when_mentioned_or
 from rich import print
 from tortoise import Tortoise
 
-from carfigures import __version__ as bot_version
+from carfigures.settings import settings
 from carfigures.core.bot import CarFiguresBot
 from carfigures.logging import init_logger
-from carfigures.settings import read_settings, settings, update_settings, write_default_settings
+from carfigures.settings import read_settings, settings
 
 discord.voice_client.VoiceClient.warn_nacl = False  # disable PyNACL warning
 log = logging.getLogger("carfigures")
@@ -50,12 +50,7 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
     )
     parser.add_argument("--version", "-V", action="store_true", help="Display the bot's version")
     parser.add_argument(
-        "--config-file", type=Path, help="Set the path to config.yml", default=Path("./config.yml")
-    )
-    parser.add_argument(
-        "--reset-settings",
-        action="store_true",
-        help="Reset the config file with the latest default configuration",
+        "--config-file", type=Path, help="Set the path to settings.conf", default=Path("./settings.conf")
     )
     parser.add_argument("--disable-rich", action="store_true", help="Disable rich log format")
     parser.add_argument("--debug", action="store_true", help="Enable debug logs")
@@ -64,20 +59,12 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
     return args
 
 
-def reset_settings(path: Path):
-    write_default_settings(path)
-    print(f"[green]A new settings file has been written at [blue]{path}[/blue].[/green]")
-    print("[yellow]Configure the [bold]discord-token[/bold] value and restart the bot.[/yellow]")
-    sys.exit(0)
-
-
 def print_welcome():
-    print("[green]{0:-^50}[/green]".format(f" {settings.bot_name} bot "))
-    print("[green]{0:-^50}[/green]".format(f" A Fork of CarFigures "))
+    print("[green]{0:-^50}[/green]".format(f" {settings.bot_name}, A Fork of CarFigures "))
     print("[green]{0: ^50}[/green]".format(f" Collect {settings.collectible_name}s "))
     print("[blue]{0:^50}[/blue]".format("Discord bot made by El Laggron, Modified by Array"))
     print("")
-    print(" [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format("Bot version:", bot_version))
+    print(" [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format("Bot version:", settings.version))
     print(
         " [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format(
             "Discord.py version:", discord.__version__
@@ -233,19 +220,15 @@ def main():
     server = None
     cli_flags = parse_cli_flags(sys.argv[1:])
     if cli_flags.version:
-        print(f"CarFigures Discord bot - {bot_version}")
+        print(f"CarFigures Discord bot - {settings.version}")
         sys.exit(0)
-    if cli_flags.reset_settings:
-        print("[yellow]Resetting configuration file.[/yellow]")
-        reset_settings(cli_flags.config_file)
 
     try:
         read_settings(cli_flags.config_file)
     except FileNotFoundError:
-        print("[yellow]The config file could not be found, generating a default one.[/yellow]")
-        reset_settings(cli_flags.config_file)
-    else:
-        update_settings(cli_flags.config_file)
+        print("[red]The config file [blue]{cli_flags.config_file}[/blue] could not be found.[/red]")
+        print("[yellow]Please ensure the default config.conf file exists in the expected location.[/yellow]")
+        sys.exit(1)  # Exit with an error code to indicate missing config
 
     print_welcome()
     queue_listener: logging.handlers.QueueListener | None = None
@@ -259,7 +242,7 @@ def main():
         token = settings.bot_token
         if not token:
             log.error("Token not found!")
-            print("[red]You must provide a token inside the config.yml file.[/red]")
+            print("[red]You must provide a token inside the settings.conf file.[/red]")
             time.sleep(1)
             sys.exit(0)
 

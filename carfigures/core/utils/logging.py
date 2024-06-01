@@ -5,7 +5,7 @@ import discord
 from carfigures.core.bot import CarFiguresBot
 from carfigures.settings import settings
 
-log = logging.getLogger("carfigures.packages.superuser.cog")
+log = logging.getLogger("carfigures.packages.admin.cog")
 
 
 async def log_action(message: str, bot: CarFiguresBot, console_log: bool = False):

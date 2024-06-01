@@ -6,7 +6,7 @@ import enum
 import discord
 from discord.ui import Button, View, button
 
-from carfigures.core.models import CarInstance, Player, Trade, TradeObject, PrivacyPolicy
+from carfigures.core.models import CarInstance, Player, Trade, TradeObject, PrivacyPolicy, Event
 from carfigures.core.utils import menus
 from carfigures.core.utils.paginator import Pages
 
@@ -87,7 +87,9 @@ class SortingChoices(enum.Enum):
     alphabetic = "car__full_name"
     catch_date = "-catch_date"
     rarity = "car__rarity"
-    special = "special__id"
+    event = "event__id"
+    favorite = "-favorite"
+    limited = "limited"
     weight = "weight"
     horsepower = "horsepower"
     weight_bonus = "-weight_bonus"
@@ -95,9 +97,13 @@ class SortingChoices(enum.Enum):
     stats_bonus = "stats"
     total_stats = "total_stats"
 
-    # manual sorts are not sorted by SQL queries but by our code
-    # this may be do-able with SQL still, but I don't have much experience ngl
-    duplicates = "manualsort-duplicates"
+class SortingChoices2(enum.Enum):
+    alphabetic = "event__name"
+    expired = "expired"
+    running = "running"
+    newest = "newest"
+    oldest = "oldest"
+
 
 class CarFiguresSource(menus.ListPageSource):
     def __init__(self, entries: List[CarInstance]):
@@ -121,11 +127,11 @@ class CarFiguresSelector(Pages):
             emoji = self.bot.get_emoji(int(car.carfigure.emoji_id))
             favorite = "❤️ " if car.favorite else ""
             limited = "💠 " if car.limited else ""
-            special = car.special_emoji(self.bot, True)
+            event = car.event_emoji(self.bot, True)
             options.append(
                 discord.SelectOption(
-                    label=f"{favorite}{limited}{special}#{car.pk:0X} {car.carfigure.full_name}",
-                    description=f"HP: {car.horsepower_bonus:+d}% • KG: {car.weight_bonus:+d}% • "
+                    label=f"{favorite}{limited}{event}#{car.pk:0X} {car.carfigure.full_name}",
+                    description=f"{settings.hp_replacement}: {car.horsepower_bonus:+d}% • {settings.kg_replacement}: {car.weight_bonus:+d}% • "
                     f"Caught on {car.catch_date.strftime('%d/%m/%y %H:%M')}",
                     emoji=emoji,
                     value=f"{car.pk}",
@@ -164,10 +170,13 @@ async def inventory_privacy(
         if any(role.id in roles for role in interaction.user.roles):  # type: ignore
             return True
     if privacy_policy == PrivacyPolicy.DENY:
-        await interaction.followup.send(
-            "This user has set their inventory to private.", ephemeral=True
-        )
-        return False
+        if interaction.user.id != player_obj.id:
+            await interaction.followup.send(
+                "This user has set their inventory to private.", ephemeral=True
+            )
+            return False
+        else:
+            return True
     elif privacy_policy == PrivacyPolicy.SAME_SERVER:
         if not bot.intents.members:
             await interaction.followup.send(

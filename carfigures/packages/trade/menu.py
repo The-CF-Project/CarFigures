@@ -71,6 +71,8 @@ class TradeView(View):
                 ephemeral=True,
             )
         else:
+            for carfigure in trader.proposal:
+                await carfigure.unlock()
             trader.proposal.clear()
             await interaction.response.send_message("Proposal cleared.", ephemeral=True)
 
@@ -163,7 +165,7 @@ class TradeMenu:
         remove_command = self.cog.remove.extras.get("mention", "`/trade remove`")
 
         self.embed.title = f"{settings.collectible_name.title()}s trading"
-        self.embed.color = discord.Colour.blurple()
+        self.embed.color = settings.default_embed_color
         self.embed.description = (
             f"Add or remove {settings.collectible_name}s you want to propose to the other player "
             f"using the {add_command} and {remove_command} commands.\n"
@@ -328,7 +330,7 @@ class TradeMenu:
                 result = False
             except Exception:
                 log.exception(f"Failed to conclude trade {self.trader1=} {self.trader2=}")
-                self.embed.description = "An error occured when concluding the trade."
+                self.embed.description = "An error occurred when concluding the trade."
                 self.embed.colour = discord.Colour.red()
                 result = False
 

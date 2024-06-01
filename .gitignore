@@ -20,6 +20,7 @@ venv
 
 # Visual Studio code settings
 .vscode
+.idea
 
 # database
 *sqlite3*
@@ -29,5 +30,4 @@ venv
 .pytest_cache
 
 # settings
-config.yml
 docker-compose.override.yml
