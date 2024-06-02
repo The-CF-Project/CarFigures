@@ -543,7 +543,7 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
                 "That user was already blacklisted.", ephemeral=True
             )
         else:
-            self.bot.blacklist.add(user.id)
+            self.bot.blacklist_user.add(user.id)
             await interaction.response.send_message("User is now blacklisted.", ephemeral=True)
         await log_action(
             f"{interaction.user} blacklisted {user} ({user.id})"
@@ -595,7 +595,7 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
             await interaction.response.send_message("That user isn't blacklisted.", ephemeral=True)
         else:
             await blacklisted.delete()
-            self.bot.blacklist.remove(user.id)
+            self.bot.blacklist_user.remove(user.id)
             await interaction.response.send_message(
                 "User is now removed from blacklist.", ephemeral=True
             )
