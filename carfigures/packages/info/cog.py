@@ -103,7 +103,7 @@ class Info(commands.GroupCog):
             # value=f"\u200b **⋄** HiboMan\n"
             #       f"\u200b **⋄** Kotobc"
             #       f"\u200b **⋄** Pole_n",
-            #       f"\u200b **⋄** kingofthehill4965
+            #       f"\u200b **⋄** kingofthehill4965,
             value=contributors,
             inline=True
         )
