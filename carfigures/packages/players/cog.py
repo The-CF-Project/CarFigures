@@ -238,13 +238,13 @@ async def get_items_csv(player: PlayerModel) -> BytesIO:
     )
     txt = (
         f"id,hex id,{settings.collectible_name},catch date,trade_player"
-        ",event,limited,attack,attack bonus,hp,hp_bonus\n"
+        ",event,limited,horsepower,horsepower bonus,kg,kg_bonus\n"
     )
     for car in cars:
         txt += (
-            f"{car.id},{car.id:0X},{car.car.country},{car.catch_date},"  # type: ignore
+            f"{car.id},{car.id:0X},{car.car.full_name},{car.catch_date},"  # type: ignore
             f"{car.trade_player.discord_id if car.trade_player else 'None'},{car.event},"
-            f"{car.limited},{car.attack},{car.attack_bonus},{car.health},{car.health_bonus}\n"
+            f"{car.limited},{car.horsepower},{car.horsepower_bonus},{car.weight},{car.weight_bonus}\n"
         )
     return BytesIO(txt.encode("utf-8"))
 
