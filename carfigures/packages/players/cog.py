@@ -1,3 +1,5 @@
+import zipfile
+from io import BytesIO
 import discord
 import logging
 
@@ -5,12 +7,17 @@ from typing import TYPE_CHECKING
 
 from discord import app_commands
 from discord.ext import commands
+from tortoise.expressions import Q
 
 from carfigures.core.models import (
+    CarInstance,
     DonationPolicy,
     PrivacyPolicy,
+    Trade,
+    TradeObject,
     Player as PlayerModel
 )
+from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.packages.players.components import _get_10_cars_emojis
 
 
@@ -138,3 +145,130 @@ class Player(commands.GroupCog):
             icon_url=interaction.user.display_avatar.url
         )
         await interaction.response.send_message(embed=embed)
+
+    @app_commands.command()
+    async def delete(self, interaction: discord.Interaction):
+        """
+        Delete your player data.
+        """
+        view = ConfirmChoiceView(interaction)
+        await interaction.response.send_message(
+            "Are you sure you want to delete your player data?", view=view, ephemeral=True
+        )
+        await view.wait()
+        if view.value is None or not view.value:
+            return
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+        await player.delete()
+
+    @app_commands.command()
+    @app_commands.choices(
+        type=[
+            app_commands.Choice(name=settings.collectible_name.title(), value="cars"),
+            app_commands.Choice(name="Trades", value="trades"),
+            app_commands.Choice(name="All", value="all"),
+        ]
+    )
+    async def export(self, interaction: discord.Interaction, type: str):
+        """
+        Export your player data.
+        """
+        player = await PlayerModel.get_or_none(discord_id=interaction.user.id)
+        if player is None:
+            await interaction.response.send_message(
+                "You don't have any player data to export.", ephemeral=True
+            )
+            return
+        await interaction.response.defer()
+        files = []
+        if type == "cars":
+            data = await get_items_csv(player)
+            filename = f"{interaction.user.id}_{settings.collectible_name}.csv"
+            data.filename = filename  # type: ignore
+            files.append(data)
+        elif type == "trades":
+            data = await get_trades_csv(player)
+            filename = f"{interaction.user.id}_trades.csv"
+            data.filename = filename  # type: ignore
+            files.append(data)
+        elif type == "all":
+            cars = await get_items_csv(player)
+            trades = await get_trades_csv(player)
+            cars_filename = f"{interaction.user.id}_{settings.collectible_name}.csv"
+            trades_filename = f"{interaction.user.id}_trades.csv"
+            cars.filename = cars_filename  # type: ignore
+            trades.filename = trades_filename  # type: ignore
+            files.append(cars)
+            files.append(trades)
+        else:
+            await interaction.followup.send("Invalid input!", ephemeral=True)
+            return
+        zip_file = BytesIO()
+        with zipfile.ZipFile(zip_file, "w") as z:
+            for file in files:
+                z.writestr(file.filename, file.getvalue())
+        zip_file.seek(0)
+        if zip_file.tell() > 25_000_000:
+            await interaction.followup.send(
+                "Your data is too large to export."
+                "Please contact the bot support for more information.",
+                ephemeral=True,
+            )
+            return
+        files = [discord.File(zip_file, "player_data.zip")]
+        try:
+            await interaction.user.send("Here is your player data:", files=files)
+            await interaction.followup.send(
+                "Your player data has been sent via DMs.", ephemeral=True
+            )
+        except discord.Forbidden:
+            await interaction.followup.send(
+                "I couldn't send the player data to you in DM. "
+                "Either you blocked me or you disabled DMs in this server.",
+                ephemeral=True,
+            )
+
+
+async def get_items_csv(player: PlayerModel) -> BytesIO:
+    """
+    Get a CSV file with all items of the player.
+    """
+    cars = await CarInstance.filter(player=player).prefetch_related(
+        "car", "trade_player", "event"
+    )
+    txt = (
+        f"id,hex id,{settings.collectible_name},catch date,trade_player"
+        ",event,limited,horsepower,horsepower bonus,kg,kg_bonus\n"
+    )
+    for car in cars:
+        txt += (
+            f"{car.id},{car.id:0X},{car.car.full_name},{car.catch_date},"  # type: ignore
+            f"{car.trade_player.discord_id if car.trade_player else 'None'},{car.event},"
+            f"{car.limited},{car.horsepower},{car.horsepower_bonus},{car.weight},{car.weight_bonus}\n"
+        )
+    return BytesIO(txt.encode("utf-8"))
+
+
+async def get_trades_csv(player: PlayerModel) -> BytesIO:
+    """
+    Get a CSV file with all trades of the player.
+    """
+    trade_history = (
+        await Trade.filter(Q(player1=player) | Q(player2=player))
+        .order_by("date")
+        .prefetch_related("player1", "player2")
+    )
+    txt = "id,date,player1,player2,player1 received,player2 received\n"
+    for trade in trade_history:
+        player1_items = await TradeObject.filter(
+            trade=trade, player=trade.player1
+        ).prefetch_related("carinstance")
+        player2_items = await TradeObject.filter(
+            trade=trade, player=trade.player2
+        ).prefetch_related("carinstance")
+        txt += (
+            f"{trade.id},{trade.date},{trade.player1.discord_id},{trade.player2.discord_id},"
+            f"{','.join([i.carinstance.to_string() for i in player2_items])},"  # type: ignore
+            f"{','.join([i.carinstance.to_string() for i in player1_items])}\n"  # type: ignore
+        )
+    return BytesIO(txt.encode("utf-8"))
