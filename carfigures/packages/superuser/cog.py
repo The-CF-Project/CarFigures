@@ -1493,25 +1493,25 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
             ),
             color=settings.default_embed_color,
         )
-        embed.add_field(name=f"Cars Caught ({days} days)", value=len(total_user_cars))
+        embed.add_field(name=f"{settings.collectible_name.title()}s Caught ({days} days)", value=len(total_user_cars))
         embed.add_field(
-            name=f"{settings.collectible_name} Caught (Unique - ({days} days))",
+            name=f"{settings.collectible_name.title()}s Caught (Unique - ({days} days))",
             value=len(set(total_user_cars)),
         )
         embed.add_field(
-            name=f"Total Server with {settings.collectible_name}s caught ({days} days))",
+            name=f"Total Servers with {settings.collectible_name}s caught ({days} days))",
             value=len(set([x.server_id for x in total_user_cars])),
         )
         embed.add_field(
-            name=f"Total {settings.collectible_name}s Caught",
+            name=f"Total {settings.collectible_name.title()}s Caught",
             value=await CarInstance.filter(player__discord_id=user.id).count(),
         )
         embed.add_field(
-            name=f"Total Unique {settings.collectible_name}s Caught",
+            name=f"Total Unique {settings.collectible_name.title()}s Caught",
             value=len(set([x.carfigure for x in total_user_cars])),
         )
         embed.add_field(
-            name=f"Total Server with {settings.collectible_name}s Caught",
+            name=f"Total Servers with {settings.collectible_name.title()}s Caught",
             value=len(set([x.server_id for x in total_user_cars])),
         )
         embed.set_thumbnail(url=user.display_avatar)  # type: ignore
