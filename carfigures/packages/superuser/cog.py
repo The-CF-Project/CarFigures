@@ -1449,11 +1449,11 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
         embed.add_field(name="Spawn Enabled", value=spawn_enabled)
         embed.add_field(name="Created at", value=format_dt(guild.created_at, style="R"))
         embed.add_field(
-            name=f"{settings.collectible_name} Caught ({days} days)",
+            name=f"{settings.collectible_name.title()}s Caught ({days} days)",
             value=len(total_server_cars),
         )
         embed.add_field(
-            name=f"Amount of Users who caught {settings.collectible_name} ({days} days)",
+            name=f"Amount of Users who caught {settings.collectible_name}s ({days} days)",
             value=len(set([x.player.discord_id for x in total_server_cars])),
         )
         embed.set_thumbnail(url=guild.icon.url)  # type: ignore
