@@ -444,7 +444,8 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
             return
         if await carfigure.is_locked():
             await interaction.response.send_message(
-                f"This {settings.collectible_name} is currently locked for a trade. Please try again later."
+                f"This {settings.collectible_name} is currently locked for a trade. "
+                "Please try again later."
             )
             return
         await carfigure.lock_for_trade()
