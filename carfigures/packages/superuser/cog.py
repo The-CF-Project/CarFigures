@@ -1437,12 +1437,12 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
             embed = discord.Embed(
                 title=f"{guild.name} ({guild.id})",
                 description=f"Owner: {owner} ({guild.owner_id})",
-                color=settings.default_embed_color(),
+                color=settings.default_embed_color,
             )
         else:
             embed = discord.Embed(
                 title=f"{guild.name} ({guild.id})",
-                color=settings.default_embed_color(),
+                color=settings.default_embed_color,
             )
         embed.add_field(name="Members", value=guild.member_count)
         embed.add_field(name="Spawn Enabled", value=spawn_enabled)
@@ -1490,7 +1490,7 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
                 f"Privacy Policy: {PRIVATE_POLICY_MAP[player.privacy_policy]}\n"
                 f"Donation Policy: {DONATION_POLICY_MAP[player.donation_policy]}"
             ),
-            color=settings.default_embed_color(),
+            color=settings.default_embed_color,
         )
         embed.add_field(name=f"Cars Caught ({days} days)", value=len(total_user_cars))
         embed.add_field(
