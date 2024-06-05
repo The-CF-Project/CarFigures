@@ -93,22 +93,16 @@ class Info(commands.GroupCog):
         )
         embed.add_field(
             name="⋈ Developers",
-            # value=f"\u200b **⋄** El Laggron\n"
-            #       f"\u200b **⋄** Array_YE",
             value=developers,
             inline=True
         )
         embed.add_field(
             name="⋊ Contributors",
-            # value=f"\u200b **⋄** HiboMan\n"
-            #       f"\u200b **⋄** Kotobc"
-            #       f"\u200b **⋄** Pole_n",
             value=contributors,
             inline=True
         )
         embed.add_field(
             name="⋋ Testers\n",
-            # value=f"\u200b **⋄** Queen_the_darkner\n",
             value=testers,
             inline=True
         )
