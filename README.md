@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/Discord.py-ffffff?style=for-the-badge&logo=python&logoColor=blue)](https://python.org)
 [![Pull Requests](https://img.shields.io/badge/Pull_Request-white?style=for-the-badge&logo=git&logoColor=F1502F)](https://codeberg.org/Mintless/FlagsDex/pulls)
 [![Top.gg](https://img.shields.io/badge/Top.gg-white?style=for-the-badge&logo=top.gg&logoColor=ff3366)]()
-[![Server Invite](https://img.shields.io/badge/Server_Invite-white?style=for-the-badge&logo=discord&logoColor=7289da&)](https://discord.gg/PVFyN34ykA)
+[![Server Invite](https://img.shields.io/badge/Server_Invite-white?style=for-the-badge&logo=discord&logoColor=7289da&)](https://discord.gg/flags)
 
 ## Introduction
 
