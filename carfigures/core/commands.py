@@ -86,7 +86,7 @@ class Core(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def spawncar(
+    async def spawn(
         self,
         ctx: commands.Context,
         channel: discord.TextChannel | None = None,
@@ -95,7 +95,7 @@ class Core(commands.Cog):
         car: str | None = None,
     ):
         """
-        Force spawn a carfigure.
+        Spawn a carfigure.
         """
         for i in range(amount):
             if not car:
