@@ -92,8 +92,8 @@ class CarFigureNamePrompt(Modal, title=f"Catch this {settings.collectible_name}!
         player, created = await Player.get_or_create(discord_id=user.id)
 
         # stat may vary by +/- 20% of base stat
-        bonus_horsepower = random.randint(-50, 50)
-        bonus_weight = random.randint(-50, 50)
+        bonus_horsepower = random.randint(-20, 20)
+        bonus_weight = random.randint(-20, 20)
         limited = random.randint(1, 2048) == 1
 
         # check if we can spawn cards with the event card
