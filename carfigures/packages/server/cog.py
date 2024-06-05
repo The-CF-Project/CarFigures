@@ -104,7 +104,7 @@ class Server(commands.GroupCog):
             else:
                 await interaction.response.send_message(
                     f"{settings.bot_name} is now enabled in this server, however there is no "
-                    "spawning channel set. Please configure one with `/config channel`."
+                    "spawning channel set. Please configure one with `/server channel`."
                 )
 
     @app_commands.command()
