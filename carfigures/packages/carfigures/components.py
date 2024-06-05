@@ -91,7 +91,7 @@ class CarFigureNamePrompt(Modal, title=f"Catch this {settings.collectible_name}!
     ) -> tuple[CarInstance, bool]:
         player, created = await Player.get_or_create(discord_id=user.id)
 
-        # stat may vary by +/- 20% of base stat
+        # stat may vary by +/- 50% of base stat
         bonus_horsepower = random.randint(-50, 50)
         bonus_weight = random.randint(-50, 50)
         limited = random.randint(1, 2048) == 1
