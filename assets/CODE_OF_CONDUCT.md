@@ -1,4 +1,4 @@
-# CarFigures Project Code of Conduct
+# FlagsDex Project Code of Conduct
 
 ## Our Pledge
 
