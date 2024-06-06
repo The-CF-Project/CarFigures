@@ -188,7 +188,7 @@ class CarInstanceTransformer(ModelTransformer[CarInstance]):
                     "carinstance__car.catch_names"
                 )
             )
-            .filter(searchable__icontains=value)
+            .filter(searchable__icontains=value.replace(".", ""))
             .limit(25)
         )
 
