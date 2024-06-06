@@ -6,7 +6,18 @@ from starlette.requests import Request
 from starlette.responses import Response
 from tortoise.exceptions import DoesNotExist
 
-from carfigures.core.models import Car, CarInstance, GuildConfig, Player, Event
+from carfigures.core.models import (
+    Admin,
+    BlacklistedUser,
+    BlacklistedGuild,
+    Car,
+    CarInstance,
+    CarType,
+    Country,
+    GuildConfig,
+    Player,
+    Event,
+)
 
 
 @app.get("/")
@@ -19,10 +30,16 @@ async def admin(
         context={
             "request": request,
             "resources": resources,
-            "car_count": await Car.all().count(),
+            "admin_count": await Admin.all().count(),
+            "event_count": await Event.all().count(),
+            "card_count": await CarType.all().count(),
+            "icon_count": await Country.all().count(),
+            "entity_count": await Car.all().count(),
+            "instance_count": await CarInstance.all().count(),
             "player_count": await Player.all().count(),
             "guild_count": await GuildConfig.all().count(),
-            "event_count": await Event.all().count(),
+            "blacklisteduser_count": await BlacklistedUser.all().count(),
+            "blacklistedguild_count": await BlacklistedGuild.all().count(),
             "resource_label": "Dashboard",
             "page_pre_title": "overview",
             "page_title": "Dashboard",
@@ -51,7 +68,7 @@ async def generate_event_card(
         car = await Car.first().prefetch_related("cartype", "country")
     except DoesNotExist:
         return Response(
-            content="At least one car must exist", status_code=422, media_type="text/html"
+            content="At least one entity must exist", status_code=422, media_type="text/html"
         )
     temp_instance = CarInstance(car=car, event=event, player=await Player.first(), count=1)
     buffer = temp_instance.draw_card()

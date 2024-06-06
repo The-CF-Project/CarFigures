@@ -464,9 +464,9 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
         limited: bool
             Omit this to make it random.
         weight_bonus: int | None
-            Omit this to make it random (-20/+20%).
+            Omit this to make it random (-50/+50%).
         horsepower_bonus: int | None
-            Omit this to make it random (-20/+20%).
+            Omit this to make it random (-50/+50%).
         """
         # the transformers triggered a response, meaning user tried an incorrect input
         if interaction.response.is_done():
@@ -479,8 +479,8 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
                 car=car,
                 player=player,
                 limited=(limited if limited is not None else random.randint(1, 2048) == 1),
-                horsepower_bonus=(horsepower_bonus if horsepower_bonus is not None else random.randint(-20, 20)),
-                weight_bonus=(weight_bonus if weight_bonus is not None else random.randint(-20, 20)),
+                horsepower_bonus=(horsepower_bonus if horsepower_bonus is not None else random.randint(-50, 50)),
+                weight_bonus=(weight_bonus if weight_bonus is not None else random.randint(-50, 50)),
                 event=event,
             )
         await interaction.followup.send(
