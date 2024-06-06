@@ -54,6 +54,7 @@ class DonationRequest(View):
         self.stop()
         for item in self.children:
             item.disabled = True  # type: ignore
+        self.carfigure.favorite = False
         self.carfigure.trade_player = self.carfigure.player
         self.carfigure.player = self.new_player
         await self.carfigure.save()
