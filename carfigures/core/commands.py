@@ -95,7 +95,7 @@ class Core(commands.Cog):
         car: str | None = None,
     ):
         """
-        Spawn a carfigure.
+        Spawn an entity.
         """
         for i in range(amount):
             if not car:
@@ -104,7 +104,7 @@ class Core(commands.Cog):
                 try:
                     car_model = await Car.get(full_name__iexact=car.lower())
                 except DoesNotExist:
-                    await ctx.send("No such carfigure exists.")
+                    await ctx.send("No such entity exists.")
                     return
                 carfigure = CarFigure(car_model)
             await carfigure.spawn(channel or ctx.channel)
