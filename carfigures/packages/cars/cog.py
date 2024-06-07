@@ -433,7 +433,7 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
             The user you want to give a carfigure to
         carfigure: CarInstance
             The carfigure you're giving away
-         event: Event
+        event: Event
             Filter the results of autocompletion to an event. Ignored afterwards.
         limited: bool
             Filter the results of autocompletion to limiteds. Ignored afterwards.
