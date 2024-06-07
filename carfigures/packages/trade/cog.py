@@ -211,7 +211,13 @@ class Trade(commands.GroupCog):
         )
 
     @app_commands.command(extras={"trade": TradeCommandType.REMOVE})
-    async def remove(self, interaction: discord.Interaction, carfigure: CarInstanceTransform):
+    async def remove(
+        self,
+        interaction: discord.Interaction,
+        carfigure: CarInstanceTransform,
+        event: EventEnabledTransform | None = None,
+        limited: bool | None = None,
+        ):
         """
         Remove a carfigure from what you proposed in the ongoing trade.
 
@@ -219,6 +225,10 @@ class Trade(commands.GroupCog):
         ----------
         carfigure: CarInstance
             The carfigure you want to remove from your proposal
+        event: Event
+            Filter the results of autocompletion to an event. Ignored afterwards.
+        limited: bool
+            Filter the results of autocompletion to limiteds. Ignored afterwards.
         """
         if not carfigure:
             return
