@@ -76,7 +76,7 @@ class Core(commands.Cog):
     @commands.is_owner()
     async def analyzedb(self, ctx: commands.Context):
         """
-        Analyze the database. This refreshes the counts displayed by the `/about` command.
+        Analyze the database. This refreshes the counts displayed by the `/info status` command.
         """
         connection = Tortoise.get_connection("default")
         t1 = time.time()
@@ -86,7 +86,7 @@ class Core(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
-    async def spawncar(
+    async def spawn(
         self,
         ctx: commands.Context,
         channel: discord.TextChannel | None = None,
@@ -95,7 +95,7 @@ class Core(commands.Cog):
         car: str | None = None,
     ):
         """
-        Force spawn a carfigure.
+        Spawn an entity.
         """
         for i in range(amount):
             if not car:
@@ -104,7 +104,7 @@ class Core(commands.Cog):
                 try:
                     car_model = await Car.get(full_name__iexact=car.lower())
                 except DoesNotExist:
-                    await ctx.send("No such carfigure exists.")
+                    await ctx.send(f"No such {settings.collectible_name} exists.")
                     return
                 carfigure = CarFigure(car_model)
             await carfigure.spawn(channel or ctx.channel)
