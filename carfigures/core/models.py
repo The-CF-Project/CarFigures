@@ -31,7 +31,9 @@ async def lower_catch_names(
     update_fields: Iterable[str] | None = None,
 ):
     if instance.catch_names:
-        instance.catch_names = instance.catch_names.lower()
+        instance.catch_names = ";".join(
+            [x.strip() for x in instance.catch_names.split(";")]
+        ).lower()
 
 
 class DiscordSnowflakeValidator(validators.Validator):
@@ -367,7 +369,7 @@ class CarInstance(models.Model):
             if isinstance(self.carfigure, Car)
             else f"<Car {self.car_id}>"
         )
-        return f"{emotes}#{self.pk:0X} {full_name} "
+        return f"{emotes}#{self.pk:0X} {full_name}"
 
     def event_emoji(self, bot: discord.Client | None, use_custom_emoji: bool = True) -> str:
         if self.eventcard:
