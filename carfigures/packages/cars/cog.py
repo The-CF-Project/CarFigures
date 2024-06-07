@@ -421,6 +421,8 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
             interaction: discord.Interaction,
             user: discord.User,
             carfigure: CarInstanceTransform,
+            event: EventEnabledTransform | None = None,
+            limited: bool | None = None,
     ):
         """
         Give a carfigure to a user.
@@ -431,6 +433,10 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
             The user you want to give a carfigure to
         carfigure: CarInstance
             The carfigure you're giving away
+         event: Event
+            Filter the results of autocompletion to an event. Ignored afterwards.
+        limited: bool
+            Filter the results of autocompletion to limiteds. Ignored afterwards.
         """
         if not carfigure:
             return
