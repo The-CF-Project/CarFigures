@@ -349,6 +349,8 @@ class PlayerResource(Model):
     fields = [
         "discord_id",
         "cars",
+        "donation_policy",
+        "privacy_policy",
     ]
 
 
