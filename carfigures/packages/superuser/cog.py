@@ -22,7 +22,6 @@ from carfigures.core.models import (
     Player,
     Trade,
     TradeObject,
-    cars,
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.core.utils.logging import log_action
@@ -131,8 +130,13 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
         await interaction.response.send_message("Status updated.", ephemeral=True)
 
     @app_commands.command()
-    @app_commands.checks.has_any_role(*settings.root_role_ids, *settings.superuser_role_ids)
-    async def rarity(self, interaction: discord.Interaction["CarFiguresBot"], chunked: bool = True):
+    @app_commands.checks.has_any_role(*settings.root_role_ids)
+    async def rarity(
+        self,
+        interaction: discord.Interaction["CarFiguresBot"],
+        chunked: bool = True
+        include_disabled: bool = False,
+        ):
         """
         Generate a list of carfigures ranked by rarity.
 
@@ -140,23 +144,31 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
         ----------
         chunked: bool
             Group together carfigures with the same rarity.
+        include_disabled: bool
+            Include the carfigures that are disabled or with a rarity of 0.
         """
         text = ""
-        sorted_cars = sorted(cars.values(), key=lambda x: x.rarity, reverse=True)
+        cars_queryset = Car.all().order_by("rarity")
+        if not include_disabled:
+            cars_queryset = cars_queryset.filter(rarity__gt=0, enabled=True)
+        sorted_cars = await cars_queryset
 
         if chunked:
             indexes: dict[float, list[Car]] = defaultdict(list)
             for car in sorted_cars:
                 indexes[car.rarity].append(car)
-            for i, chunk in enumerate(indexes.values(), start=1):
+            i = 1
+            for chunk in indexes.values():
                 for car in chunk:
                     text += f"{i}. {car.full_name}\n"
+                i += len(chunk)
         else:
             for i, car in enumerate(sorted_cars, start=1):
                 text += f"{i}. {car.full_name}\n"
 
         source = TextPageSource(text, prefix="```md\n", suffix="```")
         pages = Pages(source=source, interaction=interaction, compact=True)
+        pages.remove_item(pages.stop_pages)
         await pages.start(ephemeral=True)
 
     @app_commands.command()
