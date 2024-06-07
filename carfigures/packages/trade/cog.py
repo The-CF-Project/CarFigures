@@ -12,6 +12,7 @@ from carfigures.core.models import Trade as TradeModel
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.core.utils.paginator import Pages
 from carfigures.core.utils.transformers import (
+    CarEnabledTransform,
     CarInstanceTransform,
     EventEnabledTransform,
     TradeCommandType,
@@ -284,6 +285,7 @@ class Trade(commands.GroupCog):
         interaction: discord.Interaction["CarFiguresBot"],
         sorting: app_commands.Choice[str],
         trade_user: discord.User | None = None,
+        carfigure: CarEnabledTransform | None = None,
     ):
         """
         Show the history of your trades.
@@ -294,6 +296,8 @@ class Trade(commands.GroupCog):
             The sorting order of the trades
         trade_user: discord.User | None
             The user you want to see your trade history with
+        carfigure: CarEnabledTransform | None
+            The carfigure you want to filter the trade history by.
         """
         await interaction.response.defer(ephemeral=True, thinking=True)
         user = interaction.user
@@ -306,9 +310,17 @@ class Trade(commands.GroupCog):
             history_queryset = TradeModel.filter(
                 Q(player1__discord_id=user.id) | Q(player2__discord_id=user.id)
             )
+
+        if carfigure:
+            queryset = queryset.filter(
+                Q(player1__tradeobjects__carinstance__car=carfigure)
+                | Q(player2__tradeobjects__carinstance__car=carfigure)
+            ).distinct()  # for some reason, this query creates a lot of duplicate rows?
+
         history = await history_queryset.order_by(sorting.value).prefetch_related(
             "player1", "player2"
         )
+
         if not history:
             await interaction.followup.send("No history found.", ephemeral=True)
             return
