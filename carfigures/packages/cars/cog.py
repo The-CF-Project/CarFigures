@@ -50,7 +50,10 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
     def __init__(self, bot: "CarFiguresBot"):
         self.bot = bot
 
-    @app_commands.command()
+    @app_commands.command(
+        name=settings.command_names["garage"],
+        description=settings.command_descs["garage"]
+    )
     @app_commands.checks.cooldown(1, 10, key=lambda i: i.user.id)
     async def garage(
             self,
@@ -146,7 +149,10 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
                 content=f"Viewing {player_obj.name}'s {settings.collectible_name}s"
             )
 
-    @app_commands.command()
+    @app_commands.command(
+        name=settings.command_names["exhibit"],
+        description=settings.command_descs["exhibit"]
+    )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def exhibit(
             self,
@@ -271,7 +277,10 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
         pages = Pages(source=source, interaction=interaction, compact=True)
         await pages.start()
 
-    @app_commands.command()
+    @app_commands.command(
+        name=settings.command_names["show"],
+        description=settings.command_descs["show"]
+    )
     @app_commands.checks.cooldown(1, 5, key=lambda i: i.user.id)
     async def show(
             self,
@@ -299,7 +308,10 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
         await interaction.followup.send(content=content, file=file)
         file.close()
 
-    @app_commands.command()
+    @app_commands.command(
+        name=settings.command_names["info"],
+        description=settings.command_descs["info"]
+    )
     @app_commands.checks.cooldown(1, 5, key=lambda i: i.user.id)
     async def info(self, interaction: discord.Interaction, carfigure: CarEnabledTransform):
         """
@@ -333,7 +345,10 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
             )
         await interaction.response.send_message(embed=car_info_embed)  # Send the car information embed as a response
 
-    @app_commands.command()
+    @app_commands.command(
+        name=settings.command_names["last"],
+        description=settings.command_descs["last"]
+    )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def last(self, interaction: discord.Interaction, user: discord.User | None = None):
         """
@@ -373,7 +388,10 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
         await interaction.followup.send(content=content, file=file)
         file.close()
 
-    @app_commands.command()
+    @app_commands.command(
+        name=settings.command_names["favorite"],
+        description=settings.command_descs["favorite"]
+    )
     async def favorite(self, interaction: discord.Interaction, carfigure: CarInstanceTransform):
         """
         Set favorite carfigures.
@@ -415,7 +433,11 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
                 ephemeral=True,
             )
 
-    @app_commands.command(extras={"trade": TradeCommandType.PICK})
+    @app_commands.command(
+        name=settings.command_names["give"],
+        description=settings.command_descs["give"],
+        extras={"trade": TradeCommandType.PICK}
+    )
     async def give(
             self,
             interaction: discord.Interaction,
@@ -496,7 +518,10 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
         )
         await carfigure.unlock()
 
-    @app_commands.command()
+    @app_commands.command(
+        name=settings.command_names["count"],
+        description=settings.command_descs["count"]
+    )
     async def count(
             self,
             interaction: discord.Interaction,
@@ -549,7 +574,10 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
             f"{full_name}{settings.collectible_name}{plural}{guild}."
         )
 
-    @app_commands.command()
+    @app_commands.command(
+        name=settings.command_names["rarity"],
+        description=settings.command_descs["rarity"]
+    )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def rarity(
             self,
@@ -602,7 +630,10 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
         pages = Pages(source=source, interaction=interaction, compact=False)
         await pages.start()
 
-    @app_commands.command()
+    @app_commands.command(
+        name=settings.command_names["compare"],
+        description=settings.command_descs["compare"]
+    )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def compare(
             self,

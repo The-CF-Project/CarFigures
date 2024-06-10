@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from configparser import ConfigParser
+import tomllib
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -102,70 +102,64 @@ class Settings:
     prometheus_host: str = "0.0.0.0"
     prometheus_port: int = 15260
 
+    # commands
+    command_names: dict = field(default_factory=dict)
+    command_descs: dict = field(default_factory=dict)
+
 
 settings = Settings()
 
 
 def read_settings(path: "Path"):
-    config = ConfigParser()
-    config.read(path)
+    with open(path, "rb") as f:
+        config = tomllib.load(f)
 
-    settings.bot_token = config.get('settings', 'bot_token')
-    gateway = config.get('settings', 'gateway_url', fallback=None)
-    if gateway == '':
-        settings.gateway_url = None
-    else:
-        settings.gateway_url = config.get('settings', 'gateway_url', fallback=None)
-    shard = config.get('settings', 'shard_count')
-    if shard == '':  # Check for empty string
-        settings.shard_count = None
-    else:
-        settings.shard_count = config.getint('settings', 'shard_count', fallback=1)
-    settings.prefix = config.get('settings', 'text_prefix')
-    settings.max_favorites = config.getint('settings', 'max-favorites')
-    settings.spawnalert = config.getboolean('settings', 'spawnalert', fallback=True)
-    settings.version = config.get('settings', 'version')
+    settings.bot_token = config["settings"]["bot_token"]
+    # settings.gateway_url = config["settings"].get("gateway_url", None)
+    # shard_count = config["settings"].get("shard_count")
+    # settings.shard_count = int(shard_count) if shard_count else None
+    settings.prefix = config["settings"]["text_prefix"]
+    settings.spawnalert = config["settings"]["spawnalert"]
+    settings.version = config["settings"]["version"]
+    settings.default_embed_color = int(config["settings"]["default_embed_color"], 16)
 
-    settings.team_owners = config.getboolean('owners', 'team-members-are-owners', fallback=False)
-    settings.co_owners = [owner.strip() for owner in config.get('owners', 'co-owners', fallback=[]).split(',')]
+    settings.collectible_name = config["appearance"]["bot"]["collectible_name"]
+    settings.bot_name = config["appearance"]["bot"]["bot_name"]
+    settings.players_group_cog_name = config["appearance"]["bot"]["players_group_cog_name"]
+    settings.superuser_group_cog_name = config["appearance"]["bot"]["superuser_group_cog_name"]
 
-    settings.collectible_name = config.get('appearance', 'collectible-name')
-    settings.bot_name = config.get('appearance', 'bot-name')
-    settings.players_group_cog_name = config.get('appearance', 'players-group-cog-name')
-    settings.superuser_group_cog_name = config.get('appearance', 'superuser-group-cog-name')
-    settings.cartype_replacement = config.get('appearance', 'cartype')
-    settings.country_replacement = config.get('appearance', 'country')
-    settings.horsepower_replacement = config.get('appearance', 'horsepower')
-    settings.weight_replacement = config.get('appearance', 'weight')
-    settings.hp_replacement = config.get('appearance', 'hp')
-    settings.kg_replacement = config.get('appearance', 'kg')
-    settings.default_embed_color = int(config.get('appearance', 'default-embed-color'), 16)
+    settings.cartype_replacement = config["appearance"]["interface"]["cartype"]
+    settings.country_replacement = config["appearance"]["interface"]["country"]
+    settings.horsepower_replacement = config["appearance"]["interface"]["horsepower"]
+    settings.weight_replacement = config["appearance"]["interface"]["weight"]
+    settings.hp_replacement = config["appearance"]["interface"]["hp"]
+    settings.kg_replacement = config["appearance"]["interface"]["kg"]
 
-    settings.repository_link = config.get('info', 'repository-link')
-    settings.discord_invite = config.get('info', 'discord-invite')
-    settings.terms_of_service = config.get('info', 'terms-of-service')
-    settings.privacy_policy = config.get('info', 'privacy_policy')
-    settings.top_gg = config.get('info', 'top.gg', fallback=None)
+    #settings.info_description = config["info"]["info_description"]
+    settings.repository_link = config["info"]["repository_link"]
+    settings.discord_invite = config["info"]["discord_invite"]
+    settings.terms_of_service = config["info"]["terms_of_service"]
+    settings.privacy_policy = config["info"]["privacy_policy"]
+    settings.top_gg = config["info"]["top_gg"]
 
-    # Get Credits Information
-    settings.developers = config.get('credits', 'developers').split(',')
-    settings.contributors = config.get('credits', 'contributors').split(',')
-    settings.testers = config.get('credits', 'testers').split(',')
+    settings.developers = config["credits"]["developers"]
+    settings.contributors = config["credits"]["contributors"]
+    settings.testers = config["credits"]["testers"]
 
-    # Superuser Command Section
-    settings.superuser_guild_ids = [int(guild_id.strip()) for guild_id in config.get('superuser-command', 'guild-ids', fallback=[]).split(',')]
-    settings.root_role_ids = [int(role_id.strip()) for role_id in config.get('superuser-command', 'root-role-ids', fallback=[]).split(',')]
-    settings.superuser_role_ids = [int(role_id.strip()) for role_id in config.get('superuser-command', 'superuser-role-ids', fallback=[]).split(',')]
+    settings.superuser_guild_ids = config["superuser"]["guild_ids"]
+    settings.root_role_ids = config["superuser"]["root_role_ids"]
+    settings.superuser_role_ids = config["superuser"]["superuser_role_ids"]
+    settings.log_channel = config["superuser"]["log_channel"]
 
-    # Handle optional settings with potential None values
-    try:
-        settings.log_channel = config.getint('superuser-command', 'log-channel')
-    except ValueError:
-        settings.log_channel = None  # Handle potential invalid log_channel value
+    settings.team_owners = config["owners"]["team_members_are_owners"]
+    settings.co_owners = config["owners"]["co_owners"]
 
-    # Prometheus Section (assuming all settings are strings)
-    settings.prometheus_enabled = config.get('prometheus', 'enabled')
-    settings.prometheus_host = config.get('prometheus', 'host')
-    settings.prometheus_port = config.get('prometheus', 'port')
+    settings.prometheus_enabled = config["prometheus"]["enabled"]
+    settings.prometheus_host = config["prometheus"]["host"]
+    settings.prometheus_port = config["prometheus"]["port"]
 
+    settings.command_names = config["appearance"]["commands"]["names"]
+    settings.command_descs = config["appearance"]["commands"]["descs"]
+
+    log.info("Loaded the bot settings")
 

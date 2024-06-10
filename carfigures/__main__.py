@@ -50,7 +50,7 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
     )
     parser.add_argument("--version", "-V", action="store_true", help="Display the bot's version")
     parser.add_argument(
-        "--config-file", type=Path, help="Set the path to settings.conf", default=Path("./settings.conf")
+        "--config-file", type=Path, help="Set the path to settings.conf", default=Path("./settings.toml")
     )
     parser.add_argument("--disable-rich", action="store_true", help="Disable rich log format")
     parser.add_argument("--debug", action="store_true", help="Enable debug logs")
