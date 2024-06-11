@@ -77,8 +77,6 @@ and after doing it, the final results should be like this, with the end line say
 
 That's it! You're all set to rock and roll with CarFigures!\
 If you run into any trouble along the way, don't hesitate to reach out for help. We're here to make sure you have a smooth ride.
-The config file {cli_flags.config_file} could not be found.
----
 
 ## Contributing to CarFigures!
 
