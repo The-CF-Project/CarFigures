@@ -1,7 +1,7 @@
 # CarFigures - The Enhanced BallsDex.
 
 ![CarFigures Logo](assets/logos/Banner.png)
-[![Lucrative Profile](https://img.shields.io/badge/Array's Profile-ffffff?style=for-the-badge&logo=codeberg&logoColor=black)](https://codeberg.org/Lucrative/)
+[![Lucrative Profile](https://img.shields.io/badge/Array's%20Profile-ffffff?style=for-the-badge&logo=codeberg&logoColor=black)](https://codeberg.org/Lucrative/)
 [![Python](https://img.shields.io/badge/Discord.py-ffffff?style=for-the-badge&logo=python&logoColor=blue)](https://python.org)
 [![Pull Requests](https://img.shields.io/badge/Pull_Requests-white?style=for-the-badge&logo=git&logoColor=F1502F)](https://codeberg.org/Lucrative/CarFigures/pulls)
 [![Top.gg](https://img.shields.io/badge/Top.gg-white?style=for-the-badge&logo=top.gg&logoColor=ff3366)]()
