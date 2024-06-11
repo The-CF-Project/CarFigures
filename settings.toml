@@ -1,0 +1,127 @@
+# Configuration file for CarFigures Discord Bot
+
+[settings]
+# Discord bot token (example token, doesn't work)
+bot_token = "MTE0MTczOTAxMzcxMjExNzgwMg.GFyRKj.uzKTw-OmrRUZDFUwBhRvaLxE9Ly8syIDvTHUec"
+
+# Optional settings
+# (Leave empty if you don't know what that means)
+gateway_url = ""
+# Number of shards to use for this bot instance
+shard_count = 1
+
+# Command prefix
+text_prefix = "c."
+# Maximum number of favorites a user can have (default: 50)
+max_favorites = 50
+# Allow people to enable the /server spawnalert command and get pinged when stuff spawns 
+spawnalert = true
+# Bot Release Version, Recommended to stick to the CF Current Number
+version = "2.0.0"
+# Default embed color in the bot (hex without #)
+default_embed_color = "5865F2"
+
+[owners]
+# If enabled and the application is under a team, all team members will be considered as owners
+team_members_are_owners = false
+
+# A list of IDs that must be considered owners in addition to the application/team owner
+# Separate IDs with commas (,)
+co_owners = [877557616094638112]
+
+[appearance.bot]
+# Name of the collectable displayed in the bot (e.g., carfigure)
+collectible_name = "carfigure"
+
+# Name of the bot displayed in the bot (e.g., CarFigures)
+bot_name = "CarFigures"
+
+# Name of the command group for player-related commands (e.g., cars)
+players_group_cog_name = "cars"
+
+# Name of the command group for admin-related commands (e.g., sudo)
+superuser_group_cog_name = "sudo"
+
+[appearance.interface]
+# Replacing Namings in the bot interface, like Embeds
+cartype = "CarType"
+country = "Country"
+horsepower = "Horsepower"
+weight = "Weight"
+kg = "KG"
+hp = "HP"
+
+[appearance.commands.names]
+# Command names
+garage = "homos"
+exhibit = "exhibit"
+show = "show"
+info = "info"
+last = "last"
+favorite = "favorite"
+give = "give"
+count = "count"
+rarity = "rarity"
+compare = "compare"
+
+[appearance.commands.descs]
+# Command descriptions
+garage = "Show Your Homos!"
+exhibit = "Show your showroom in the bot."
+show = "Display info from your carfigures collection."
+info = "Display info from a specific carfigure."
+last = "Display info of your or another user's last caught carfigure."
+favorite = "Set favorite carfigures."
+give = "Give a carfigure to a user."
+count = "Count how many carfigures you have."
+rarity = "Show the rarity list of the bot."
+compare = "Compare two carfigures."
+
+[info]
+# Link to the bot's repository (e.g., GitHub)
+repository_link = "https://codeberg.org/array_ye/CarFigures"
+
+# Link to the bot's Discord server invite
+discord_invite = "https://discord.com/invite/PVFyN34ykA"
+
+# Link to the bot's terms of service
+terms_of_service = "https://codeberg.org/array_ye/CarFigures/src/branch/stable/assets/TERMS_OF_SERVICE.md"
+
+# Link to the bot's privacy policy
+privacy_policy = "https://codeberg.org/array_ye/CarFigures/src/branch/stable/assets/PRIVACY_POLICY.md"
+
+# Link to the bot on Top.gg (optional)
+top_gg = "https://top.gg/bot/1127506544578277446"
+
+[credits]
+# While this is made to make it easier to include yourself and your team/contributors
+# you are NOT allowed to remove ANY name from the developers section.
+# Separate names with commas (,)
+developers = ["El Laggron", "Array_YE", "HiboMan"]
+contributors = ["Kotobc", "Pole_n", "Artemv"]
+testers = ["Queen_the_darkner"]
+
+[superuser]
+# List of guild IDs where the /sudo command should be registered
+# Separate IDs with commas (,)
+guild_ids = [1127508116150439958]
+
+# List of role IDs having full access to /sudo
+# Separate IDs with commas (,)
+root_role_ids = [1127523232933756958]
+
+# List of role IDs having partial access to /sudo (blacklist and guilds)
+# Separate IDs with commas (,)
+superuser_role_ids = [1206246119043244122]
+
+# Log channel ID for Admin Commands logging
+log_channel = 1144639514296459316
+
+[prometheus]
+# Enable Prometheus metrics collection (default: false)
+enabled = false
+# Host for Prometheus metrics (default: 0.0.0.0)
+host = "0.0.0.0"
+# Port for Prometheus metrics (default: 15260)
+port = 15260
+
