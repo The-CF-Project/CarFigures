@@ -136,15 +136,15 @@ def read_settings(path: "Path"):
     settings.kg_replacement = config["appearance"]["interface"]["kg"]
 
     #settings.info_description = config["info"]["info_description"]
-    settings.repository_link = config["info"]["repository_link"]
-    settings.discord_invite = config["info"]["discord_invite"]
-    settings.terms_of_service = config["info"]["terms_of_service"]
-    settings.privacy_policy = config["info"]["privacy_policy"]
-    settings.top_gg = config["info"]["top_gg"]
+    settings.repository_link = config["info"]["links"]["repository_link"]
+    settings.discord_invite = config["info"]["links"]["discord_invite"]
+    settings.terms_of_service = config["info"]["links"]["terms_of_service"]
+    settings.privacy_policy = config["info"]["links"]["privacy_policy"]
+    settings.top_gg = config["info"]["links"]["top_gg"]
 
-    settings.developers = config["credits"]["developers"]
-    settings.contributors = config["credits"]["contributors"]
-    settings.testers = config["credits"]["testers"]
+    settings.developers = config["info"]["credits"]["developers"]
+    settings.contributors = config["info"]["credits"]["contributors"]
+    settings.testers = config["info"]["credits"]["testers"]
 
     settings.superuser_guild_ids = config["superuser"]["guild_ids"]
     settings.root_role_ids = config["superuser"]["root_role_ids"]

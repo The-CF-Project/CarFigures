@@ -1,6 +1,6 @@
-# CarFigures - BallsDex, but better.
+# CarFigures - The Enhanced BallsDex.
 
-![CarFigures Logo](assets/Banner.png)
+![CarFigures Logo](assets/logos/Banner.png)
 [![Lucrative Profile](https://img.shields.io/badge/Array's Profile-ffffff?style=for-the-badge&logo=codeberg&logoColor=black)](https://codeberg.org/Lucrative/)
 [![Python](https://img.shields.io/badge/Discord.py-ffffff?style=for-the-badge&logo=python&logoColor=blue)](https://python.org)
 [![Pull Requests](https://img.shields.io/badge/Pull_Requests-white?style=for-the-badge&logo=git&logoColor=F1502F)](https://codeberg.org/Lucrative/CarFigures/pulls)
@@ -9,14 +9,12 @@
 
 ## About CarFigures
 
-**CarFigures (CF)** was born out of frustration with the BallsDex team. Initially, I had no particular liking for the idea; it was more about a response to dissatisfaction. The BallsDex team wasn't keen on implementing features that many of us felt were essential. There was no rarity list, no event banners—essentially, no significant updates or improvements.
+**CarFigures (CF)** was born out of disagreement with the BallsDex team's decisions. Initially, I had no particular liking for the idea; it was more about a response to dissatisfaction. The BallsDex team wasn't keen on implementing features that many of us wanted. I knew that merely complaining wouldn't lead to any change, as hundreds of others had already done so to no avail.
 
-The final straw was when, despite working on the codebase, the team wasn't making progress at the pace we expected and remained unwilling to implement our suggestions. Instead, they decided to create a BallsDex plushie store. I knew that merely complaining wouldn't lead to any change, as hundreds of others had already done so to no avail.
+Determined to make a difference, I decided to take matters into my own hands. By forking BallsDex and applying my own changes and preferences, CarFigures came into existence.
 
+CarFigures aims to address the community's frustrations and provide an alternative base to use and build their bots on. It's a project driven by a desire for improvement and a commitment to providing a better user experience.
 
-Determined to make a difference, I decided to take matters into my own hands. Instead of saying, "someone should fork BallsDex!" I declared, "I WILL fork BallsDex." And that's how CarFigures came into existence.
-
-CarFigures aims to address all the shortcomings and implement the features that were missing. It's a project driven by a desire for improvement and a commitment to providing a better user experience.
 
 
 
@@ -71,19 +69,11 @@ after opening the terminal or command prompt, u shall be greeted with something 
 ![demo7](assets/demos/demo7.png)
 now its time for u to build the project image (the image the contains ur database which stores all ur bot's progress, the code and more) using `docker compose build`
 ![demo8](assets/demos/demo8.png)
-also if u noticed, u will realized i renamed testingfigures to carfigures, that's because i built this project before under this name, so i renamed it back to CF so i don't build another instance that i won't use anytime, so u can rename the folder, its safe!
 
 and now, its time to start up your bot!\
 using `docker compose up` will make the docker starts all the containers and functions to start making connections to the discord's apis, allowing the bot to be alive!
 and after doing it, the final results should be like this, with the end line saying "(your bot name) is now operational!"
-
-
-### Troubleshooting
-but what if u ran into problems? this section should help u out!\
-
-1. The config file {cli_flags.config_file} could not be found.\
-
-this indicates that the settings.toml is not found, refer back to the fourth step in the installing section.
+![demo9](assets/demos/demo9.png)
 
 That's it! You're all set to rock and roll with CarFigures!\
 If you run into any trouble along the way, don't hesitate to reach out for help. We're here to make sure you have a smooth ride.
@@ -130,19 +120,18 @@ thanks for everyone who spent the time to even bother to contribute, from provid
 > 1* - you will need a forker role inside the server to have access to the dev category, so inform me first that u actually making a bot using CF and i will give u the role
 
 ## Roadmap and Future Plans
+We're excited about the future of CarFigures and all its forks! Here are some features and improvements we have planned:
 
 ### Upcoming Features
 
 - Economy and Modifying Packages.
-- Guild Settings Embed
-- User Settings Embed
+- Server/Player Settings Embed
 - Leaderboard Embed + Controls
-- Customizable Embeds
-- Crafting Commands + Embeds + Customizable Through The Admin Panel
-- Racing Package
+- Crafting Commands | Customizable Through The Admin Panel
+- Racing/Battling Package
 
 ### Future Plans
 
 - Switch from fastapi_admin to our own tech-stack.
 - Implement a premium plan inside CF.
-- Remake some of the existing commands into 1 command. (/user privacy and /user donation policy into /user settings)
+- Combine some existing commands into one (e.g., /user privacy and /user donation policy into /user settings)
