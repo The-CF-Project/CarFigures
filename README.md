@@ -1,4 +1,4 @@
-# CarFigures - The Enhanced BallsDex.
+# CarFigures - The Better Alternative.
 
 ![CarFigures Logo](assets/logos/Banner.png)
 [![Lucrative Profile](https://img.shields.io/badge/Array's%20Profile-ffffff?style=for-the-badge&logo=codeberg&logoColor=black)](https://codeberg.org/Lucrative/)
@@ -9,7 +9,7 @@
 
 ## About CarFigures
 
-**CarFigures (CF)** was born out of disagreement with the BallsDex team's decisions. Initially, I had no particular liking for the idea; it was more about a response to dissatisfaction. The BallsDex team wasn't keen on implementing features that many of us wanted. I knew that merely complaining wouldn't lead to any change, as hundreds of others had already done so to no avail.
+**CarFigures (CF)** was born out of frustration with the BallsDex team's decisions. Initially, I had no particular liking for the idea; it was more about a response to dissatisfaction. The BallsDex team wasn't keen on implementing features that many of us wanted. I knew that merely complaining wouldn't lead to any change, as hundreds of others had already done so to no avail.
 
 Determined to make a difference, I decided to take matters into my own hands. By forking BallsDex and applying my own changes and preferences, CarFigures came into existence.
 
@@ -47,7 +47,7 @@ now since all this is done, let's start!
 Once you've completed the installation and configuration steps, its time to configure and make the bot look the way u like it to be!
 
 ### Configuration file
-remember the settings.toml we just downloaded? yep, that's the configuration file!\
+remember the settings.toml we just downloaded? yep, that's the configuration file!
 
 in it u will find allot of stuff to change, that's part of CF's philosophy to make customizing your instance as easy as possible, for now its not much, but we are planning for more soon! :3\
 read the comments i left in there to help u out!
