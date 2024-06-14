@@ -115,9 +115,6 @@ def read_settings(path: "Path"):
         config = tomllib.load(f)
 
     settings.bot_token = config["settings"]["bot_token"]
-    # settings.gateway_url = config["settings"].get("gateway_url", None)
-    # shard_count = config["settings"].get("shard_count")
-    # settings.shard_count = int(shard_count) if shard_count else None
     settings.prefix = config["settings"]["text_prefix"]
     settings.spawnalert = config["settings"]["spawnalert"]
     settings.version = config["settings"]["version"]
@@ -134,6 +131,8 @@ def read_settings(path: "Path"):
     settings.weight_replacement = config["appearance"]["interface"]["weight"]
     settings.hp_replacement = config["appearance"]["interface"]["hp"]
     settings.kg_replacement = config["appearance"]["interface"]["kg"]
+    settings.command_names = config["appearance"]["commands"]["names"]
+    settings.command_descs = config["appearance"]["commands"]["descs"]
 
     #settings.info_description = config["info"]["info_description"]
     settings.repository_link = config["info"]["links"]["repository_link"]
@@ -157,9 +156,6 @@ def read_settings(path: "Path"):
     settings.prometheus_enabled = config["prometheus"]["enabled"]
     settings.prometheus_host = config["prometheus"]["host"]
     settings.prometheus_port = config["prometheus"]["port"]
-
-    settings.command_names = config["appearance"]["commands"]["names"]
-    settings.command_descs = config["appearance"]["commands"]["descs"]
 
     log.info("Loaded the bot settings")
 

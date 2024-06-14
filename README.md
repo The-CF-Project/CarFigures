@@ -15,9 +15,6 @@ Determined to make a difference, I decided to take matters into my own hands. By
 
 CarFigures aims to address the community's frustrations and provide an alternative base to use and build their bots on. It's a project driven by a desire for improvement and a commitment to providing a better user experience.
 
-
-
-
 ## Installation
 ### Requirements
 Before the Installation, make sure to have the following
@@ -33,7 +30,7 @@ now since all this is done, let's start!
 
 1. Create a codeberg account if you didn't already
 2. Fork this repository [from here](https://codeberg.org/array_ye/CarFigures/fork) or Go to the repo and click "Fork" (1*) ![demo1](assets/demos/demo1.png)
-3. git clone the your using git like this. ![demo2](assets/demos/demo2.png)
+3. git clone your fork using git like this. ![demo2](assets/demos/demo2.png)
 4. Download the settings.toml file [from here](https://drive.usercontent.google.com/download?id=1ZMm3zRS__UC7QOzGGN4ZyxmjnhLbp1sl&export=download&authuser=0) and drag it to your bot folder, now your bot folder should look something like this (2*) ![demo3](assets/demos/demo3.png)
 5. Change the Folder name from "CarFigures" to the name of your dex/figures bot to make it easier for you in docker to know which is what (very useful if working with multiple dexes/figures bots)
 
@@ -58,7 +55,7 @@ after configuring and editing the settings.toml file, now its time to start the 
 start by getting docker desktop up and running, then open your file explorer and head to the bot files, i will use my testingfigures bot (the bot i use to test and make commits to CF Repo) to demonstrate ![demo4](assets/demos/demo4.png)
 
 #### for windows users
-to access the command prompt pointed to this bot folder, go to the navigation bar and edit it (you can do that by click the empty part once) to type `cmd` then press enter, this will open a new command prompt instance that is pointed to the bot place
+to access the command prompt pointed to this bot folder, go to the navigation bar and edit it (you can do that by click the empty part once) to type `cmd` or `powershell` then press enter, this will open a new command prompt instance that is pointed to the bot place
 ![demo5](assets/demos/demo5.png)
 ![demo6](assets/demos/demo6.png)
 
