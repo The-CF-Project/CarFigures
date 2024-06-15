@@ -117,7 +117,7 @@ def draw_card(car_instance: "CarInstance"):
         anchor="ra",
     )
 
-    artwork = Image.open("." + car.collection_card).convert("RGBA")
+    artwork = Image.open("." + car.collection_picture).convert("RGBA")
     image.paste(ImageOps.fit(artwork, artwork_size), CARD_CORNERS[0])  # type: ignore
 
     if icon:
