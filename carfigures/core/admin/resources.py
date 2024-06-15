@@ -305,7 +305,7 @@ class InstanceResource(Model):
         filters.Boolean(name="limited", label="Limited Edition?"),
         filters.Boolean(name="favorite", label="Favorite?"),
         filters.Search(
-            name="user__discord_id",
+            name="player__discord_id",
             label="User ID",
             placeholder="Search for Discord user ID",
         ),
