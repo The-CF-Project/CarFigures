@@ -12,6 +12,7 @@ from fastapi_admin.models import AbstractAdmin
 from tortoise import exceptions, fields, models, signals, timezone, validators
 
 from carfigures.core.image_generator.image_gen import draw_card, draw_banner
+from carfigures.settings import settings
 
 if TYPE_CHECKING:
     from tortoise.backends.base.client import BaseDBAsyncClient
@@ -451,8 +452,8 @@ class CarInstance(models.Model):
             f"ID: `#{self.pk:0X}`\n"
             f"Caught on {format_dt(self.catch_date)} ({format_dt(self.catch_date, style='R')}).\n"
             f"{trade_content}\n"
-            f"HP: {self.horsepower} ({self.horsepower_bonus:+d}%)\n"
-            f"KG: {self.weight} ({self.weight_bonus:+d}%)"
+            f"{settings.hp_replacement}: {self.horsepower} ({self.horsepower_bonus:+d}%)\n"
+            f"{settings.kg_replacement}: {self.weight} ({self.weight_bonus:+d}%)"
         )
 
         # draw image
