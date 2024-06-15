@@ -1,9 +1,9 @@
 from fastapi import Depends, Path
 from fastapi_admin.app import app
-from fastapi_admin.depends import get_resources
+from fastapi_admin.depends import get_current_admin, get_resources
 from fastapi_admin.template import templates
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import RedirectResponse, Response
 from tortoise.exceptions import DoesNotExist
 
 from carfigures.core.models import (
@@ -25,6 +25,8 @@ async def admin(
     request: Request,
     resources=Depends(get_resources),
 ):
+    if not request.state.admin:
+        return RedirectResponse(app.admin_path + "/login")
     return templates.TemplateResponse(
         "dashboard.html",
         context={
@@ -47,7 +49,7 @@ async def admin(
     )
 
 
-@app.get("/car/generate/{pk}")
+@app.get("/car/generate/{pk}", dependencies=[Depends(get_current_admin)])
 async def generate_card(
     request: Request,
     pk: str = Path(...),
@@ -58,7 +60,7 @@ async def generate_card(
     return Response(content=buffer.read(), media_type="image/png")
 
 
-@app.get("/event/generate/{pk}")
+@app.get("/event/generate/{pk}", dependencies=[Depends(get_current_admin)])
 async def generate_event_card(
     request: Request,
     pk: str = Path(...),
