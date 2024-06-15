@@ -50,7 +50,7 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
     )
     parser.add_argument("--version", "-V", action="store_true", help="Display the bot's version")
     parser.add_argument(
-        "--config-file", type=Path, help="Set the path to settings.conf", default=Path("./settings.conf")
+        "--config-file", type=Path, help="Set the path to settings.conf", default=Path("./settings.toml")
     )
     parser.add_argument("--disable-rich", action="store_true", help="Disable rich log format")
     parser.add_argument("--debug", action="store_true", help="Enable debug logs")
@@ -227,8 +227,8 @@ def main():
         read_settings(cli_flags.config_file)
     except FileNotFoundError:
         print("[red]The config file [blue]{cli_flags.config_file}[/blue] could not be found.[/red]")
-        print("[yellow]Please ensure the default config.conf file exists in the expected location.[/yellow]")
-        sys.exit(1)  # Exit with an error code to indicate missing config
+        print("[yellow]Please make sure u downloaded the settings.toml file.[/yellow]")
+        sys.exit(1)
 
     print_welcome()
     queue_listener: logging.handlers.QueueListener | None = None
@@ -242,7 +242,7 @@ def main():
         token = settings.bot_token
         if not token:
             log.error("Token not found!")
-            print("[red]You must provide a token inside the settings.conf file.[/red]")
+            print("[red]You must provide a token inside the settings.toml file.[/red]")
             time.sleep(1)
             sys.exit(0)
 
