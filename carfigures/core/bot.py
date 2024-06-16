@@ -207,12 +207,12 @@ class CarFiguresBot(commands.AutoShardedBot):
         cartypes.clear()
         for cartype in await CarType.all():
             cartypes[cartype.pk] = cartype
-        table.add_row("CarTypes", str(len(cartypes)))
+        table.add_row(f"{settings.cartype_replacement}s", str(len(cartypes)))
 
         countries.clear()
         for country in await Country.all():
             countries[country.pk] = country
-        table.add_row("Countries", str(len(countries)))
+        table.add_row(f"{settings.country_replacement}s", str(len(countries)))
 
         events.clear()
         for event in await Event.all():
