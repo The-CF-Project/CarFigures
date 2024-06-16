@@ -313,7 +313,7 @@ class Trade(commands.GroupCog):
             )
 
         if carfigure:
-            history_queryset = queryset.filter(
+            history_queryset = history_queryset.filter(
                 Q(player1__tradeobjects__carinstance__car=carfigure)
                 | Q(player2__tradeobjects__carinstance__car=carfigure)
             ).distinct()  # for some reason, this query creates a lot of duplicate rows?
