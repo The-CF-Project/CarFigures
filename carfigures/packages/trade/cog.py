@@ -303,12 +303,12 @@ class Trade(commands.GroupCog):
         await interaction.response.defer(ephemeral=True, thinking=True)
         user = interaction.user
         if trade_user:
-            queryset = TradeModel.filter(
+            history_queryset = TradeModel.filter(
                 Q(player1__discord_id=user.id, player2__discord_id=trade_user.id)
                 | Q(player1__discord_id=trade_user.id, player2__discord_id=user.id)
             )
         else:
-            queryset = TradeModel.filter(
+            history_queryset = TradeModel.filter(
                 Q(player1__discord_id=user.id) | Q(player2__discord_id=user.id)
             )
 
@@ -318,7 +318,7 @@ class Trade(commands.GroupCog):
                 | Q(player2__tradeobjects__carinstance__car=carfigure)
             ).distinct()  # for some reason, this query creates a lot of duplicate rows?
 
-        history = await queryset.order_by(sorting.value).prefetch_related(
+        history = await history_queryset.order_by(sorting.value).prefetch_related(
             "player1", "player2"
         )
 
