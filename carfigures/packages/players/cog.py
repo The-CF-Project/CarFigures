@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.players")
 
 
-class Player(commands.GroupCog):
+class Player(commands.GroupCog, group_name=settings.command_groups["player"]):
     """
     Manage your account settings.
     """

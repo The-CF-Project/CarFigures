@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.carfigures")
 
 
-class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
+class Cars(commands.GroupCog, group_name=settings.command_groups["cars"]):
     """
     View and manage your carfigures collection.
     """

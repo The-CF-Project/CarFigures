@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.info")
 
 
-class Info(commands.GroupCog):
+class Info(commands.GroupCog, group_name=settings.command_groups["info"]):
     """
     Simple info commands.
     """

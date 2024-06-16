@@ -63,7 +63,7 @@ async def save_file(attachment: discord.Attachment) -> Path:
 
 @app_commands.guilds(*settings.superuser_guild_ids)
 @app_commands.default_permissions(administrator=True)
-class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name):
+class SuperUser(commands.GroupCog, group_name=settings.command_groups["superuser"]):
     """
     Bot admin commands.
     """
