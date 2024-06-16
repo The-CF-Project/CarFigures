@@ -136,7 +136,7 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
     async def rarity(
         self,
         interaction: discord.Interaction["CarFiguresBot"],
-        chunked: bool = True
+        chunked: bool = True,
         include_disabled: bool = False,
         ):
         """
