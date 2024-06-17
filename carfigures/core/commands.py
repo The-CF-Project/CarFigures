@@ -9,6 +9,7 @@ from tortoise.exceptions import DoesNotExist
 
 from carfigures.packages.carfigures.carfigure import CarFigure
 from carfigures.core.models import Car
+from carfigures.settings import settings
 
 log = logging.getLogger("carfigures.core.commands")
 
@@ -70,7 +71,7 @@ class Core(commands.Cog):
         next start.
         """
         await self.bot.load_cache()
-        await ctx.message.add_reaction("✅")
+        await ctx.send("Database models cache has been reloaded")
 
     @commands.command()
     @commands.is_owner()

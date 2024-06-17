@@ -210,13 +210,13 @@ class EntityResource(Model):
         Field(
             name="full_name",
             label="Full Name",
-            display=displays.InputOnly(),
+            display=displays.Display(),
             input_=inputs.Text(),
         ),
         Field(
             name="short_name",
             label="Short Name",
-            display = displays.InputOnly(),
+            display = displays.Display(),
             input_ = inputs.Text(),
         ),
         "catch_names",
@@ -305,7 +305,7 @@ class InstanceResource(Model):
         filters.Boolean(name="limited", label="Limited Edition?"),
         filters.Boolean(name="favorite", label="Favorite?"),
         filters.Search(
-            name="user__discord_id",
+            name="player__discord_id",
             label="User ID",
             placeholder="Search for Discord user ID",
         ),
@@ -349,6 +349,8 @@ class PlayerResource(Model):
     fields = [
         "discord_id",
         "cars",
+        "donation_policy",
+        "privacy_policy",
     ]
 
 

@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.players")
 
 
-class Player(commands.GroupCog):
+class Player(commands.GroupCog, group_name=settings.group_cog_names["player"]):
     """
     Manage your account settings.
     """
@@ -99,7 +99,8 @@ class Player(commands.GroupCog):
             )
         elif policy.value == DonationPolicy.ALWAYS_DENY:
             await interaction.response.send_message(
-                "Setting updated, it is now impossible to use `cars give` with "
+                "Setting updated, it is now impossible to use "
+                f"`/{settings.players_group_cog_name} give` with "
                 "you. It is still possible to perform donations using the trade system."
             )
         else:

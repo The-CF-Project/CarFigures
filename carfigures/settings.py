@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from configparser import ConfigParser
+import tomllib
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -30,10 +30,6 @@ class Settings:
         Usually "carfigure", can be replaced when possible
     bot_name: str
         Usually "CarFigures", can be replaced when possible
-    players_group_cog_name: str
-        Set the name of the base command of the "players" cog, /cars by default
-    superuser_group_cog_name: str
-        Set the name of the base command of the "admin" cog, /admin by default
     info_description: str
         Used in the /info bot command
     repository_link: str
@@ -59,39 +55,36 @@ class Settings:
     shard_count: int | None = None
     prefix: str = ""
     spawnalert: bool = False
-    version: str = ""
+    max_favorites: int | None = None
 
     collectible_name: str = ""
     bot_name: str = ""
-    players_group_cog_name: str = ""
-    superuser_group_cog_name: str = ""
     cartype_replacement: str = ""
     country_replacement: str = ""
     horsepower_replacement: str = ""
     weight_replacement: str = ""
     hp_replacement: str = ""
     kg_replacement: str = ""
+    group_cog_names: list[str] = field(default_factory=list)
+    command_names: list[str] = field(default_factory=list)
+    command_descs: list[str] = field(default_factory=list)
     default_embed_color: str = ""
-    max_favorites: int = 50
 
-    # /info bot
-    info_description: str = ""
+    # /info status
     repository_link: str = ""
     discord_invite: str = ""
     terms_of_service: str = ""
     privacy_policy: str = ""
     top_gg: str = ""
 
-    # credits
-    developers: list[str] = field(default_factory=list)
+    # /info about
+    info_description: str = ""
     contributors: list[str] = field(default_factory=list)
-    testers: list[str] = field(default_factory=list)
 
     # /sudo
     superuser_guild_ids: list[int] = field(default_factory=list)
     root_role_ids: list[int] = field(default_factory=list)
     superuser_role_ids: list[int] = field(default_factory=list)
-
     log_channel: int | None = None
 
     team_owners: bool = False
@@ -102,70 +95,52 @@ class Settings:
     prometheus_host: str = "0.0.0.0"
     prometheus_port: int = 15260
 
-
 settings = Settings()
 
 
 def read_settings(path: "Path"):
-    config = ConfigParser()
-    config.read(path)
+    with open(path, "rb") as f:
+        config = tomllib.load(f)
 
-    settings.bot_token = config.get('settings', 'bot_token')
-    gateway = config.get('settings', 'gateway_url', fallback=None)
-    if gateway == '':
-        settings.gateway_url = None
-    else:
-        settings.gateway_url = config.get('settings', 'gateway_url', fallback=None)
-    shard = config.get('settings', 'shard_count')
-    if shard == '':  # Check for empty string
-        settings.shard_count = None
-    else:
-        settings.shard_count = config.getint('settings', 'shard_count', fallback=1)
-    settings.prefix = config.get('settings', 'text_prefix')
-    settings.max_favorites = config.getint('settings', 'max-favorites')
-    settings.spawnalert = config.getboolean('settings', 'spawnalert', fallback=True)
-    settings.version = config.get('settings', 'version')
+    settings.bot_token = config["settings"]["bot_token"]
+    settings.prefix = config["settings"]["text_prefix"]
+    settings.spawnalert = config["settings"]["spawnalert"]
+    settings.default_embed_color = int(config["settings"]["default_embed_color"], 16)
 
-    settings.team_owners = config.getboolean('owners', 'team-members-are-owners', fallback=False)
-    settings.co_owners = [owner.strip() for owner in config.get('owners', 'co-owners', fallback=[]).split(',')]
+    settings.collectible_name = config["appearance"]["bot"]["collectible_name"]
+    settings.bot_name = config["appearance"]["bot"]["bot_name"]
 
-    settings.collectible_name = config.get('appearance', 'collectible-name')
-    settings.bot_name = config.get('appearance', 'bot-name')
-    settings.players_group_cog_name = config.get('appearance', 'players-group-cog-name')
-    settings.superuser_group_cog_name = config.get('appearance', 'superuser-group-cog-name')
-    settings.cartype_replacement = config.get('appearance', 'cartype')
-    settings.country_replacement = config.get('appearance', 'country')
-    settings.horsepower_replacement = config.get('appearance', 'horsepower')
-    settings.weight_replacement = config.get('appearance', 'weight')
-    settings.hp_replacement = config.get('appearance', 'hp')
-    settings.kg_replacement = config.get('appearance', 'kg')
-    settings.default_embed_color = int(config.get('appearance', 'default-embed-color'), 16)
+    settings.cartype_replacement = config["appearance"]["interface"]["cartype"]
+    settings.country_replacement = config["appearance"]["interface"]["country"]
+    settings.horsepower_replacement = config["appearance"]["interface"]["horsepower"]
+    settings.weight_replacement = config["appearance"]["interface"]["weight"]
+    settings.hp_replacement = config["appearance"]["interface"]["hp"]
+    settings.kg_replacement = config["appearance"]["interface"]["kg"]
+    settings.group_cog_names = config["appearance"]["commands"]["groups"]
+    settings.command_names = config["appearance"]["commands"]["names"]
+    settings.command_descs = config["appearance"]["commands"]["descs"]
 
-    settings.repository_link = config.get('info', 'repository-link')
-    settings.discord_invite = config.get('info', 'discord-invite')
-    settings.terms_of_service = config.get('info', 'terms-of-service')
-    settings.privacy_policy = config.get('info', 'privacy_policy')
-    settings.top_gg = config.get('info', 'top.gg', fallback=None)
+    settings.repository_link = config["info"]["links"]["repository_link"]
+    settings.discord_invite = config["info"]["links"]["discord_invite"]
+    settings.terms_of_service = config["info"]["links"]["terms_of_service"]
+    settings.privacy_policy = config["info"]["links"]["privacy_policy"]
+    settings.top_gg = config["info"]["links"]["top_gg"]
 
-    # Get Credits Information
-    settings.developers = config.get('credits', 'developers').split(',')
-    settings.contributors = config.get('credits', 'contributors').split(',')
-    settings.testers = config.get('credits', 'testers').split(',')
+    settings.info_description = config["info"]["about"]["description"]
+    settings.info_history = config["info"]["about"]["history"]
+    settings.contributors = config["info"]["about"]["contributors"]
 
-    # Superuser Command Section
-    settings.superuser_guild_ids = [int(guild_id.strip()) for guild_id in config.get('superuser-command', 'guild-ids', fallback=[]).split(',')]
-    settings.root_role_ids = [int(role_id.strip()) for role_id in config.get('superuser-command', 'root-role-ids', fallback=[]).split(',')]
-    settings.superuser_role_ids = [int(role_id.strip()) for role_id in config.get('superuser-command', 'superuser-role-ids', fallback=[]).split(',')]
+    settings.superuser_guild_ids = config["superuser"]["guild_ids"]
+    settings.root_role_ids = config["superuser"]["root_role_ids"]
+    settings.superuser_role_ids = config["superuser"]["superuser_role_ids"]
+    settings.log_channel = config["superuser"]["log_channel"]
 
-    # Handle optional settings with potential None values
-    try:
-        settings.log_channel = config.getint('superuser-command', 'log-channel')
-    except ValueError:
-        settings.log_channel = None  # Handle potential invalid log_channel value
+    settings.team_owners = config["owners"]["team_members_are_owners"]
+    settings.co_owners = config["owners"]["co_owners"]
 
-    # Prometheus Section (assuming all settings are strings)
-    settings.prometheus_enabled = config.get('prometheus', 'enabled')
-    settings.prometheus_host = config.get('prometheus', 'host')
-    settings.prometheus_port = config.get('prometheus', 'port')
+    settings.prometheus_enabled = config["prometheus"]["enabled"]
+    settings.prometheus_host = config["prometheus"]["host"]
+    settings.prometheus_port = config["prometheus"]["port"]
 
+    log.info("Loaded the bot settings")
 

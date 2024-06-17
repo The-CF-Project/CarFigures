@@ -49,7 +49,10 @@ def draw_card(car_instance: "CarInstance"):
         image = Image.open("." + event_image)
     else:
         image = Image.open("." + car.cached_cartype.image)
-    icon = Image.open("." + car.cached_country.image) if car.cached_country else None
+    image = image.convert("RGBA")
+    icon = (
+        Image.open("." + car.cached_country.image).convert("RGBA") if car.cached_country else None
+    )
 
     draw = ImageDraw.Draw(image)
     draw.text(
@@ -96,25 +99,14 @@ def draw_card(car_instance: "CarInstance"):
     )
     draw.text(
         (30, 1870),
-        # Modifying the line below is breaking the license as you are removing credits
-        # If you don't want to receive a DMCA, just don't
-        "Developers:\nEl Laggron - Array_YE",
-        font=card_credits_font,
-        fill=(255, 255, 255, 255),
-        stroke_width=2,
-        stroke_fill=(0, 0, 0, 255),
-    )
-    draw.text(
-        (1400, 1870),
         f"Image Credits: {car.image_credits}\nCar Suggester:{car.car_suggester}",
         font=card_credits_font,
         fill=(255, 255, 255, 255),
         stroke_width=2,
         stroke_fill=(0, 0, 0, 255),
-        anchor="ra",
     )
 
-    artwork = Image.open("." + car.collection_picture)
+    artwork = Image.open("." + car.collection_picture).convert("RGBA")
     image.paste(ImageOps.fit(artwork, artwork_size), CARD_CORNERS[0])  # type: ignore
 
     if icon:

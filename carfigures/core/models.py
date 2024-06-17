@@ -12,6 +12,7 @@ from fastapi_admin.models import AbstractAdmin
 from tortoise import exceptions, fields, models, signals, timezone, validators
 
 from carfigures.core.image_generator.image_gen import draw_card, draw_banner
+from carfigures.settings import settings
 
 if TYPE_CHECKING:
     from tortoise.backends.base.client import BaseDBAsyncClient
@@ -31,7 +32,9 @@ async def lower_catch_names(
     update_fields: Iterable[str] | None = None,
 ):
     if instance.catch_names:
-        instance.catch_names = instance.catch_names.lower()
+        instance.catch_names = ";".join(
+            [x.strip() for x in instance.catch_names.split(";")]
+        ).lower()
 
 
 class DiscordSnowflakeValidator(validators.Validator):
@@ -367,7 +370,7 @@ class CarInstance(models.Model):
             if isinstance(self.carfigure, Car)
             else f"<Car {self.car_id}>"
         )
-        return f"{emotes}#{self.pk:0X} {full_name} "
+        return f"{emotes}#{self.pk:0X} {full_name}"
 
     def event_emoji(self, bot: discord.Client | None, use_custom_emoji: bool = True) -> str:
         if self.eventcard:
@@ -449,8 +452,8 @@ class CarInstance(models.Model):
             f"ID: `#{self.pk:0X}`\n"
             f"Caught on {format_dt(self.catch_date)} ({format_dt(self.catch_date, style='R')}).\n"
             f"{trade_content}\n"
-            f"HP: {self.horsepower} ({self.horsepower_bonus:+d}%)\n"
-            f"KG: {self.weight} ({self.weight_bonus:+d}%)"
+            f"{settings.hp_replacement}: {self.horsepower} ({self.horsepower_bonus:+d}%)\n"
+            f"{settings.kg_replacement}: {self.weight} ({self.weight_bonus:+d}%)"
         )
 
         # draw image
