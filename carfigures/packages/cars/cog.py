@@ -41,8 +41,7 @@ if TYPE_CHECKING:
 
 log = logging.getLogger("carfigures.packages.carfigures")
 
-
-class Cars(commands.GroupCog, group_name=settings.command_groups["cars"]):
+class Cars(commands.GroupCog, group_name=settings.group_cog_names["cars"]):
     """
     View and manage your carfigures collection.
     """
@@ -335,16 +334,17 @@ class Cars(commands.GroupCog, group_name=settings.command_groups["cars"]):
             car_info_embed = discord.Embed(
                 title=f"{emoji} {carfigure.full_name} Information:",
                 description=(
-                    f"**Short Name:** {carfigure.short_name}\n"
-                    f"**Catch Names:** {''.join(carfigure.catch_names)}\n"
-                    f"**{settings.cartype_replacement}:** {carfigure.cached_cartype.name}\n"
-                    f"**{settings.country_replacement}:** {carfigure.cached_country.name}\n"
-                    f"**Rarity:** {carfigure.rarity}\n"
-                    f"**{settings.horsepower_replacement}:** {carfigure.horsepower}\n"
-                    f"**{settings.weight_replacement}:** {carfigure.weight}\n"
-                    f"**Capacity Name:** {carfigure.capacity_name}\n"
-                    f"**Capacity Description:** {carfigure.capacity_description}\n"
-                    f"**Image Credits:** {carfigure.image_credits}\n"
+                    f"**⋄ Short Name:** {carfigure.short_name}\n"
+                    f"**⋄ Catch Names:** {''.join(carfigure.catch_names)}\n"
+                    f"**⋄ {settings.cartype_replacement}:** {carfigure.cached_cartype.name}\n"
+                    f"**⋄ {settings.country_replacement}:** {carfigure.cached_country.name}\n"
+                    f"**⋄ Rarity:** {carfigure.rarity}\n"
+                    f"**⋄ {settings.horsepower_replacement}:** {carfigure.horsepower}\n"
+                    f"**⋄ {settings.weight_replacement}:** {carfigure.weight}\n"
+                    f"**⋄ Capacity Name:** {carfigure.capacity_name}\n"
+                    f"**⋄ Capacity Description:** {carfigure.capacity_description}\n"
+                    f"**⋄ Image Credits:** {carfigure.image_credits}\n"
+                    f"**⋄ {settings.collectible_name.title()} Suggester:** {carfigure.car_suggester}"
                 ),
                 color=settings.default_embed_color
             )

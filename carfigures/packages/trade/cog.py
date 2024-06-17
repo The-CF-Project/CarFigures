@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
 
 
-class Trade(commands.GroupCog, group_name=settings.command_groups["trade"]):
+class Trade(commands.GroupCog, group_name=settings.group_cog_names["trade"]):
     """
     Trade carfigures with other players
     """

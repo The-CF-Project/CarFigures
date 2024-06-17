@@ -326,7 +326,8 @@ class CarFiguresBot(commands.AutoShardedBot):
                 if not guild:
                     continue
                 synced_commands = await self.tree.sync(guild=guild)
-                log.info(f"Synced {len(synced_commands)} {settings.superuser_group_cog_name} commands for guild {guild.id}.")
+                group_name = settings.group_cog_names["superuser"]
+                log.info(f"Synced {len(synced_commands)} {group_name} commands for guild {guild.id}.")
 
         if settings.prometheus_enabled:
             try:

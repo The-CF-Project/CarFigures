@@ -59,15 +59,13 @@ class Settings:
 
     collectible_name: str = ""
     bot_name: str = ""
-    players_group_cog_name: str = ""
-    superuser_group_cog_name: str = ""
     cartype_replacement: str = ""
     country_replacement: str = ""
     horsepower_replacement: str = ""
     weight_replacement: str = ""
     hp_replacement: str = ""
     kg_replacement: str = ""
-    command_groups: list[str] = field(default_factory=list)
+    group_cog_names: list[str] = field(default_factory=list)
     command_names: list[str] = field(default_factory=list)
     command_descs: list[str] = field(default_factory=list)
     default_embed_color: str = ""
@@ -111,8 +109,6 @@ def read_settings(path: "Path"):
 
     settings.collectible_name = config["appearance"]["bot"]["collectible_name"]
     settings.bot_name = config["appearance"]["bot"]["bot_name"]
-    settings.players_group_cog_name = config["appearance"]["bot"]["players_group_cog_name"]
-    settings.superuser_group_cog_name = config["appearance"]["bot"]["superuser_group_cog_name"]
 
     settings.cartype_replacement = config["appearance"]["interface"]["cartype"]
     settings.country_replacement = config["appearance"]["interface"]["country"]

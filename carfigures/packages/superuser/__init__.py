@@ -42,5 +42,6 @@ async def setup(bot: "CarFiguresBot"):
     n = SuperUser(bot)
     if command_count(n) > 3900:
         strip_descriptions(n)
-        log.warning(f"/{settings.superuser_group_cog_name} command too long, stripping descriptions")
+        group_name = settings.group_cog_names["superuser"]
+        log.warning(f"/{group_name} command too long, stripping descriptions")
     await bot.add_cog(n)

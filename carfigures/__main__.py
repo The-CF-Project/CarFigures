@@ -48,7 +48,6 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
     parser = argparse.ArgumentParser(
         prog="CarFigures bot", description="Collect and exchange carfigures on Discord"
     )
-    parser.add_argument("--version", "-V", action="store_true", help="Display the bot's version")
     parser.add_argument(
         "--config-file", type=Path, help="Set the path to settings.conf", default=Path("./settings.toml")
     )
@@ -64,7 +63,6 @@ def print_welcome():
     print("[green]{0: ^50}[/green]".format(f" Collect {settings.collectible_name}s "))
     print("[blue]{0:^50}[/blue]".format("Discord bot made by El Laggron, Modified by Array"))
     print("")
-    print(" [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format("Bot version:", settings.version))
     print(
         " [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format(
             "Discord.py version:", discord.__version__
@@ -219,9 +217,6 @@ def main():
     bot = None
     server = None
     cli_flags = parse_cli_flags(sys.argv[1:])
-    if cli_flags.version:
-        print(f"CarFigures Discord bot - {settings.version}")
-        sys.exit(0)
 
     try:
         read_settings(cli_flags.config_file)
