@@ -35,9 +35,19 @@ class CarFigure:
         cb = random.choices(population=carfigures, weights=rarities, k=1)[0]
         return cls(cb)
 
-    async def spawn(self, channel: discord.TextChannel):
+    async def spawn(self, channel: discord.TextChannel) -> bool:
         """
-        Asynchronously spawns a picture in the given Discord TextChannel.
+        Spawn a carfigure in a channel.
+        Parameters
+        ----------
+        channel: discord.TextChannel
+            The channel where to spawn the carfigure. Must have permission to send messages
+            and upload files as a bot (not through interactions).
+        Returns
+        -------
+        bool
+            `True` if the operation succeeded, otherwise `False`. An error will be displayed
+            in the logs if that's the case.
         """
 
         def generate_random_name():
@@ -61,15 +71,18 @@ class CarFigure:
                         view=CatchView(self),
                         file=discord.File(file_location, filename=file_name),
                     )
+                    return True
                 else:
                     self.message = await channel.send(
                         f"A wild {settings.collectible_name} has appeared!",
                         view=CatchView(self),
                         file=discord.File(file_location, filename=file_name),
                     )
+                    return True
             else:
                 log.error("Missing permission to spawn car in channel %s.", channel)
         except discord.Forbidden:
             log.error(f"Missing permission to spawn car in channel {channel}.")
         except discord.HTTPException:
             log.error("Failed to spawn car", exc_info=True)
+        return False
