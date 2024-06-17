@@ -49,7 +49,10 @@ def draw_card(car_instance: "CarInstance"):
         image = Image.open("." + event_image)
     else:
         image = Image.open("." + car.cached_cartype.image)
-    icon = Image.open("." + car.cached_country.image) if car.cached_country else None
+    image = image.convert("RGBA")
+    icon = (
+        Image.open("." + car.cached_country.image).convert("RGBA") if car.cached_country else None
+    )
 
     draw = ImageDraw.Draw(image)
     draw.text(
@@ -103,7 +106,7 @@ def draw_card(car_instance: "CarInstance"):
         stroke_fill=(0, 0, 0, 255),
     )
 
-    artwork = Image.open("." + car.collection_picture)
+    artwork = Image.open("." + car.collection_picture).convert("RGBA")
     image.paste(ImageOps.fit(artwork, artwork_size), CARD_CORNERS[0])  # type: ignore
 
     if icon:
