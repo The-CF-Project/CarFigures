@@ -71,17 +71,18 @@ class CarFigure:
                         view=CatchView(self),
                         file=discord.File(file_location, filename=file_name),
                     )
+                    return True
                 else:
                     self.message = await channel.send(
                         f"A wild {settings.collectible_name} has appeared!",
                         view=CatchView(self),
                         file=discord.File(file_location, filename=file_name),
                     )
-                    return true
+                    return True
             else:
                 log.error("Missing permission to spawn car in channel %s.", channel)
         except discord.Forbidden:
             log.error(f"Missing permission to spawn car in channel {channel}.")
         except discord.HTTPException:
             log.error("Failed to spawn car", exc_info=True)
-        return false
+        return False
