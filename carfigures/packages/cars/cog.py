@@ -57,6 +57,7 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
             interaction: discord.Interaction["CarFiguresBot"],
             user: discord.User | None = None,
             sort: SortingChoices | None = None,
+            special: SpecialEnabledTransform | None = None,
             reverse: bool = False,
             carfigure: CarEnabledTransform | None = None,
     ):
@@ -123,6 +124,9 @@ class Cars(commands.GroupCog, group_name=settings.players_group_cog_name):
                 carfigures = await player.cars.filter(**filters).order_by(sort.value)
         else:
             carfigures = await player.cars.filter(**filters).order_by("-favorite", "-limited")
+        if special:
+            filters["special"] = special
+            carfigures = await player.cars.filter(**filters).order_by(sort.value)
 
         if len(carfigures) < 1:
             car_txt = carfigure.full_name if carfigure else ""
