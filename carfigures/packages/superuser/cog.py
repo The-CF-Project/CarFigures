@@ -1479,7 +1479,6 @@ class SuperUser(commands.GroupCog, group_name=settings.group_cog_names["superuse
             await TradingUser.from_trade_model(trade, trade.player2, self.bot),
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
-        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @info.command()
     async def guild(
