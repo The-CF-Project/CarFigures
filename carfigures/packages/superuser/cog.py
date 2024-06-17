@@ -515,23 +515,14 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
             car = await CarFigure.get_random()
         else:
             car = CarFigure(carfigure)
-        await carfigure.spawn(channel or interaction.channel)  # type: ignore
         result = await car.spawn(channel or interaction.channel)  # type: ignore
-        await interaction.followup.send(
 
-            f"{settings.collectible_name.title()} spawned.", ephemeral=True
         if result:
-        )
             await interaction.followup.send(
-        await log_action(
                 f"{settings.collectible_name.title()} spawned.", ephemeral=True
-            f"{interaction.user} spawned {settings.collectible_name} {carfigure.full_name} "
             )
-            f"in {channel or interaction.channel}.",
             await log_action(
-            self.bot,
-                f"{interaction.user} spawned {settings.collectible_name} {car.full_name} "
-        )
+                f"{interaction.user} spawned {settings.collectible_name} {ball.name} "
                 f"in {channel or interaction.channel}.",
                 self.bot,
             )
