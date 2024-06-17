@@ -26,6 +26,7 @@ from carfigures.core.models import (
     TradeObject,
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
+from carfigures.core.utils.enums import DONATION_POLICY_MAP, PRIVATE_POLICY_MAP
 from carfigures.core.utils.logging import log_action
 from carfigures.core.utils.paginator import FieldPageSource, Pages, TextPageSource
 from carfigures.core.utils.transformers import (
@@ -62,7 +63,7 @@ async def save_file(attachment: discord.Attachment) -> Path:
 
 @app_commands.guilds(*settings.superuser_guild_ids)
 @app_commands.default_permissions(administrator=True)
-class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name):
+class SuperUser(commands.GroupCog, group_name=settings.group_cog_names["superuser"]):
     """
     Bot admin commands.
     """
@@ -77,10 +78,11 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
         name="blacklistguild", description="Guild blacklist management"
     )
     cars = app_commands.Group(
-        name=settings.players_group_cog_name, description="s management"
+        name=settings.group_cog_names["cars"], description="s management"
     )
     logs = app_commands.Group(name="logs", description="Bot logs management")
     history = app_commands.Group(name="history", description="Trade history management")
+    info = app_commands.Group(name=settings.group_cog_names["info"], description="Information Commands")
 
     @app_commands.command()
     @app_commands.checks.has_any_role(*settings.root_role_ids)
@@ -552,9 +554,9 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
         limited: bool
             Omit this to make it random.
         weight_bonus: int | None
-            Omit this to make it random (-20/+20%).
+            Omit this to make it random (-50/+50%).
         horsepower_bonus: int | None
-            Omit this to make it random (-20/+20%).
+            Omit this to make it random (-50/+50%).
         """
         # the transformers triggered a response, meaning user tried an incorrect input
         if interaction.response.is_done():
@@ -567,8 +569,8 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
                 car=car,
                 player=player,
                 limited=(limited if limited is not None else random.randint(1, 2048) == 1),
-                horsepower_bonus=(horsepower_bonus if horsepower_bonus is not None else random.randint(-20, 20)),
-                weight_bonus=(weight_bonus if weight_bonus is not None else random.randint(-20, 20)),
+                horsepower_bonus=(horsepower_bonus if horsepower_bonus is not None else random.randint(-50, 50)),
+                weight_bonus=(weight_bonus if weight_bonus is not None else random.randint(-50, 50)),
                 event=event,
             )
         await interaction.followup.send(
@@ -1477,3 +1479,133 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
             await TradingUser.from_trade_model(trade, trade.player2, self.bot),
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    @info.command()
+    async def guild(
+        self,
+        interaction: discord.Interaction,
+        guild_id: str,
+        days: int = 7,
+    ):
+        """
+        Show information about the server provided
+
+        Parameters
+        ----------
+        guild: discord.Guild | None
+            The guild you want to get information about.
+        guild_id: str | None
+            The ID of the guild you want to get information about.
+        days: int
+            The amount of days to look back for the amount of cars caught.
+        """
+        await interaction.response.defer(ephemeral=True, thinking=True)
+        guild = self.bot.get_guild(int(guild_id))
+
+        if not guild:
+            try:
+                guild = await self.bot.fetch_guild(int(guild_id))  # type: ignore
+            except ValueError:
+                await interaction.followup.send(
+                    "The guild ID you gave is not valid.", ephemeral=True
+                )
+                return
+            except discord.NotFound:
+                await interaction.followup.send(
+                    "The given guild ID could not be found.", ephemeral=True
+                )
+                return
+
+        if config := await GuildConfig.get_or_none(guild_id=guild.id):
+            spawn_enabled = config.enabled and config.guild_id
+        else:
+            spawn_enabled = False
+
+        total_server_cars = await CarInstance.filter(
+            catch_date__gte=datetime.datetime.now() - datetime.timedelta(days=days),
+            server_id=guild.id,
+        ).prefetch_related("player")
+        if guild.owner_id:
+            owner = await self.bot.fetch_user(guild.owner_id)
+            embed = discord.Embed(
+                title=f"{guild.name} ({guild.id})",
+                description=f"Owner: {owner} ({guild.owner_id})",
+                color=settings.default_embed_color,
+            )
+        else:
+            embed = discord.Embed(
+                title=f"{guild.name} ({guild.id})",
+                color=settings.default_embed_color,
+            )
+        embed.add_field(name="Members", value=guild.member_count)
+        embed.add_field(name="Spawn Enabled", value=spawn_enabled)
+        embed.add_field(name="Created at", value=format_dt(guild.created_at, style="R"))
+        embed.add_field(
+            name=f"{settings.collectible_name.title()}s Caught ({days} days)",
+            value=len(total_server_cars),
+        )
+        embed.add_field(
+            name=f"Amount of Users who caught {settings.collectible_name}s ({days} days)",
+            value=len(set([x.player.discord_id for x in total_server_cars])),
+        )
+        embed.set_thumbnail(url=guild.icon.url)  # type: ignore
+        await interaction.followup.send(embed=embed, ephemeral=True)
+
+    @info.command()
+    async def user(
+        self,
+        interaction: discord.Interaction,
+        user: discord.User,
+        days: int = 7,
+    ):
+        """
+        Show information about the user provided
+
+        Parameters
+        ----------
+        user: discord.User | None
+            The user you want to get information about.
+        days: int
+            The amount of days to look back for the amount of cars caught.
+        """
+        await interaction.response.defer(ephemeral=True, thinking=True)
+        player = await Player.get_or_none(discord_id=user.id)
+        if not player:
+            await interaction.followup.send("The user you gave does not exist.", ephemeral=True)
+            return
+        total_user_cars = await CarInstance.filter(
+            catch_date__gte=datetime.datetime.now() - datetime.timedelta(days=days),
+            player=player,
+        )
+        embed = discord.Embed(
+            title=f"{user} ({user.id})",
+            description=(
+                f"Privacy Policy: {PRIVATE_POLICY_MAP[player.privacy_policy]}\n"
+                f"Donation Policy: {DONATION_POLICY_MAP[player.donation_policy]}"
+            ),
+            color=settings.default_embed_color,
+        )
+        embed.add_field(name=f"{settings.collectible_name.title()}s Caught ({days} days)", value=len(total_user_cars))
+        embed.add_field(
+            name=f"{settings.collectible_name.title()}s Caught (Unique - ({days} days))",
+            value=len(set(total_user_cars)),
+        )
+        embed.add_field(
+            name=f"Total Servers with {settings.collectible_name}s caught ({days} days))",
+            value=len(set([x.server_id for x in total_user_cars])),
+        )
+        embed.add_field(
+            name=f"Total {settings.collectible_name.title()}s Caught",
+            value=await CarInstance.filter(player__discord_id=user.id).count(),
+        )
+        embed.add_field(
+            name=f"Total Unique {settings.collectible_name.title()}s Caught",
+            value=len(set([x.carfigure for x in total_user_cars])),
+        )
+        embed.add_field(
+            name=f"Total Servers with {settings.collectible_name.title()}s Caught",
+            value=len(set([x.server_id for x in total_user_cars])),
+        )
+        embed.set_thumbnail(url=user.display_avatar)  # type: ignore
+        await interaction.followup.send(embed=embed, ephemeral=True)
