@@ -24,7 +24,7 @@ activation_embed = discord.Embed(
 
 
 @app_commands.guild_only()
-class Server(commands.GroupCog):
+class Server(commands.GroupCog, group_name=settings.group_cog_names["server"]):
     """
     View and manage your carfigures collection.
     """

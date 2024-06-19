@@ -99,22 +99,11 @@ def draw_card(car_instance: "CarInstance"):
     )
     draw.text(
         (30, 1870),
-        # Modifying the line below is breaking the license as you are removing credits
-        # If you don't want to receive a DMCA, just don't
-        "Developers:\nEl Laggron - Array_YE",
-        font=card_credits_font,
-        fill=(255, 255, 255, 255),
-        stroke_width=2,
-        stroke_fill=(0, 0, 0, 255),
-    )
-    draw.text(
-        (1400, 1870),
         f"Image Credits: {car.image_credits}\nCar Suggester:{car.car_suggester}",
         font=card_credits_font,
         fill=(255, 255, 255, 255),
         stroke_width=2,
         stroke_fill=(0, 0, 0, 255),
-        anchor="ra",
     )
 
     artwork = Image.open("." + car.collection_picture).convert("RGBA")
@@ -132,6 +121,7 @@ def draw_card(car_instance: "CarInstance"):
 def draw_banner(event: "Event"):
 
     image = Image.open("." + event.banner)
+    image = image.convert("RGBA")
     draw = ImageDraw.Draw(image)
     draw.text(
         (35, 5),

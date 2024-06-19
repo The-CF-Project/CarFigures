@@ -207,12 +207,12 @@ class CarFiguresBot(commands.AutoShardedBot):
         cartypes.clear()
         for cartype in await CarType.all():
             cartypes[cartype.pk] = cartype
-        table.add_row("CarTypes", str(len(cartypes)))
+        table.add_row(f"{settings.cartype_replacement}s", str(len(cartypes)))
 
         countries.clear()
         for country in await Country.all():
             countries[country.pk] = country
-        table.add_row("Countries", str(len(countries)))
+        table.add_row(f"{settings.country_replacement}s", str(len(countries)))
 
         events.clear()
         for event in await Event.all():
@@ -326,7 +326,8 @@ class CarFiguresBot(commands.AutoShardedBot):
                 if not guild:
                     continue
                 synced_commands = await self.tree.sync(guild=guild)
-                log.info(f"Synced {len(synced_commands)} {settings.superuser_group_cog_name} commands for guild {guild.id}.")
+                group_name = settings.group_cog_names["superuser"]
+                log.info(f"Synced {len(synced_commands)} {group_name} commands for guild {guild.id}.")
 
         if settings.prometheus_enabled:
             try:

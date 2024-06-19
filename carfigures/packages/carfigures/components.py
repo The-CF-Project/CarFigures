@@ -24,9 +24,9 @@ caught_cars = Counter(
 )
 
 
-class CarFigureNamePrompt(Modal, title=f"Catch this {settings.collectible_name}!"):
+class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
     name = TextInput(
-        label=f"Name of this {settings.collectible_name}",
+        label="Name of this Entity",
         style=discord.TextStyle.short,
         placeholder="Your guess",
     )
@@ -71,9 +71,10 @@ class CarFigureNamePrompt(Modal, title=f"Catch this {settings.collectible_name}!
             if car.eventcard and car.eventcard.catch_phrase:
                 event += f"*{car.eventcard.catch_phrase}*\n"
             if has_caught_before:
+                name = settings.commands_names["garage"]
                 event += (
                     f"This is a **new {settings.collectible_name}** "
-                    "that has been added to your showroom!"
+                    f"that has been added to your {name}!"
                 )
 
             await interaction.followup.send(

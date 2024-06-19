@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import logging
 import random
@@ -23,7 +24,6 @@ from carfigures.core.models import (
     Player,
     Trade,
     TradeObject,
-    cars,
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.core.utils.enums import DONATION_POLICY_MAP, PRIVATE_POLICY_MAP
@@ -63,7 +63,7 @@ async def save_file(attachment: discord.Attachment) -> Path:
 
 @app_commands.guilds(*settings.superuser_guild_ids)
 @app_commands.default_permissions(administrator=True)
-class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name):
+class SuperUser(commands.GroupCog, group_name=settings.group_cog_names["superuser"]):
     """
     Bot admin commands.
     """
@@ -78,11 +78,11 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
         name="blacklistguild", description="Guild blacklist management"
     )
     cars = app_commands.Group(
-        name=settings.players_group_cog_name, description="s management"
+        name=settings.group_cog_names["cars"], description="s management"
     )
     logs = app_commands.Group(name="logs", description="Bot logs management")
     history = app_commands.Group(name="history", description="Trade history management")
-    info = app_commands.Group(name="info", description="Information Commands")
+    info = app_commands.Group(name=settings.group_cog_names["info"], description="Information Commands")
 
     @app_commands.command()
     @app_commands.checks.has_any_role(*settings.root_role_ids)
@@ -134,8 +134,13 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
         await interaction.response.send_message("Status updated.", ephemeral=True)
 
     @app_commands.command()
-    @app_commands.checks.has_any_role(*settings.root_role_ids, *settings.superuser_role_ids)
-    async def rarity(self, interaction: discord.Interaction["CarFiguresBot"], chunked: bool = True):
+    @app_commands.checks.has_any_role(*settings.root_role_ids)
+    async def rarity(
+        self,
+        interaction: discord.Interaction["CarFiguresBot"],
+        chunked: bool = True,
+        include_disabled: bool = False,
+        ):
         """
         Generate a list of carfigures ranked by rarity.
 
@@ -143,23 +148,31 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
         ----------
         chunked: bool
             Group together carfigures with the same rarity.
+        include_disabled: bool
+            Include the carfigures that are disabled or with a rarity of 0.
         """
         text = ""
-        sorted_cars = sorted(cars.values(), key=lambda x: x.rarity, reverse=True)
+        cars_queryset = Car.all().order_by("rarity")
+        if not include_disabled:
+            cars_queryset = cars_queryset.filter(rarity__gt=0, enabled=True)
+        sorted_cars = await cars_queryset
 
         if chunked:
             indexes: dict[float, list[Car]] = defaultdict(list)
             for car in sorted_cars:
                 indexes[car.rarity].append(car)
-            for i, chunk in enumerate(indexes.values(), start=1):
+            i = 1
+            for chunk in indexes.values():
                 for car in chunk:
                     text += f"{i}. {car.full_name}\n"
+                i += len(chunk)
         else:
             for i, car in enumerate(sorted_cars, start=1):
                 text += f"{i}. {car.full_name}\n"
 
         source = TextPageSource(text, prefix="```md\n", suffix="```")
         pages = Pages(source=source, interaction=interaction, compact=True)
+        pages.remove_item(pages.stop_pages)
         await pages.start(ephemeral=True)
 
     @app_commands.command()
@@ -403,13 +416,65 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
         )
         await pages.start(ephemeral=True)
 
+    async def _spawn_bomb(
+        self,
+        interaction: discord.Interaction,
+        carfigure: Car | None,
+        channel: discord.TextChannel,
+        n: int,
+    ):
+        spawned = 0
+
+        async def update_message_loop():
+            nonlocal spawned
+            for i in range(5 * 12 * 10):  # timeout progress after 10 minutes
+                await interaction.followup.edit_message(
+                    "@original",  # type: ignore
+                    content=f"Spawn bomb in progress in {channel.mention}, "
+                    f"{settings.collectible_name.title()}: {carfigure or 'Random'}\n"
+                    f"{spawned}/{n} spawned ({round((spawned/n)*100)}%)",
+                )
+                await asyncio.sleep(5)
+            await interaction.followup.edit_message(
+                "@original", content="Spawn bomb seems to have timed out."  # type: ignore
+            )
+
+        await interaction.response.send_message(f"Starting spawn bomb in {channel.mention}...")
+        task = self.bot.loop.create_task(update_message_loop())
+        try:
+            for i in range(n):
+                if not carfigure:
+                    car = await CarFigure.get_random()
+                else:
+                    car = CarFigure(carfigure)
+                result = await car.spawn(channel)
+                if not result:
+                    task.cancel()
+                    await interaction.followup.edit_message(
+                        "@original",  # type: ignore
+                        content=f"A {settings.collectible_name} failed to spawn, probably "
+                        "indicating a lack of permissions to send messages "
+                        f"or upload files in {channel.mention}.",
+                    )
+                    return
+                spawned += 1
+            task.cancel()
+            await interaction.followup.edit_message(
+                "@original",  # type: ignore
+                content=f"Successfully spawned {spawned} {settings.collectible_name}s "
+                f"in {channel.mention}!",
+            )
+        finally:
+            task.cancel()
+
     @cars.command()
     @app_commands.checks.has_any_role(*settings.root_role_ids)
     async def spawn(
         self,
         interaction: discord.Interaction,
-        car: CarTransform | None = None,
+        carfigure: CarTransform | None = None,
         channel: discord.TextChannel | None = None,
+        n: int = 1,
     ):
         """
         Force spawn a random or specified car.
@@ -420,24 +485,49 @@ class SuperUser(commands.GroupCog, group_name=settings.superuser_group_cog_name)
             The carfigure you want to spawn. Random according to rarities if not specified.
         channel: discord.TextChannel | None
             The channel you want to spawn the carfigure in. Current channel if not specified.
+        n: int
+            The number of carfigures to spawn. If no carfigure was specified, it's random
+            every time.
         """
         # the transformer triggered a response, meaning user tried an incorrect input
         if interaction.response.is_done():
             return
+
+        if n < 1:
+            await interaction.response.send_message(
+                "`n` must be superior or equal to 1.", ephemeral=True
+            )
+            return
+        if n > 100:
+            await interaction.response.send_message(
+                f"That doesn't seem reasonable to spawn {n} times, "
+                "the bot will be rate-limited. Try something lower than 100.",
+                ephemeral=True,
+            )
+            return
+
+        if n > 1:
+            await self._spawn_bomb(
+                interaction, carfigure, channel or interaction.channel, n  # type: ignore
+            )
+            return
+
         await interaction.response.defer(ephemeral=True, thinking=True)
-        if not car:
-            carfigure = await CarFigure.get_random()
+        if not carfigure:
+            car = await CarFigure.get_random()
         else:
-            carfigure = CarFigure(car)
-        await carfigure.spawn(channel or interaction.channel)  # type: ignore
-        await interaction.followup.send(
-            f"{settings.collectible_name.title()} spawned.", ephemeral=True
-        )
-        await log_action(
-            f"{interaction.user} spawned {settings.collectible_name} {carfigure.name} "
-            f"in {channel or interaction.channel}.",
-            self.bot,
-        )
+            car = CarFigure(carfigure)
+        result = await car.spawn(channel or interaction.channel)  # type: ignore
+
+        if result:
+            await interaction.followup.send(
+                f"{settings.collectible_name.title()} spawned.", ephemeral=True
+            )
+            await log_action(
+                f"{interaction.user} spawned {settings.collectible_name} {ball.name} "
+                f"in {channel or interaction.channel}.",
+                self.bot,
+            )
 
     @cars.command()
     @app_commands.checks.has_any_role(*settings.root_role_ids)

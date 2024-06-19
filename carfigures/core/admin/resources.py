@@ -210,13 +210,13 @@ class EntityResource(Model):
         Field(
             name="full_name",
             label="Full Name",
-            display=displays.InputOnly(),
+            display=displays.Display(),
             input_=inputs.Text(),
         ),
         Field(
             name="short_name",
             label="Short Name",
-            display = displays.InputOnly(),
+            display = displays.Display(),
             input_ = inputs.Text(),
         ),
         "catch_names",

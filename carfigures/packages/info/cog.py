@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.info")
 
 
-class Info(commands.GroupCog):
+class Info(commands.GroupCog, group_name=settings.group_cog_names["info"]):
     """
     Simple info commands.
     """
@@ -49,9 +49,6 @@ class Info(commands.GroupCog):
         players_count = await row_count_estimate("player")
         cars_instances_count = await row_count_estimate("carinstance")
         cpu_usage, memory_usage, memory_total, memory_percentage, disk_usage, disk_total, disk_percentage = machine_info()
-        developers = "\n".join([f"\u200b **⋄** {dev}" for dev in settings.developers])
-        contributors = "\n".join([f"\u200b **⋄** {contrib}" for contrib in settings.contributors])
-        testers = "\n".join([f"\u200b **⋄** {tester}" for tester in settings.testers])
 
         assert self.bot.user
         assert self.bot.application
@@ -81,7 +78,7 @@ class Info(commands.GroupCog):
             value=f"\u200b **⋄ {settings.collectible_name.title()}s Count: ** {cars_count:,} • {cars_instances_count:,} **Caught**\n"
             f"\u200b **⋄ Player Count: ** {players_count:,}\n"
             f"\u200b **⋄ Server Count: ** {len(self.bot.guilds):,}\n"
-            f"\u200b **⋄  Operating Version: [{settings.version}]({settings.repository_link}/releases)**\n\n",
+            f"\u200b **⋄  Operating Version: [CF-R]({settings.repository_link})**\n\n",
             inline=False
         )
         embed.add_field(
@@ -91,21 +88,21 @@ class Info(commands.GroupCog):
             f"\u200b **⋄ Disk:** {disk_usage}/{disk_total}GB • {disk_percentage}%\n\n",
             inline=False
         )
-        embed.add_field(
-            name="⋈ Developers",
-            value=developers,
-            inline=True
-        )
-        embed.add_field(
-            name="⋊ Contributors",
-            value=contributors,
-            inline=True
-        )
-        embed.add_field(
-            name="⋋ Testers\n",
-            value=testers,
-            inline=True
-        )
+    #    embed.add_field(
+    #        name="⋈ Developers",
+    #        value=developers,
+    #        inline=True
+    #    )
+        #embed.add_field(
+            #name="⋊ Contributors",
+                #value=contributors,
+                #inline=False
+                #)
+    #    embed.add_field(
+    #        name="⋋ Testers\n",
+    #        value=testers,
+    #        inline=True
+    #    )
         embed.add_field(
             name="⋇ Links",
             value=f"[Discord server]({settings.discord_invite}) • [Invite me]({invite_link}) • "
@@ -184,6 +181,7 @@ class Info(commands.GroupCog):
         file.close()
 
     @app_commands.command()
+    @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def tutorial(
             self,
             interaction: discord.Interaction,
@@ -239,3 +237,42 @@ class Info(commands.GroupCog):
         )
 
         await interaction.response.send_message(embed=embed)
+
+    @app_commands.command()
+    @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
+    async def about(self, interaction: discord.Interaction):
+        """
+        Info about the bot reason to exist etc
+        """
+
+        entries = []
+
+        assert self.bot.user
+        assert self.bot.application
+
+        description = ("Brief Description",settings.info_description)
+        entries.append(description)
+        descriptionblack = ("","")
+        entries.append(descriptionblack)
+
+        history = ("History",settings.info_description)
+        entries.append(history)
+        historyblack = ("","")
+        entries.append(historyblack)
+
+        contributors = "\n".join([f"\u200b **⋄** {contrib}" for contrib in settings.contributors])
+        credits = ("Credits",contributors)
+        entries.append(credits)
+        creditsblank = ("","")
+        entries.append(creditsblank)
+
+        source = FieldPageSource(entries=entries, per_page=2)
+        source.embed.title = f"About {settings.bot_name}"
+        source.embed.colour = settings.default_embed_color
+        source.embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+        v = sys.version_info
+        source.embed.set_footer(
+            text=f"Python {v.major}.{v.minor}.{v.micro} • discord.py {discord.__version__}"
+        )
+        pages = Pages(source=source, interaction=interaction, compact=True)
+        await pages.start()

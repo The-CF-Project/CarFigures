@@ -1,3 +1,4 @@
+import datetime
 from collections import defaultdict
 from typing import TYPE_CHECKING, cast
 
@@ -12,6 +13,7 @@ from carfigures.core.models import Trade as TradeModel
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.core.utils.paginator import Pages
 from carfigures.core.utils.transformers import (
+    CarEnabledTransform,
     CarInstanceTransform,
     EventEnabledTransform,
     TradeCommandType,
@@ -25,7 +27,7 @@ if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
 
 
-class Trade(commands.GroupCog):
+class Trade(commands.GroupCog, group_name=settings.group_cog_names["trade"]):
     """
     Trade carfigures with other players
     """
@@ -211,7 +213,13 @@ class Trade(commands.GroupCog):
         )
 
     @app_commands.command(extras={"trade": TradeCommandType.REMOVE})
-    async def remove(self, interaction: discord.Interaction, carfigure: CarInstanceTransform):
+    async def remove(
+        self,
+        interaction: discord.Interaction,
+        carfigure: CarInstanceTransform,
+        event: EventEnabledTransform | None = None,
+        limited: bool | None = None,
+        ):
         """
         Remove a carfigure from what you proposed in the ongoing trade.
 
@@ -219,6 +227,10 @@ class Trade(commands.GroupCog):
         ----------
         carfigure: CarInstance
             The carfigure you want to remove from your proposal
+        event: Event
+            Filter the results of autocompletion to an event. Ignored afterwards.
+        limited: bool
+            Filter the results of autocompletion to limiteds. Ignored afterwards.
         """
         if not carfigure:
             return
@@ -274,6 +286,7 @@ class Trade(commands.GroupCog):
         interaction: discord.Interaction["CarFiguresBot"],
         sorting: app_commands.Choice[str],
         trade_user: discord.User | None = None,
+        carfigure: CarEnabledTransform | None = None,
     ):
         """
         Show the history of your trades.
@@ -284,6 +297,8 @@ class Trade(commands.GroupCog):
             The sorting order of the trades
         trade_user: discord.User | None
             The user you want to see your trade history with
+        carfigure: CarEnabledTransform | None
+            The carfigure you want to filter the trade history by.
         """
         await interaction.response.defer(ephemeral=True, thinking=True)
         user = interaction.user
@@ -296,9 +311,17 @@ class Trade(commands.GroupCog):
             history_queryset = TradeModel.filter(
                 Q(player1__discord_id=user.id) | Q(player2__discord_id=user.id)
             )
+
+        if carfigure:
+            history_queryset = history_queryset.filter(
+                Q(player1__tradeobjects__carinstance__car=carfigure)
+                | Q(player2__tradeobjects__carinstance__car=carfigure)
+            ).distinct()  # for some reason, this query creates a lot of duplicate rows?
+
         history = await history_queryset.order_by(sorting.value).prefetch_related(
             "player1", "player2"
         )
+
         if not history:
             await interaction.followup.send("No history found.", ephemeral=True)
             return
