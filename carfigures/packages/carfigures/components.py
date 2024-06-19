@@ -24,9 +24,9 @@ caught_cars = Counter(
 )
 
 
-class CarFigureNamePrompt(Modal, title=f"Catch this {settings.collectible_name}!"):
+class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
     name = TextInput(
-        label=f"Name of this {settings.collectible_name}",
+        label="Name of this Entity",
         style=discord.TextStyle.short,
         placeholder="Your guess",
     )

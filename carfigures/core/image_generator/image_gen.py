@@ -121,6 +121,7 @@ def draw_card(car_instance: "CarInstance"):
 def draw_banner(event: "Event"):
 
     image = Image.open("." + event.banner)
+    image = image.convert("RGBA")
     draw = ImageDraw.Draw(image)
     draw.text(
         (35, 5),
