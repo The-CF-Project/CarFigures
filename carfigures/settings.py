@@ -68,7 +68,7 @@ class Settings:
     group_cog_names: list[str] = field(default_factory=list)
     command_names: list[str] = field(default_factory=list)
     command_descs: list[str] = field(default_factory=list)
-    default_embed_color: str = ""
+    default_embed_color: int = 0
 
     # /info status
     repository_link: str = ""

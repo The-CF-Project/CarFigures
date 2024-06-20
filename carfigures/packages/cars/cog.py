@@ -10,22 +10,17 @@ from tortoise.exceptions import DoesNotExist
 
 from carfigures.core.models import (
     CarInstance,
-    Event,
     DonationPolicy,
     Trade,
     TradeObject,
     Player,
     cars,
 )
-from carfigures.core.utils import menus
 from carfigures.core.utils.paginator import FieldPageSource, Pages
 from carfigures.core.utils.transformers import (
     CarEnabledTransform,
     CarInstanceTransform,
-    CarTypeTransform,
-    CountryTransform,
     EventEnabledTransform,
-    EventTransform,
     TradeCommandType,
 )
 from carfigures.packages.cars.components import (
@@ -290,8 +285,6 @@ class Cars(commands.GroupCog, group_name=settings.group_cog_names["cars"]):
             self,
             interaction: discord.Interaction,
             carfigure: CarInstanceTransform,
-            event: EventEnabledTransform | None = None,
-            limited: bool | None = None,
     ):
         """
         Display info from your carfigures collection.
@@ -451,8 +444,6 @@ class Cars(commands.GroupCog, group_name=settings.group_cog_names["cars"]):
             interaction: discord.Interaction,
             user: discord.User,
             carfigure: CarInstanceTransform,
-            event: EventEnabledTransform | None = None,
-            limited: bool | None = None,
     ):
         """
         Give a carfigure to a user.
@@ -713,21 +704,21 @@ class Cars(commands.GroupCog, group_name=settings.group_cog_names["cars"]):
             value=f""
                   f"≛ {first.id}\n"
                   f"≛ {first.carfigure.cached_cartype.name}\n"
-                  f"≛ {first.carfigure.cached_country.name}\n"
+                  f"≛ {'None' if not first.carfigure.cached_country.name}\n"
                   f"≛ {first.carfigure.rarity}\n"
                   f"≛ {first.horsepower}\n"
                   f"≛ {first.horsepower_bonus}\n"
                   f"≛ {first.carfigure.weight}\n"
                   f"≛ {first.weight_bonus}\n"
                   f"≛ {format_dt(first.catch_date, style='R') if first.catch_date else 'N/A'}\n",
-            inline=True
+            inline=True,
         )
         embed.add_field(
             name=f"◊ {self.bot.get_emoji(second.carfigure.emoji_id) or 'N/A'} **{second.carfigure.full_name}**",
             value=
             f"≛ {second.id}\n"
             f"≛ {second.carfigure.cached_cartype.name}\n"
-            f"≛ {second.carfigure.cached_country.name}\n"
+            f"≛ {'None' if not second.carfigure.cached_country.name}\n"
             f"≛ {second.carfigure.rarity}\n"
             f"≛ {second.horsepower}\n"
             f"≛ {second.horsepower_bonus}\n"

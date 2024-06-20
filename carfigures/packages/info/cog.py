@@ -222,11 +222,11 @@ class Info(commands.GroupCog, group_name=settings.group_cog_names["info"]):
             inline=False
         )
         embed.add_field(
-            name=f"How do I get more {settings.players_group_cog_name}?",
+            name=f"How do I get more {settings.group_cog_names["cars"]}?",
             value=(
-                f"To get more {settings.players_group_cog_name}, you can simply catch\n"
-                f"more {settings.players_group_cog_name}. The more {settings.players_group_cog_name} you catch, the\n"
-                f"rarer the {settings.players_group_cog_name} you will get."
+                f"To get more {settings.group_cog_names["cars"]}, you can simply catch\n"
+                f"more {settings.group_cog_names["cars"]}. The more {settings.group_cog_names["cars"]} you catch, the\n"
+                f"rarer the {settings.group_cog_names["cars"]} you will get."
             ),
             inline=False
         )
