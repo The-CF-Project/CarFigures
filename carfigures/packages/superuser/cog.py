@@ -524,7 +524,7 @@ class SuperUser(commands.GroupCog, group_name=settings.group_cog_names["superuse
                 f"{settings.collectible_name.title()} spawned.", ephemeral=True
             )
             await log_action(
-                f"{interaction.user} spawned {settings.collectible_name} {ball.name} "
+                f"{interaction.user} spawned {settings.collectible_name} {car.name} "
                 f"in {channel or interaction.channel}.",
                 self.bot,
             )
