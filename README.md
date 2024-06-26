@@ -1,6 +1,6 @@
 # GenshinFigures - Genshin Impact Experience On Your Servers
 
-![GenshinFigures Logo](assets/Full_Text_Themed.png)
+![GenshinFigures Logo](assets/bannertransparent.png)
 [![Python](https://img.shields.io/badge/Discord.py-ffffff?style=for-the-badge&logo=python&logoColor=blue)](https://python.org)
 [![Pull Requests](https://img.shields.io/badge/Pull_Request-white?style=for-the-badge&logo=git&logoColor=F1502F)](https://github.com/QueenTheDarkner/GenshinFigures/pulls)
 [![Server Invite](https://img.shields.io/badge/Server_Invite-white?style=for-the-badge&logo=discord&logoColor=7289da&)](https://discord.com/invite/rPFFvYtEjt)
