@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for contributing to this repo! This guide will help you set up the development environment and provide tips on the code structure.
+Thanks for contributing to this repository! This guide will help you set up the development environment and provide tips on the code structure.
 
 ## Setting up the environment
 
@@ -11,12 +11,14 @@ If you're using Docker:
 1. Install Docker.
 2. Run `docker compose build` at the root of this repository.
 3. Create an `.env` file with the following configuration:
+
    ```env
    CARFIGURESBOT_TOKEN=your discord token
    POSTGRES_PASSWORD=a random string
    ```
 
 4. Start PostgreSQL and Redis with `docker compose up -d postgres-db redis-cache`. Note that this will not start the bot.
+
 ----
 
 Without docker, check how to install and setup PostgreSQL and Redis-server on your OS.
@@ -39,6 +41,7 @@ Export the appropriate environment variables as described in the
 To start the bot, follow these steps:
 
 - `poetry shell`
+
 - ```bash
   CARFIGURESBOT_DB_URL="postgres://carfigures:password@localhost:5432/carfigures" \
   python3 -m carfigures --dev --debug
@@ -56,6 +59,7 @@ If you're not actively working on the admin panel, you can just do `docker compo
 Otherwise, follow these instructions to directly have the process without rebuilding.
 
 - `poetry shell`
+
 - ```bash
   CARFIGURESBOT_DB_URL="postgres://carfigures:password@localhost:5432/carfigures" \
   CARFIGURESBOT_REDIS_URL="redis://127.0.0.1" \

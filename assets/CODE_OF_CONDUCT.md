@@ -1,4 +1,4 @@
-# CarFigures Project Code of Conduct
+# GenshinFigures Project Code of Conduct
 
 ## Our Pledge
 
@@ -40,6 +40,6 @@ Project maintainers who do not follow or enforce the Code of Conduct in good fai
 
 ## Attribution
 
-This Code of Conduct is adapted from the Contributor Covenant, version 2.1, available at https://www.contributor-covenant.org/version/2/1/code_of_conduct.html
+This Code of Conduct is adapted from the Contributor Covenant, version 2.1, available at <https://www.contributor-covenant.org/version/2/1/code_of_conduct.html>
 
-For answers to common questions about this code of conduct, see https://www.contributor-covenant.org/faq
+For answers to common questions about this code of conduct, see <https://www.contributor-covenant.org/faq>
