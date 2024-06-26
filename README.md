@@ -2,6 +2,7 @@
 
 [![Pull Requests](https://img.shields.io/badge/Pull_Request-white?style=for-the-badge&logo=git&logoColor=F1502F)](https://github.com/QueenTheDarkner/GenshinFigures/pulls)
 [![Server Invite](https://img.shields.io/badge/Server_Invite-white?style=for-the-badge&logo=discord&logoColor=7289da&)](https://discord.com/invite/rPFFvYtEjt)
+[![GitHub Profile](https://img.shields.io/badge/Queen's_Profile-ffffff?style=for-the-badge&logo=github&logoColor=black)](https://github.com/QueenTheDarkner)
 
 ## Introduction
 
