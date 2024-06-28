@@ -1548,7 +1548,9 @@ class SuperUser(commands.GroupCog, group_name=settings.group_cog_names["superuse
             name=f"Amount of Users who caught {settings.collectible_name}s ({days} days)",
             value=len(set([x.player.discord_id for x in total_server_cars])),
         )
-        embed.set_thumbnail(url=guild.icon.url)  # type: ignore
+
+        if guild icon:
+        embed.set_thumbnail(url=guild.icon.url)
         await interaction.followup.send(embed=embed, ephemeral=True)
 
     @info.command()
