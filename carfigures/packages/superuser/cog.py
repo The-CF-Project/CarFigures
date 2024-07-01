@@ -574,7 +574,7 @@ class SuperUser(commands.GroupCog, group_name=settings.group_cog_names["superuse
                 event=event,
             )
         await interaction.followup.send(
-            f"`{amount}``{car.full_name + 's' if amount > 1 else car.full_name}` {settings.collectible_name} was successfully given to `{user}`.\n"
+            f"`{amount}` `{car.full_name + 's' if amount > 1 else car.full_name}` {settings.collectible_name} was successfully given to `{user}`.\n"
             f"Event: `{event.name if event else None}` • `{settings.hp_replacement}`:`{instance.horsepower_bonus:+d}` • "
             f"{settings.kg_replacement}:`{instance.weight_bonus:+d}` • Limited: `{instance.limited}`"
         )
@@ -1548,9 +1548,7 @@ class SuperUser(commands.GroupCog, group_name=settings.group_cog_names["superuse
             name=f"Amount of Users who caught {settings.collectible_name}s ({days} days)",
             value=len(set([x.player.discord_id for x in total_server_cars])),
         )
-
-        if guild icon:
-        embed.set_thumbnail(url=guild.icon.url)
+        embed.set_thumbnail(url=guild.icon.url)  # type: ignore
         await interaction.followup.send(embed=embed, ephemeral=True)
 
     @info.command()
