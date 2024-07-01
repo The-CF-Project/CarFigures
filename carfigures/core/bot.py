@@ -8,27 +8,27 @@ import types
 from datetime import datetime
 from typing import TYPE_CHECKING, cast
 
-import aiohttp
-import discord
-import discord.gateway
-from cachetools import TTLCache
-from discord import app_commands
-from discord.app_commands.translator import (
+import aiohttp # type: ignore
+import discord # type: ignore
+import discord.gateway # type: ignore
+from cachetools import TTLCache # type: ignore
+from discord import app_commands # type: ignore
+from discord.app_commands.translator import ( # type: ignore
     TranslationContextLocation,
     TranslationContextTypes,
     locale_str,
 )
-from discord.enums import Locale
-from discord.ext import commands
-from prometheus_client import Histogram
-from rich import box, print
-from rich.console import Console
-from rich.table import Table
+from discord.enums import Locale # type: ignore
+from discord.ext import commands # type: ignore
+from prometheus_client import Histogram # type: ignore
+from rich import box, print # type: ignore
+from rich.console import Console # type: ignore
+from rich.table import Table # type: ignore
 
-from carfigures.core.commands import Core
-from carfigures.core.dev import Dev
-from carfigures.core.metrics import PrometheusServer
-from carfigures.core.models import (
+from carfigures.core.commands import Core # type: ignore
+from carfigures.core.dev import Dev # type: ignore
+from carfigures.core.metrics import PrometheusServer # type: ignore
+from carfigures.core.models import ( # type: ignore
     Car,
     BlacklistedGuild,
     BlacklistedUser,
@@ -40,10 +40,10 @@ from carfigures.core.models import (
     cartypes,
     events,
 )
-from carfigures.settings import settings
+from carfigures.settings import settings # type: ignore
 
 if TYPE_CHECKING:
-    from discord.ext.commands.bot import PrefixType
+    from discord.ext.commands.bot import PrefixType # type: ignore
 
 log = logging.getLogger("carfigures.core.bot")
 http_counter = Histogram("discord_http_requests", "HTTP requests", ["key", "code"])

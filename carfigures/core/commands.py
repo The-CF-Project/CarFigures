@@ -2,10 +2,10 @@ import logging
 import time
 from typing import TYPE_CHECKING
 
-import discord
-from discord.ext import commands
+import discord # type: ignore
+from discord.ext import commands # type: ignore
 from tortoise import Tortoise
-from tortoise.exceptions import DoesNotExist
+from tortoise.exceptions import DoesNotExist # type: ignore
 
 from carfigures.packages.carfigures.carfigure import CarFigure
 from carfigures.core.models import Car
@@ -67,7 +67,7 @@ class Core(commands.Cog):
         """
         Reload the cache of database models.
 
-        This is needed each time the database is updated, otherwise changes won't reflect until
+        This is needed each time the database is updated. Otherwise
         next start.
         """
         await self.bot.load_cache()

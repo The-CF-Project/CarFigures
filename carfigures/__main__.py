@@ -9,11 +9,11 @@ import time
 from pathlib import Path
 from signal import SIGTERM
 
-import discord
-import yarl
-from aerich import Command
-from discord.ext.commands import when_mentioned_or
-from rich import print
+import discord # type: ignore
+import yarl # type: ignore
+from aerich import Command # type: ignore
+from discord.ext.commands import when_mentioned_or # type: ignore
+from rich import print # type: ignore
 from tortoise import Tortoise
 
 from carfigures.settings import settings

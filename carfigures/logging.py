@@ -2,7 +2,7 @@ import logging
 import logging.handlers
 from queue import Queue
 
-from discord.utils import _ColourFormatter
+from discord.utils import _ColourFormatter # type: ignore
 
 log = logging.getLogger("carfigures")
 

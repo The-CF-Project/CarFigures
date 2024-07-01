@@ -11,9 +11,9 @@ from copy import copy
 from io import BytesIO
 from typing import TYPE_CHECKING, Iterable, Iterator, Sequence
 
-import aiohttp
-import discord
-from discord.ext import commands
+import aiohttp # type: ignore
+import discord # type: ignore
+from discord.ext import commands # type: ignore
 
 from carfigures.core import models
 from carfigures.core.models import (

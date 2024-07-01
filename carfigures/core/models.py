@@ -6,16 +6,16 @@ from enum import IntEnum
 from io import BytesIO
 from typing import TYPE_CHECKING, Iterable, Tuple, Type
 
-import discord
-from discord.utils import format_dt
-from fastapi_admin.models import AbstractAdmin
+import discord # type: ignore
+from discord.utils import format_dt # type: ignore
+from fastapi_admin.models import AbstractAdmin # type: ignore
 from tortoise import exceptions, fields, models, signals, timezone, validators
 
 from carfigures.core.image_generator.image_gen import draw_card, draw_banner
 from carfigures.settings import settings
 
 if TYPE_CHECKING:
-    from tortoise.backends.base.client import BaseDBAsyncClient
+    from tortoise.backends.base.client import BaseDBAsyncClient # type: ignore
 
 
 cars: dict[int, Car] = {}

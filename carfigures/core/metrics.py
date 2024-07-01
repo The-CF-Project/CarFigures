@@ -5,7 +5,7 @@ from collections import defaultdict
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from aiohttp import web
+from aiohttp import web # type: ignore
 from prometheus_client import CONTENT_TYPE_LATEST, Gauge, Histogram, generate_latest
 
 if TYPE_CHECKING:
