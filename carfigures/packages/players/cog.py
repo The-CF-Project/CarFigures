@@ -7,18 +7,18 @@ from typing import TYPE_CHECKING
 
 from discord import app_commands
 from discord.ext import commands
-from tortoise.expressions import Q
 
 from carfigures.core.models import (
-    CarInstance,
     DonationPolicy,
     PrivacyPolicy,
-    Trade,
-    TradeObject,
     Player as PlayerModel
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
-from carfigures.packages.players.components import _get_10_cars_emojis
+from carfigures.packages.players.components import (
+    _get_10_cars_emojis,
+    get_items_csv,
+    get_trades_csv,
+)
 
 
 from carfigures.settings import settings
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.players")
 
 
-class Player(commands.GroupCog, group_name=settings.group_cog_names["player"]):
+class Player(commands.GroupCog, group_name=settings.player_group_name):
     """
     Manage your account settings.
     """
@@ -100,7 +100,7 @@ class Player(commands.GroupCog, group_name=settings.group_cog_names["player"]):
         elif policy.value == DonationPolicy.ALWAYS_DENY:
             await interaction.response.send_message(
                 "Setting updated, it is now impossible to use "
-                f"`/{settings.players_group_cog_name} give` with "
+                f"`/{settings.player_group_name} give` with "
                 "you. It is still possible to perform donations using the trade system."
             )
         else:
@@ -119,10 +119,13 @@ class Player(commands.GroupCog, group_name=settings.group_cog_names["player"]):
         """
 
         # Setting Up variables
-        if user == None:
-            user = interaction.user
+        player = user or interaction.user    
 
-        cars = await _get_10_cars_emojis(self)
+        if settings.profiles_emojis:
+            cars = await _get_10_cars_emojis(self)
+        else:
+            cars = []
+
         player, _ = await PlayerModel.get_or_create(discord_id=user.id)
         await player.fetch_related("cars")
 
@@ -229,47 +232,3 @@ class Player(commands.GroupCog, group_name=settings.group_cog_names["player"]):
                 ephemeral=True,
             )
 
-
-async def get_items_csv(player: PlayerModel) -> BytesIO:
-    """
-    Get a CSV file with all items of the player.
-    """
-    cars = await CarInstance.filter(player=player).prefetch_related(
-        "car", "trade_player", "event"
-    )
-    txt = (
-        f"id,hex id,{settings.collectible_name},catch date,trade_player"
-        ",event,limited,horsepower,horsepower bonus,kg,kg_bonus\n"
-    )
-    for car in cars:
-        txt += (
-            f"{car.id},{car.id:0X},{car.car.full_name},{car.catch_date},"  # type: ignore
-            f"{car.trade_player.discord_id if car.trade_player else 'None'},{car.event},"
-            f"{car.limited},{car.horsepower},{car.horsepower_bonus},{car.weight},{car.weight_bonus}\n"
-        )
-    return BytesIO(txt.encode("utf-8"))
-
-
-async def get_trades_csv(player: PlayerModel) -> BytesIO:
-    """
-    Get a CSV file with all trades of the player.
-    """
-    trade_history = (
-        await Trade.filter(Q(player1=player) | Q(player2=player))
-        .order_by("date")
-        .prefetch_related("player1", "player2")
-    )
-    txt = "id,date,player1,player2,player1 received,player2 received\n"
-    for trade in trade_history:
-        player1_items = await TradeObject.filter(
-            trade=trade, player=trade.player1
-        ).prefetch_related("carinstance")
-        player2_items = await TradeObject.filter(
-            trade=trade, player=trade.player2
-        ).prefetch_related("carinstance")
-        txt += (
-            f"{trade.id},{trade.date},{trade.player1.discord_id},{trade.player2.discord_id},"
-            f"{','.join([i.carinstance.to_string() for i in player2_items])},"  # type: ignore
-            f"{','.join([i.carinstance.to_string() for i in player1_items])}\n"  # type: ignore
-        )
-    return BytesIO(txt.encode("utf-8"))

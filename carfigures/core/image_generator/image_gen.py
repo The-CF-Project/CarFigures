@@ -145,7 +145,7 @@ def draw_banner(event: "Event"):
         )
     draw.text(
         (30, 1015),
-        f"Event Status:",
+        "Event Status:",
         font=event_status_font,
         fill=(255, 255, 255, 255),
         stroke_width=2,

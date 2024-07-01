@@ -24,7 +24,7 @@ activation_embed = discord.Embed(
 
 
 @app_commands.guild_only()
-class Server(commands.GroupCog, group_name=settings.group_cog_names["server"]):
+class Server(commands.GroupCog, group_name=settings.server_group_name):
     """
     View and manage your carfigures collection.
     """
@@ -161,7 +161,11 @@ class Server(commands.GroupCog, group_name=settings.group_cog_names["server"]):
         Display information about the server.
         """
 
-        cars = await _get_10_cars_emojis(self)
+        if settings.profiles_emojis:
+            cars = await _get_10_cars_emojis(self)
+        else:
+            cars = []
+
         guild = interaction.guild
         config, created = await GuildConfig.get_or_create(guild_id=guild.id)
         embed = discord.Embed(
@@ -175,7 +179,7 @@ class Server(commands.GroupCog, group_name=settings.group_cog_names["server"]):
             f"\u200b **⋄ Spawn Alert Role:** {config.spawn_ping or 'Not set'}\n\n"
             f"**Ⅲ Server Info**\n"
             f"\u200b **⋄ Server ID:** {guild.id}\n"
-            f"\u200b **⋄ Server Owner:** {guild.owner}\n"
+            f"\u200b **⋄ Server Owner:** {guild.owner_id}\n"
             f"\u200b **⋄ Server Description:** {guild.description if guild.description else 'None'}\n\n"
             f"\u200b **⋄ Member Count:** {guild.member_count}\n"
             f"\u200b **⋄ Created Since:** {guild.created_at.strftime('%d/%m/%y')}\n\n"

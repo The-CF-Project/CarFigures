@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.info")
 
 
-class Info(commands.GroupCog, group_name=settings.group_cog_names["info"]):
+class Info(commands.GroupCog, group_name=settings.info_group_name):
     """
     Simple info commands.
     """
@@ -48,6 +48,7 @@ class Info(commands.GroupCog, group_name=settings.group_cog_names["info"]):
         cars_count = len([x for x in carfigures.values() if x.enabled])
         players_count = await row_count_estimate("player")
         cars_instances_count = await row_count_estimate("carinstance")
+        contributors = "\n".join([f"\u200b **⋄** {contrib}" for contrib in settings.bot_contributors])
         cpu_usage, memory_usage, memory_total, memory_percentage, disk_usage, disk_total, disk_percentage = machine_info()
 
         assert self.bot.user
@@ -93,11 +94,11 @@ class Info(commands.GroupCog, group_name=settings.group_cog_names["info"]):
     #        value=developers,
     #        inline=True
     #    )
-        #embed.add_field(
-            #name="⋊ Contributors",
-                #value=contributors,
-                #inline=False
-                #)
+        embed.add_field(
+            name="⋊ Contributors",
+            value=contributors,
+            inline=False
+        )
     #    embed.add_field(
     #        name="⋋ Testers\n",
     #        value=testers,
@@ -173,8 +174,6 @@ class Info(commands.GroupCog, group_name=settings.group_cog_names["info"]):
         event: Event
             the event u want to check info about!
         """
-        if not event:
-            return
         await interaction.response.defer(thinking=True)
         content, file = await event.prepare_for_message(interaction)
         await interaction.followup.send(content=content, file=file)
@@ -195,7 +194,7 @@ class Info(commands.GroupCog, group_name=settings.group_cog_names["info"]):
         embed = discord.Embed(
             title="Tutorial",
             description="Tutorial on how to use the bot.",
-            color=discord.Colour.blurple()
+            color=settings.default_embed_color
         )
 
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
@@ -222,11 +221,11 @@ class Info(commands.GroupCog, group_name=settings.group_cog_names["info"]):
             inline=False
         )
         embed.add_field(
-            name=f"How do I get more {settings.group_cog_names["cars"]}?",
+            name=f"How do I get more {settings.cars_group_name}?",
             value=(
-                f"To get more {settings.group_cog_names["cars"]}, you can simply catch\n"
-                f"more {settings.group_cog_names["cars"]}. The more {settings.group_cog_names["cars"]} you catch, the\n"
-                f"rarer the {settings.group_cog_names["cars"]} you will get."
+                f"To get more {settings.cars_group_name}, you can simply catch\n"
+                f"more {settings.cars_group_name}. The more {settings.cars_group_name} you catch, the\n"
+                f"rarer the {settings.cars_group_name} you will get."
             ),
             inline=False
         )
@@ -250,21 +249,15 @@ class Info(commands.GroupCog, group_name=settings.group_cog_names["info"]):
         assert self.bot.user
         assert self.bot.application
 
-        description = ("Brief Description",settings.info_description)
+        description = ("Brief Description",settings.bot_description)
         entries.append(description)
         descriptionblack = ("","")
         entries.append(descriptionblack)
 
-        history = ("History",settings.info_description)
+        history = ("History",settings.bot_description)
         entries.append(history)
         historyblack = ("","")
         entries.append(historyblack)
-
-        contributors = "\n".join([f"\u200b **⋄** {contrib}" for contrib in settings.contributors])
-        credits = ("Credits",contributors)
-        entries.append(credits)
-        creditsblank = ("","")
-        entries.append(creditsblank)
 
         source = FieldPageSource(entries=entries, per_page=2)
         source.embed.title = f"About {settings.bot_name}"

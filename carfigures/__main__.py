@@ -20,6 +20,7 @@ from carfigures.settings import settings
 from carfigures.core.bot import CarFiguresBot
 from carfigures.logging import init_logger
 from carfigures.settings import read_settings, settings
+from carfigures import bot_version
 
 discord.voice_client.VoiceClient.warn_nacl = False  # disable PyNACL warning
 log = logging.getLogger("carfigures")
@@ -49,7 +50,7 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
         prog="CarFigures bot", description="Collect and exchange carfigures on Discord"
     )
     parser.add_argument(
-        "--config-file", type=Path, help="Set the path to settings.conf", default=Path("./settings.toml")
+        "--config-file", type=Path, help="Set the path to settings.toml", default=Path("./settings.toml")
     )
     parser.add_argument("--disable-rich", action="store_true", help="Disable rich log format")
     parser.add_argument("--debug", action="store_true", help="Enable debug logs")
@@ -59,13 +60,18 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
 
 
 def print_welcome():
-    print("[green]{0:-^50}[/green]".format(f" {settings.bot_name}, A Fork of CarFigures "))
-    print("[green]{0: ^50}[/green]".format(f" Collect {settings.collectible_name}s "))
-    print("[blue]{0:^50}[/blue]".format("Discord bot made by El Laggron, Modified by Array"))
+    print("[green]{0:-^50}[/green]".format(f" {settings.bot_name} "))
+    # print("[green]{0: ^50}[/green]".format(f" Collect {settings.collectible_name}s "))
+    print("[blue]{0:^50}[/blue]".format("Based on The CF Project, Made by Array_YE"))
     print("")
     print(
         " [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format(
             "Discord.py version:", discord.__version__
+        )
+    )
+    print(
+        " [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format(
+            "CF Version:", bot_version
         )
     )
     print("")
