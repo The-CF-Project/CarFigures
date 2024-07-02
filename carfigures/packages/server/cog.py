@@ -68,10 +68,7 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
         )
 
     @app_commands.command()
-    async def disable(
-        self,
-        interaction: discord.Interaction
-    ):
+    async def disable(self, interaction: discord.Interaction):
         """
         Disable or enable carfigures spawning.
         """
@@ -108,11 +105,7 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
                 )
 
     @app_commands.command()
-    async def spawnalert(
-            self,
-            interaction: discord.Interaction,
-            role: discord.Role
-    ):
+    async def spawnalert(self, interaction: discord.Interaction, role: discord.Role):
         """
         Enable, Disable or Set Role spawn alert for your server
         """
@@ -147,16 +140,11 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
                 )
                 return
         else:
-            await interaction.response.send_message(
-                "Please select a proper role."
-            )
+            await interaction.response.send_message("Please select a proper role.")
 
     @app_commands.command()
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
-    async def profile(
-        self,
-        interaction: discord.Interaction
-    ):
+    async def profile(self, interaction: discord.Interaction):
         """
         Display information about the server.
         """
@@ -183,12 +171,11 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
             f"\u200b **⋄ Server Description:** {guild.description if guild.description else 'None'}\n\n"
             f"\u200b **⋄ Member Count:** {guild.member_count}\n"
             f"\u200b **⋄ Created Since:** {guild.created_at.strftime('%d/%m/%y')}\n\n"
-            )
+        )
         embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
         embed.set_footer(
             text=f"Requested by {interaction.user.display_name}",
-            icon_url=interaction.user.display_avatar.url
+            icon_url=interaction.user.display_avatar.url,
         )
 
         await interaction.response.send_message(embed=embed)
-
