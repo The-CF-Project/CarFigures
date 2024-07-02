@@ -111,7 +111,7 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
         """
 
         # Setting Up variables
-        player = user or interaction.user  
+        player = user or interaction.user
 
         if settings.profiles_emojis:
             cars = await _get_10_cars_emojis(self)
