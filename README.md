@@ -119,7 +119,7 @@ Open a pull request (PR) against the stable branch of the original repository.
 2. Create a new branch for your feature or bug fix: git checkout -b new-feature
 3. Make your changes and commit them with descriptive messages: git commit -m 'Add new feature'
 4. Push your changes to your branch: git push origin new-feature
-Open a pull request (PR) against the stable branch of the original repository.
+Open a pull request (PR) against the upstream branch of the original repository.
 
 
 
