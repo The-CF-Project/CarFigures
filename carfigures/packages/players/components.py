@@ -12,6 +12,7 @@ from carfigures.core.models import (
 )
 from carfigures.settings import settings
 
+
 async def _get_10_cars_emojis(self) -> list[discord.Emoji]:
     """
     Return a list of up to 10 Discord emojis representing cars.
@@ -25,13 +26,12 @@ async def _get_10_cars_emojis(self) -> list[discord.Emoji]:
             emotes.append(emoji)
     return emotes
 
+
 async def get_items_csv(player: PlayerModel) -> BytesIO:
     """
     Get a CSV file with all items of the player.
     """
-    cars = await CarInstance.filter(player=player).prefetch_related(
-        "car", "trade_player", "event"
-    )
+    cars = await CarInstance.filter(player=player).prefetch_related("car", "trade_player", "event")
     txt = (
         f"id,hex id,{settings.collectible_name},catch date,trade_player"
         ",event,limited,horsepower,horsepower bonus,kg,kg_bonus\n"
