@@ -86,7 +86,7 @@ class Settings:
     rarity_command_name: str = "rarity"
     compare_command_name: str = "compare"
 
-    garage_command_desc: str = "Show Your garage!"
+    garage_command_desc: str = "Show your garage!"
     exhibit_command_desc: str = "Show your showroom in the bot."
     show_command_desc: str = "Display info from your carfigures collection."
     info_command_desc: str = "Display info from a specific carfigure."
