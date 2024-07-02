@@ -11,8 +11,10 @@ from carfigures.core.utils import menus
 from carfigures.core.utils.paginator import Pages
 
 from carfigures.settings import settings
+
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
+
 
 class DonationRequest(View):
     def __init__(
@@ -60,7 +62,8 @@ class DonationRequest(View):
         await self.carfigure.save()
         trade = await Trade.create(user1=self.carfigure.trade_player, user2=self.new_player)
         await TradeObject.create(
-            trade=trade, carinstance=self.carfigure, player=self.carfigure.trade_player)
+            trade=trade, carinstance=self.carfigure, player=self.carfigure.trade_player
+        )
         await interaction.response.edit_message(
             content=interaction.message.content  # type: ignore
             + "\n\N{WHITE HEAVY CHECK MARK} The donation was accepted!",
@@ -101,6 +104,7 @@ class SortingChoices(enum.Enum):
     # manual sorts are not sorted by SQL queries but by our code
     # this may be do-able with SQL still, but I don't have much experience ngl
     duplicates = "manualsort-duplicates"
+
 
 class SortingChoices2(enum.Enum):
     alphabetic = "event__name"
