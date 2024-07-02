@@ -27,7 +27,7 @@ from carfigures.packages.cars.components import (
     SortingChoices,
     DonationRequest,
     CarFiguresViewer,
-    inventory_privacy
+    inventory_privacy,
 )
 from carfigures.settings import settings
 
@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
 
 log = logging.getLogger("carfigures.packages.carfigures")
+
 
 class Cars(commands.GroupCog, group_name=settings.cars_group_name):
     """
@@ -45,17 +46,16 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         self.bot = bot
 
     @app_commands.command(
-        name=settings.garage_command_name,
-        description=settings.garage_command_desc
+        name=settings.garage_command_name, description=settings.garage_command_desc
     )
     @app_commands.checks.cooldown(1, 10, key=lambda i: i.user.id)
     async def garage(
-            self,
-            interaction: discord.Interaction["CarFiguresBot"],
-            user: discord.User | None = None,
-            sort: SortingChoices | None = None,
-            reverse: bool = False,
-            carfigure: CarEnabledTransform | None = None,
+        self,
+        interaction: discord.Interaction["CarFiguresBot"],
+        user: discord.User | None = None,
+        sort: SortingChoices | None = None,
+        reverse: bool = False,
+        carfigure: CarEnabledTransform | None = None,
     ):
         """
         Show Your Garage!
@@ -147,16 +147,15 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             )
 
     @app_commands.command(
-        name=settings.exhibit_command_name,
-        description=settings.exhibit_command_desc
+        name=settings.exhibit_command_name, description=settings.exhibit_command_desc
     )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def exhibit(
-            self,
-            interaction: discord.Interaction["CarFiguresBot"],
-            user: discord.User | None = None,
-            event: EventEnabledTransform | None = None,
-            limited: bool | None = None,
+        self,
+        interaction: discord.Interaction["CarFiguresBot"],
+        user: discord.User | None = None,
+        event: EventEnabledTransform | None = None,
+        limited: bool | None = None,
     ):
         """
         Show your showroom in the bot.
@@ -252,8 +251,10 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             entries.append((f"__**Owned {settings.collectible_name.title()}s**__", "Nothing yet."))
         # Getting the list of emoji IDs of any carfigures not owned by the player
         if missing := set(y for x, y in bot_carfigures.items() if x not in owned_carfigures):
-            fill_fields(f"⋄ Missing {settings.collectible_name.title()}s | {len(missing) if len(missing) > 0 else '0'} total",
-                        missing)
+            fill_fields(
+                f"⋄ Missing {settings.collectible_name.title()}s | {len(missing) if len(missing) > 0 else '0'} total",
+                        missing,
+            )
         else:
             entries.append(
                 (
@@ -271,20 +272,19 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             f"{round(len(owned_carfigures) / len(bot_carfigures) * 100, 1)}% | {len(owned_carfigures)}/{len(bot_carfigures)}**"
         )
         source.embed.colour = settings.default_embed_color
-        source.embed.set_author(name=player_obj.display_name, icon_url=player_obj.display_avatar.url)
+        source.embed.set_author(
+            name=player_obj.display_name, icon_url=player_obj.display_avatar.url
+        )
 
         pages = Pages(source=source, interaction=interaction, compact=True)
         await pages.start()
 
-    @app_commands.command(
-        name=settings.show_command_name,
-        description=settings.show_command_desc
-    )
+    @app_commands.command(name=settings.show_command_name, description=settings.show_command_desc)
     @app_commands.checks.cooldown(1, 5, key=lambda i: i.user.id)
     async def show(
-            self,
-            interaction: discord.Interaction,
-            carfigure: CarInstanceTransform,
+        self,
+        interaction: discord.Interaction,
+        carfigure: CarInstanceTransform,
     ):
         """
         Display info from your carfigures collection.
@@ -303,10 +303,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         await interaction.followup.send(content=content, file=file)
         file.close()
 
-    @app_commands.command(
-        name=settings.info_command_name,
-        description=settings.info_command_desc
-    )
+    @app_commands.command(name=settings.info_command_name, description=settings.info_command_desc)
     @app_commands.checks.cooldown(1, 5, key=lambda i: i.user.id)
     async def info(self, interaction: discord.Interaction, carfigure: CarEnabledTransform):
         """
@@ -317,30 +314,31 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         carfigure: CarInstance
             The carfigure you want to inspect
         """
-        emoji = self.bot.get_emoji(carfigure.emoji_id) or ""  # Get emoji or an empty string if not found
+        emoji = (
+            self.bot.get_emoji(carfigure.emoji_id) or ""
+        ) # Get emoji or an empty string if not found
         car_info_embed = discord.Embed(
-                title=f"{emoji} {carfigure.full_name} Information:",
-                description=(
-                    f"**⋄ Short Name:** {carfigure.short_name}\n"
-                    f"**⋄ Catch Names:** {''.join(carfigure.catch_names)}\n"
-                    f"**⋄ {settings.cartype_replacement}:** {carfigure.cached_cartype.name}\n"
-                    f"**⋄ {settings.country_replacement}:** {carfigure.cached_country.name if carfigure.cached_country else 'None'}\n"
-                    f"**⋄ Rarity:** {carfigure.rarity}\n"
-                    f"**⋄ {settings.horsepower_replacement}:** {carfigure.horsepower}\n"
-                    f"**⋄ {settings.weight_replacement}:** {carfigure.weight}\n"
-                    f"**⋄ Capacity Name:** {carfigure.capacity_name}\n"
-                    f"**⋄ Capacity Description:** {carfigure.capacity_description}\n"
-                    f"**⋄ Image Credits:** {carfigure.image_credits}\n"
-                    f"**⋄ {settings.collectible_name.title()} Suggester:** {carfigure.car_suggester}"
-                    ),
-                color=settings.default_embed_color
-                )
-        await interaction.response.send_message(embed=car_info_embed)  # Send the car information embed as a response
+            title=f"{emoji} {carfigure.full_name} Information:",
+            description=(
+                f"**⋄ Short Name:** {carfigure.short_name}\n"
+                f"**⋄ Catch Names:** {''.join(carfigure.catch_names)}\n"
+                f"**⋄ {settings.cartype_replacement}:** {carfigure.cached_cartype.name}\n"
+                f"**⋄ {settings.country_replacement}:** {carfigure.cached_country.name if carfigure.cached_country else 'None'}\n"
+                f"**⋄ Rarity:** {carfigure.rarity}\n"
+                f"**⋄ {settings.horsepower_replacement}:** {carfigure.horsepower}\n"
+                f"**⋄ {settings.weight_replacement}:** {carfigure.weight}\n"
+                f"**⋄ Capacity Name:** {carfigure.capacity_name}\n"
+                f"**⋄ Capacity Description:** {carfigure.capacity_description}\n"
+                f"**⋄ Image Credits:** {carfigure.image_credits}\n"
+                f"**⋄ {settings.collectible_name.title()} Suggester:** {carfigure.car_suggester}"
+            ),
+                color=settings.default_embed_color,
+            )
+        await interaction.response.send_message(
+            embed=car_info_embed
+        )  # Send the car information embed as a response
 
-    @app_commands.command(
-        name=settings.last_command_name,
-        description=settings.last_command_desc
-    )
+    @app_commands.command(name=settings.last_command_name, description=settings.last_command_desc)
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def last(self, interaction: discord.Interaction, user: discord.User | None = None):
         """
@@ -383,8 +381,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         file.close()
 
     @app_commands.command(
-        name=settings.favorite_command_name,
-        description=settings.favorite_command_desc
+        name=settings.favorite_command_name, description=settings.favorite_command_desc
     )
     async def favorite(self, interaction: discord.Interaction, carfigure: CarInstanceTransform):
         """
@@ -429,13 +426,13 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
     @app_commands.command(
         name=settings.give_command_name,
         description=settings.give_command_desc,
-        extras={"trade": TradeCommandType.PICK}
+        extras={"trade": TradeCommandType.PICK},
     )
     async def give(
-            self,
-            interaction: discord.Interaction,
-            user: discord.User,
-            carfigure: CarInstanceTransform,
+        self,
+        interaction: discord.Interaction,
+        user: discord.User,
+        carfigure: CarInstanceTransform,
     ):
         """
         Give a carfigure to a user.
@@ -504,9 +501,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         trade = await Trade.create(player1=old_player, player2=new_player)
         await TradeObject.create(trade=trade, carinstance=carfigure, player=new_player)
 
-        cf_txt = carfigure.description(
-            short=True, include_emoji=True, bot=self.bot, is_trade=True
-        )
+        cf_txt = carfigure.description(short=True, include_emoji=True, bot=self.bot, is_trade=True)
 
         await interaction.response.send_message(
             f"You just gave the {settings.collectible_name} {cf_txt} to {user.mention}!"
@@ -514,16 +509,15 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         await carfigure.unlock()
 
     @app_commands.command(
-        name=settings.count_command_name,
-        description=settings.count_command_desc
+        name=settings.count_command_name, description=settings.count_command_desc
     )
     async def count(
-            self,
-            interaction: discord.Interaction,
-            carfigure: CarEnabledTransform | None = None,
-            event: EventEnabledTransform | None = None,
-            limited: bool | None = None,
-            current_server: bool = False,
+        self,
+        interaction: discord.Interaction,
+        carfigure: CarEnabledTransform | None = None,
+        event: EventEnabledTransform | None = None,
+        limited: bool | None = None,
+        current_server: bool = False,
     ):
         """
         Count how many carfigures you have.
@@ -570,14 +564,13 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         )
 
     @app_commands.command(
-        name=settings.rarity_command_name,
-        description=settings.rarity_command_desc
+        name=settings.rarity_command_name, description=settings.rarity_command_desc
     )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def rarity(
-            self,
-            interaction: discord.Interaction,
-            reverse: bool = False,
+        self,
+        interaction: discord.Interaction,
+        reverse: bool = False,
     ):
         """
         Show the rarity list of the bot
@@ -612,8 +605,12 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         # Display collectibles grouped by rarity
         entries = []
         for rarity in sorted_rarities:
-            collectible_names = "\n".join([f"\u200B ⋄ {self.bot.get_emoji(c.emoji_id) or 'N/A'} {c.full_name}" for c in
-                                           rarity_to_collectibles[rarity]])
+            collectible_names = "\n".join(
+                [
+                    f"\u200B ⋄ {self.bot.get_emoji(c.emoji_id) or 'N/A'} {c.full_name}"
+                    for c in rarity_to_collectibles[rarity]
+                ]
+            )
             entry = (f"∥ Rarity: {rarity}", f"{collectible_names}")
             entries.append(entry)
 
@@ -626,15 +623,14 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         await pages.start()
 
     @app_commands.command(
-        name=settings.compare_command_name,
-        description=settings.compare_command_desc
+        name=settings.compare_command_name, description=settings.compare_command_desc
     )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def compare(
-            self,
-            interaction: discord.Interaction,
-            first: CarInstanceTransform,
-            second: CarInstanceTransform
+        self,
+        interaction: discord.Interaction,
+        first: CarInstanceTransform,
+        second: CarInstanceTransform
     ):
         """
         Compare two carfigures
@@ -661,32 +657,30 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             )
             return
 
-
         # Creating an Embed to hold all these
         embed = discord.Embed(
             title=f"❖ {player_obj.display_name} Comparison!",
             description=f"⊰ **{first.carfigure.full_name} vs. {second.carfigure.full_name} ⊱**",
-            colour=settings.default_embed_color
+            colour=settings.default_embed_color,
         )
 
         embed.add_field(
             name="◊ Name",
             value=f""
-                  f"• ID\n"
-                  f"• {settings.cartype_replacement}\n"
-                  f"• {settings.country_replacement}\n"
-                  f"• Rarity\n"
-                  f"• {settings.horsepower_replacement}\n"
-                  f"• {settings.horsepower_replacement} Bonus\n"
-                  f"• {settings.weight_replacement}\n"
-                  f"• {settings.weight_replacement} Bonus\n"
-                  f"• Catch Date",
+                f"• ID\n"
+                f"• {settings.cartype_replacement}\n"
+                f"• {settings.country_replacement}\n"
+                f"• Rarity\n"
+                f"• {settings.horsepower_replacement}\n"
+                f"• {settings.horsepower_replacement} Bonus\n"
+                f"• {settings.weight_replacement}\n"
+                f"• {settings.weight_replacement} Bonus\n"
+                f"• Catch Date",
             inline=True,
         )
         embed.add_field(
             name=f"◊ {self.bot.get_emoji(first.carfigure.emoji_id) or 'N/A'} **{first.carfigure.full_name}**\n",
-            value=
-            f"≛ {first.pk}\n"
+            value=f"≛ {first.pk}\n"
             f"≛ {first.carfigure.cached_cartype.name}\n"
             f"≛ {first.carfigure.cached_country.name if first.carfigure.cached_country else 'None'}\n"
             f"≛ {first.carfigure.rarity}\n"
@@ -699,8 +693,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         )
         embed.add_field(
             name=f"◊ {self.bot.get_emoji(second.carfigure.emoji_id) or 'N/A'} **{second.carfigure.full_name}**",
-            value=
-            f"≛ {second.pk}\n"
+            value=f"≛ {second.pk}\n"
             f"≛ {second.carfigure.cached_cartype.name}\n"
             f"≛ {second.carfigure.cached_country.name if second.carfigure.cached_country else 'None'}\n"
             f"≛ {second.carfigure.rarity}\n"
@@ -709,12 +702,11 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             f"≛ {second.weight}\n"
             f"≛ {second.weight_bonus}\n"
             f"≛ {format_dt(second.catch_date, style='R') if second.catch_date else 'N/A'}\n",
-            inline=True
+            inline=True,
         )
 
         embed.set_footer(
-            text=f"Requested by {player_obj.display_name}",
-            icon_url=player_obj.display_avatar.url
+            text=f"Requested by {player_obj.display_name}", icon_url=player_obj.display_avatar.url
         )
 
         await interaction.followup.send(embed=embed)
