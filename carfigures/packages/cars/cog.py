@@ -253,7 +253,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         if missing := set(y for x, y in bot_carfigures.items() if x not in owned_carfigures):
             fill_fields(
                 f"⋄ Missing {settings.collectible_name.title()}s | {len(missing) if len(missing) > 0 else '0'} total",
-                    missing,
+                missing,
             )
         else:
             entries.append(
@@ -332,7 +332,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
                 f"**⋄ Image Credits:** {carfigure.image_credits}\n"
                 f"**⋄ {settings.collectible_name.title()} Suggester:** {carfigure.car_suggester}"
             ),
-                color=settings.default_embed_color,
+            color=settings.default_embed_color,
         )
         await interaction.response.send_message(
             embed=car_info_embed
