@@ -73,16 +73,24 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         self.blacklist_user.parent = self.__cog_app_commands_group__
         self.cars.parent = self.__cog_app_commands_group__
 
-    blacklist_user = app_commands.Group(name="blacklistuser", description="User blacklist management")
+    blacklist_user = app_commands.Group(
+        name="blacklistuser", description="User blacklist management"
+    )
     blacklist_guild = app_commands.Group(
         name="blacklistguild", description="Guild blacklist management"
     )
     cars = app_commands.Group(
         name=settings.cars_group_name, description="s management"
     )
-    logs = app_commands.Group(name="logs", description="Bot logs management")
-    history = app_commands.Group(name="history", description="Trade history management")
-    info = app_commands.Group(name=settings.info_group_name, description="Information Commands")
+    logs = app_commands.Group(
+        name="logs", description="Bot logs management"
+    )
+    history = app_commands.Group(
+        name="history", description="Trade history management"
+    )
+    info = app_commands.Group(
+        name=settings.info_group_name, description="Information Commands"
+    )
 
     @app_commands.command()
     @app_commands.checks.has_any_role(*settings.root_role_ids)
@@ -110,7 +118,8 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         """
         if not status and not name and not state:
             await interaction.response.send_message(
-                "You must provide at least `status`, `name` or `state`.", ephemeral=True
+                "You must provide at least `status`, " 
+                "`name` or `state`.", ephemeral=True
             )
             return
 
@@ -120,7 +129,8 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
 
         if activity_type == discord.ActivityType.custom and name and not state:
             await interaction.response.send_message(
-                "You must provide `state` for custom activities. `name` is unused.", ephemeral=True
+                "You must provide `state` for "
+                "custom activities. `name` is unused.", ephemeral=True
             )
             return
         if activity_type != discord.ActivityType.custom and not name:
@@ -129,7 +139,9 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             )
             return
         if name or state:
-            activity = discord.Activity(name=name or state, state=state, type=activity_type)
+            activity = discord.Activity(
+                name=name or state, state=state, type=activity_type
+            )
         await self.bot.change_presence(status=status, activity=activity)
         await interaction.response.send_message("Status updated.", ephemeral=True)
 
@@ -176,7 +188,9 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         await pages.start(ephemeral=True)
 
     @app_commands.command()
-    @app_commands.checks.has_any_role(*settings.root_role_ids, *settings.superuser_role_ids)
+    @app_commands.checks.has_any_role(
+        *settings.root_role_ids, *settings.superuser_role_ids
+    )
     async def cooldown(
         self,
         interaction: discord.Interaction,
@@ -188,7 +202,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         Parameters
         ----------
         guild_id: int | None
-            ID of the server you want to inspect. If not given, inspect the current server.
+            ID of the server you want to inspect, if not given inspect the current server.
         """
         if guild_id:
             try:
@@ -212,17 +226,21 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         cooldown = spawn_manager.cooldowns.get(guild.id)
         if not cooldown:
             await interaction.response.send_message(
-                "No spawn manager could be found for that guild. Spawn may have been disabled.",
+                "No spawn manager could be found for that guild. "
+                "Spawn may have been disabled.",
                 ephemeral=True,
             )
             return
 
         embed = discord.Embed()
-        embed.set_author(name=guild.name, icon_url=guild.icon.url if guild.icon else None)
+        embed.set_author(
+            name=guild.name, icon_url=guild.icon.url if guild.icon else None
+        )
         embed.colour = discord.Colour.orange()
 
         delta = (interaction.created_at - cooldown.time).total_seconds()
-        # change how the threshold varies according to the member count, while nuking farm servers
+        # change how the threshold varies according to the member count
+        # while nuking farm servers
         if guild.member_count < 5:
             multiplier = 0.1
             range = "1-4"
@@ -270,7 +288,8 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         if penalties:
             embed.add_field(
                 name="\N{WARNING SIGN}\N{VARIATION SELECTOR-16} Penalties",
-                value="Each penality divides the progress by 2\n\n- " + "\n- ".join(penalties),
+                value="Each penality divides the "
+                "progress by 2\n\n- " + "\n- ".join(penalties),
             )
 
         chance = cooldown.chance - multiplier * (delta // 60)
@@ -439,7 +458,9 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
                 "@original", content="Spawn bomb seems to have timed out."  # type: ignore
             )
 
-        await interaction.response.send_message(f"Starting spawn bomb in {channel.mention}...")
+        await interaction.response.send_message(
+            f"Starting spawn bomb in {channel.mention}..."
+        )
         task = self.bot.loop.create_task(update_message_loop())
         try:
             for i in range(n):
@@ -568,19 +589,29 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             instance = await CarInstance.create(
                 car=car,
                 player=player,
-                limited=(limited if limited is not None else random.randint(1, 2048) == 1),
-                horsepower_bonus=(horsepower_bonus if horsepower_bonus is not None else random.randint(-50, 50)),
-                weight_bonus=(weight_bonus if weight_bonus is not None else random.randint(-50, 50)),
+                limited=(
+                    limited if limited is not None else random.randint(1, 2048) == 1
+                ),
+                horsepower_bonus=(
+                    horsepower_bonus if horsepower_bonus is not None else random.randint(-50, 50)
+                ),
+                weight_bonus=(
+                    weight_bonus if weight_bonus is not None else random.randint(-50, 50)
+                ),
                 event=event,
             )
         await interaction.followup.send(
-            f"`{amount}` `{car.full_name + 's' if amount > 1 else car.full_name}` {settings.collectible_name} was successfully given to `{user}`.\n"
-            f"Event: `{event.name if event else None}` • `{settings.hp_replacement}`:`{instance.horsepower_bonus:+d}` • "
+            f"`{amount}` `{car.full_name + 's' if amount > 1 else car.full_name}` "
+            f"{settings.collectible_name} was successfully given to `{user}`.\n"
+            f"Event: `{event.name if event else None}` "
+            f"• `{settings.hp_replacement}`:`{instance.horsepower_bonus:+d}` • "
             f"{settings.kg_replacement}:`{instance.weight_bonus:+d}` • Limited: `{instance.limited}`"
         )
         await log_action(
-            f"{interaction.user} gave {amount} {settings.collectible_name} {car.full_name + 's' if amount > 1 else car.full_name} to {user}. "
-            f"Event={event.name if event else None} {settings.hp_replacement}={instance.horsepower_bonus:+d} "
+            f"{interaction.user} gave {amount} {settings.collectible_name} "
+            f"{car.full_name + 's' if amount > 1 else car.full_name} to {user}. "
+            f"Event={event.name if event else None} "
+            f"{settings.hp_replacement}={instance.horsepower_bonus:+d} "
             f"{settings.kg_replacement}={instance.weight_bonus:+d} limited={instance.limited}",
             self.bot,
         )
@@ -1265,7 +1296,8 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
                 f"Successfully created a {settings.collectible_name} with ID {car.pk}! "
                 "The internal cache was reloaded.\n"
                 f"{missing_default}\n"
-                f"{name=} {settings.cartype_replacement}={cartype.name} {settings.country_replacement}={country.name if country else None} "
+                f"{name=} {settings.cartype_replacement}={cartype.name} "
+                f"{settings.country_replacement}={country.name if country else None} "
                 f"{weight=} {horsepower=} {rarity=} {enabled=} {tradeable=} emoji={emoji}",
                 files=files,
             )
@@ -1292,7 +1324,9 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             )
         else:
             self.bot.catch_log.add(user.id)
-            await interaction.response.send_message(f"{user} added to catch logs.", ephemeral=True)
+            await interaction.response.send_message(
+                f"{user} added to catch logs.", ephemeral=True
+            )
 
     @logs.command(name="commandlogs")
     @app_commands.checks.has_any_role(*settings.root_role_ids)
@@ -1368,7 +1402,9 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             )
         else:
             history = (
-                await Trade.filter(Q(player1__discord_id=user.id) | Q(player2__discord_id=user.id))
+                await Trade.filter(
+                    Q(player1__discord_id=user.id) | Q(player2__discord_id=user.id)
+                )
                 .order_by(sorting.value)
                 .prefetch_related("player1", "player2")
             )
@@ -1573,7 +1609,9 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         await interaction.response.defer(ephemeral=True, thinking=True)
         player = await Player.get_or_none(discord_id=user.id)
         if not player:
-            await interaction.followup.send("The user you gave does not exist.", ephemeral=True)
+            await interaction.followup.send(
+                "The user you gave does not exist.", ephemeral=True
+            )
             return
         total_user_cars = await CarInstance.filter(
             catch_date__gte=datetime.datetime.now() - datetime.timedelta(days=days),
@@ -1587,7 +1625,10 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             ),
             color=settings.default_embed_color,
         )
-        embed.add_field(name=f"{settings.collectible_name.title()}s Caught ({days} days)", value=len(total_user_cars))
+        embed.add_field(
+            name=f"{settings.collectible_name.title()}s Caught ({days} days)", 
+            value=len(total_user_cars),
+        )
         embed.add_field(
             name=f"{settings.collectible_name.title()}s Caught (Unique - ({days} days))",
             value=len(set(total_user_cars)),
