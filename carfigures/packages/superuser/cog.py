@@ -1549,7 +1549,7 @@ class SuperUser(commands.GroupCog, group_name=settings.group_cog_names["superuse
             value=len(set([x.player.discord_id for x in total_server_cars])),
         )
 
-        if guild.icon
+        if guild.icon:
             embed.set_thumbnail(url=guild.icon.url)
         await interaction.followup.send(embed=embed, ephemeral=True)
 
