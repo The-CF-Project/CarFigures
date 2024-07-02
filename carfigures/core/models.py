@@ -218,7 +218,7 @@ class Car(models.Model):
         max_length=200,
         description="Image used when displaying cars"
     )
-    car_suggester= fields.CharField(
+    car_suggester = fields.CharField(
         max_length=64,
         description="Suggester of the car"
     )
