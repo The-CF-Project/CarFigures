@@ -40,7 +40,9 @@ async def lower_catch_names(
 class DiscordSnowflakeValidator(validators.Validator):
     def __call__(self, value: int):
         if not 17 <= len(str(value)) <= 19:
-            raise exceptions.ValidationError("Discord IDs are between 17 and 19 characters long")
+            raise exceptions.ValidationError(
+                "Discord IDs are between 17 and 19 characters long"
+            )
 
 
 class Admin(AbstractAdmin):
@@ -55,13 +57,16 @@ class Admin(AbstractAdmin):
 
 class GuildConfig(models.Model):
     guild_id = fields.BigIntField(
-        description="Discord guild ID", unique=True, validators=[DiscordSnowflakeValidator()]
+        description="Discord guild ID",
+        unique=True,
+        validators=[DiscordSnowflakeValidator()],
     )
     spawn_channel = fields.BigIntField(
         description="Discord channel ID where cars will spawn", null=True
     )
     spawn_ping = fields.BigIntField(
-        description="Discord role ID which the bot will ping when cars spawns", null=True
+        description="Discord role ID which the bot will ping when cars spawns",
+        null=True,
     )
     enabled = fields.BooleanField(
         description="Whether the bot will spawn carfigures in this guild", default=True
@@ -69,26 +74,16 @@ class GuildConfig(models.Model):
 
 
 class CarType(models.Model):
-    name = fields.CharField(
-        max_length=64
-        )
-    image = fields.CharField(
-        max_length=200,
-        description="1428x2000 PNG image"
-        )
+    name = fields.CharField(max_length=64)
+    image = fields.CharField(max_length=200, description="1428x2000 PNG image")
 
     def __str__(self):
         return self.name
 
 
 class Country(models.Model):
-    name = fields.CharField(
-        max_length=64
-        )
-    image = fields.CharField(
-        max_length=200,
-        description="512x512 PNG image"
-        )
+    name = fields.CharField(max_length=64)
+    image = fields.CharField(max_length=200, description="512x512 PNG image")
 
     def __str__(self):
         return self.name
@@ -98,11 +93,11 @@ class Event(models.Model):
     name = fields.CharField(
         max_length=64,
         description="The name of the event",
-        )
+    )
     description = fields.CharField(
         max_length=400,
         description="The description of the event",
-        )
+    )
     catch_phrase = fields.CharField(
         max_length=128,
         description="Sentence sent in bonus when someone catches a special card",
@@ -110,27 +105,25 @@ class Event(models.Model):
         default=None,
     )
     banner = fields.CharField(
-        max_length=200,
-        description="1920x1080 PNG image",
-        null=True
-        )
+        max_length=200, description="1920x1080 PNG image", null=True
+    )
     start_date = fields.DatetimeField()
     end_date = fields.DatetimeField()
     rarity = fields.FloatField(
         description="Value between 0 and 1, chances of using this special background."
     )
     card = fields.CharField(
-        max_length=200,
-        description="1428x2000 PNG image",
-        null=True
-        )
+        max_length=200, description="1428x2000 PNG image", null=True
+    )
     emoji = fields.CharField(
         max_length=20,
         description="Either a unicode character or a discord emoji ID",
         null=True,
     )
     tradeable = fields.BooleanField(default=True)
-    hidden = fields.BooleanField(default=False, description="Hides the event from player commands")
+    hidden = fields.BooleanField(
+        default=False, description="Hides the event from player commands"
+    )
 
     def __str__(self) -> str:
         return self.name
@@ -157,7 +150,9 @@ class Event(models.Model):
         )
         # draw image
         with ThreadPoolExecutor() as pool:
-            buffer = await interaction.client.loop.run_in_executor(pool, self.draw_banner)
+            buffer = await interaction.client.loop.run_in_executor(
+                pool, self.draw_banner
+            )
 
         return content, discord.File(buffer, "banner.png")
 
@@ -166,15 +161,8 @@ class Car(models.Model):
     cartype_id: int
     country_id: int
 
-    full_name = fields.CharField(
-        max_length=48,
-        unique=True
-    )
-    short_name = fields.CharField(
-        max_length=20,
-        null=True,
-        default=None
-    )
+    full_name = fields.CharField(max_length=48, unique=True)
+    short_name = fields.CharField(max_length=20, null=True, default=None)
     catch_names = fields.TextField(
         null=True,
         default=None,
@@ -183,7 +171,7 @@ class Car(models.Model):
     cartype: fields.ForeignKeyRelation[CarType] = fields.ForeignKeyField(
         "models.CarType",
         description="The CarType of this Car",
-        on_delete=fields.CASCADE
+        on_delete=fields.CASCADE,
     )
     country: fields.ForeignKeyRelation[Country] | None = fields.ForeignKeyField(
         "models.Country",
@@ -191,57 +179,32 @@ class Car(models.Model):
         on_delete=fields.SET_NULL,
         null=True,
     )
-    weight = fields.IntField(
-        description="Car weight stat"
-    )
-    horsepower = fields.IntField(
-        description="Car horsepower stat"
-    )
-    rarity = fields.FloatField(
-        description="Rarity of this car"
-    )
-    enabled = fields.BooleanField(
-        default=True
-    )
-    tradeable = fields.BooleanField(
-        default=True
-    )
+    weight = fields.IntField(description="Car weight stat")
+    horsepower = fields.IntField(description="Car horsepower stat")
+    rarity = fields.FloatField(description="Rarity of this car")
+    enabled = fields.BooleanField(default=True)
+    tradeable = fields.BooleanField(default=True)
     emoji_id = fields.BigIntField(
-        description="Emoji ID for this car",
-        validators=[DiscordSnowflakeValidator()]
+        description="Emoji ID for this car", validators=[DiscordSnowflakeValidator()]
     )
     spawn_picture = fields.CharField(
-        max_length=200,
-        description="Image used when a new car spawns in the wild"
+        max_length=200, description="Image used when a new car spawns in the wild"
     )
     collection_picture = fields.CharField(
-        max_length=200,
-        description="Image used when displaying cars"
+        max_length=200, description="Image used when displaying cars"
     )
-    car_suggester= fields.CharField(
-        max_length=64,
-        description="Suggester of the car"
-    )
+    car_suggester = fields.CharField(max_length=64, description="Suggester of the car")
     image_credits = fields.CharField(
-        max_length=64,
-        description="Author of the collection artwork"
+        max_length=64, description="Author of the collection artwork"
     )
     capacity_name = fields.CharField(
-        max_length=64,
-        description="Name of the carfigure's capacity"
+        max_length=64, description="Name of the carfigure's capacity"
     )
     capacity_description = fields.CharField(
-        max_length=256,
-        description="Description of the carfigure's capacity"
+        max_length=256, description="Description of the carfigure's capacity"
     )
-    capacity_logic = fields.JSONField(
-        description="Effect of this capacity",
-        default={}
-    )
-    created_at = fields.DatetimeField(
-        auto_now_add=True,
-        null=True
-    )
+    capacity_logic = fields.JSONField(description="Effect of this capacity", default={})
+    created_at = fields.DatetimeField(auto_now_add=True, null=True)
 
     instances: fields.BackwardFKRelation[CarInstance]
 
@@ -267,54 +230,30 @@ class CarInstance(models.Model):
 
     car: fields.ForeignKeyRelation[Car] = fields.ForeignKeyField("models.Car")
     player: fields.ForeignKeyRelation[Player] = fields.ForeignKeyRelation(
-        "models.Player",
-        related_name="cars"
+        "models.Player", related_name="cars"
     )  # type: ignore
-    catch_date = fields.DatetimeField(
-        auto_now_add=True
-    )
-    spawned_time =   fields.DatetimeField(
-        null=True
-    )
+    catch_date = fields.DatetimeField(auto_now_add=True)
+    spawned_time = fields.DatetimeField(null=True)
     server_id = fields.BigIntField(
-        description="Discord server ID where this car was caught",
-        null=True
+        description="Discord server ID where this car was caught", null=True
     )
-    limited = fields.BooleanField(
-        default=False
-    )
+    limited = fields.BooleanField(default=False)
     event: fields.ForeignKeyRelation[Event] | None = fields.ForeignKeyField(
-        "models.Event",
-        null=True,
-        default=None,
-        on_delete=fields.SET_NULL
+        "models.Event", null=True, default=None, on_delete=fields.SET_NULL
     )
-    weight_bonus = fields.IntField(
-        default=0
-    )
-    horsepower_bonus = fields.IntField(
-        default=0
-    )
+    weight_bonus = fields.IntField(default=0)
+    horsepower_bonus = fields.IntField(default=0)
     trade_player: fields.ForeignKeyRelation[Player] | None = fields.ForeignKeyField(
-        "models.Player",
-        null=True,
-        default=None,
-        on_delete=fields.SET_NULL
+        "models.Player", null=True, default=None, on_delete=fields.SET_NULL
     )
-    favorite = fields.BooleanField(
-        default=False
-    )
-    tradeable = fields.BooleanField(
-        default=True
-    )
+    favorite = fields.BooleanField(default=False)
+    tradeable = fields.BooleanField(default=True)
     locked: fields.Field[datetime] = fields.DatetimeField(
         description="If the instance was locked for a trade and when",
         null=True,
         default=None,
     )
-    extra_data = fields.JSONField(
-        default={}
-    )
+    extra_data = fields.JSONField(default={})
 
     class Meta:
         unique_together = ("player", "id")
@@ -353,7 +292,9 @@ class CarInstance(models.Model):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, bot: discord.Client | None = None, is_trade: bool = False) -> str:
+    def to_string(
+        self, bot: discord.Client | None = None, is_trade: bool = False
+    ) -> str:
         emotes = ""
         if bot and self.pk in bot.locked_cars and not is_trade:  # type: ignore
             emotes += "🔒"
@@ -372,7 +313,9 @@ class CarInstance(models.Model):
         )
         return f"{emotes}#{self.pk:0X} {full_name}"
 
-    def event_emoji(self, bot: discord.Client | None, use_custom_emoji: bool = True) -> str:
+    def event_emoji(
+        self, bot: discord.Client | None, use_custom_emoji: bool = True
+    ) -> str:
         if self.eventcard:
             if not use_custom_emoji:
                 return "⚡ "
@@ -426,7 +369,8 @@ class CarInstance(models.Model):
         await self.fetch_related("trade_player", "event")
         if self.trade_player:
             original_player = None
-            # we want to avoid calling fetch_player if possible (heavily rate-limited call)
+            # we want to avoid calling fetch_player if possible
+            # (heavily rate-limited call)
             if interaction.guild:
                 try:
                     original_player = await interaction.guild.fetch_member(
@@ -461,7 +405,7 @@ class CarInstance(models.Model):
             buffer = await interaction.client.loop.run_in_executor(pool, self.draw_card)
 
         return content, discord.File(buffer, "card.png")
-    
+
     async def lock_for_trade(self):
         self.locked = timezone.now()
         await self.save(update_fields=("locked",))
@@ -473,7 +417,10 @@ class CarInstance(models.Model):
     async def is_locked(self):
         await self.refresh_from_db(fields=("locked",))
         self.locked
-        return self.locked is not None and (self.locked + timedelta(minutes=30)) > timezone.now()
+        return (
+            self.locked is not None
+            and (self.locked + timedelta(minutes=30)) > timezone.now()
+        )
 
 
 class DonationPolicy(IntEnum):
@@ -490,7 +437,9 @@ class PrivacyPolicy(IntEnum):
 
 class Player(models.Model):
     discord_id = fields.BigIntField(
-        description="Discord user ID", unique=True, validators=[DiscordSnowflakeValidator()]
+        description="Discord user ID",
+        unique=True,
+        validators=[DiscordSnowflakeValidator()],
     )
     donation_policy = fields.IntEnumField(
         DonationPolicy,
@@ -510,7 +459,9 @@ class Player(models.Model):
 
 class BlacklistedUser(models.Model):
     discord_id = fields.BigIntField(
-        description="Discord user ID", unique=True, validators=[DiscordSnowflakeValidator()]
+        description="Discord user ID",
+        unique=True,
+        validators=[DiscordSnowflakeValidator()],
     )
     reason = fields.TextField(null=True, default=None)
     date = fields.DatetimeField(null=True, default=None, auto_now_add=True)
@@ -521,7 +472,9 @@ class BlacklistedUser(models.Model):
 
 class BlacklistedGuild(models.Model):
     discord_id = fields.BigIntField(
-        description="Discord Guild ID", unique=True, validators=[DiscordSnowflakeValidator()]
+        description="Discord Guild ID",
+        unique=True,
+        validators=[DiscordSnowflakeValidator()],
     )
     reason = fields.TextField(null=True, default=None)
     date = fields.DatetimeField(null=True, default=None, auto_now_add=True)

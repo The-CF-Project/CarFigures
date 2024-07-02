@@ -12,25 +12,25 @@ python = "^3.11"
 uvloop = { version = "^0.17.0", markers = "sys_platform != 'win32'" }
 
 # discord
-"discord.py" = "^2.3.2"
+"discord.py" = "^2.4.0"
 
 # fastapi
-fastapi = "^0.104.1"
+fastapi = "^0.111.0"
 fastapi-admin = {git = "https://github.com/fastapi-admin/fastapi-admin", rev = "0ed771026c776138aceb4ae98eeb5c976786a193"}
-uvicorn = "^0.24.0"
+uvicorn = "^0.30.1"
 
 # database ORM
-tortoise-orm = {extras = ["asyncpg"], version = "^0.20.0"}
+tortoise-orm = {extras = ["asyncpg"], version = "^0.21.3"}
 tortoise-cli = "^0.1.2"
 
 # misc
-rich = "^13.6.0"
+rich = "^13.7.1"
 python-dateutil = "^2.8.2"
-Pillow = "^10.1.0"
+Pillow = "^10.4.0"
 aerich = "^0.6.3"
 pyyaml = "^6.0"
-cachetools = "^5.3.1"
-psutil = "^5.9.8"
+cachetools = "^5.3.3"
+psutil = "^6.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.5.0"

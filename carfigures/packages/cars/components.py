@@ -6,7 +6,7 @@ import enum
 import discord
 from discord.ui import Button, View, button
 
-from carfigures.core.models import CarInstance, Player, Trade, TradeObject, PrivacyPolicy, Event
+from carfigures.core.models import CarInstance, Player, Trade, TradeObject, PrivacyPolicy
 from carfigures.core.utils import menus
 from carfigures.core.utils.paginator import Pages
 
@@ -29,7 +29,7 @@ class DonationRequest(View):
         self.new_player = new_player
 
     async def interaction_check(self, interaction: discord.Interaction, /) -> bool:
-        if interaction.user.id != self.new_user.discord_id:
+        if interaction.user.id != self.new_player.discord_id:
             await interaction.response.send_message(
                 "You are not allowed to interact with this menu.", ephemeral=True
             )
@@ -60,7 +60,7 @@ class DonationRequest(View):
         await self.carfigure.save()
         trade = await Trade.create(user1=self.carfigure.trade_player, user2=self.new_player)
         await TradeObject.create(
-            trade=trade, carinstance=self.carfigure, user=self.carfigure.trade_user)
+            trade=trade, carinstance=self.carfigure, player=self.carfigure.trade_player)
         await interaction.response.edit_message(
             content=interaction.message.content  # type: ignore
             + "\n\N{WHITE HEAVY CHECK MARK} The donation was accepted!",

@@ -63,7 +63,7 @@ async def save_file(attachment: discord.Attachment) -> Path:
 
 @app_commands.guilds(*settings.superuser_guild_ids)
 @app_commands.default_permissions(administrator=True)
-class SuperUser(commands.GroupCog, group_name=settings.group_cog_names["superuser"]):
+class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
     """
     Bot admin commands.
     """
@@ -78,11 +78,11 @@ class SuperUser(commands.GroupCog, group_name=settings.group_cog_names["superuse
         name="blacklistguild", description="Guild blacklist management"
     )
     cars = app_commands.Group(
-        name=settings.group_cog_names["cars"], description="s management"
+        name=settings.cars_group_name, description="s management"
     )
     logs = app_commands.Group(name="logs", description="Bot logs management")
     history = app_commands.Group(name="history", description="Trade history management")
-    info = app_commands.Group(name=settings.group_cog_names["info"], description="Information Commands")
+    info = app_commands.Group(name=settings.info_group_name, description="Information Commands")
 
     @app_commands.command()
     @app_commands.checks.has_any_role(*settings.root_role_ids)
