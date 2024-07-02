@@ -208,9 +208,7 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
 
         await carfigure.lock_for_trade()
         trader.proposal.append(carfigure)
-        await interaction.followup.send(
-            f"{carfigure.carfigure.full_name} added.", ephemeral=True
-        )
+        await interaction.followup.send(f"{carfigure.carfigure.full_name} added.", ephemeral=True)
 
     @app_commands.command(extras={"trade": TradeCommandType.REMOVE})
     async def remove(
@@ -219,7 +217,7 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
         carfigure: CarInstanceTransform,
         event: EventEnabledTransform | None = None,
         limited: bool | None = None,
-        ):
+    ):
         """
         Remove a carfigure from what you proposed in the ongoing trade.
 
