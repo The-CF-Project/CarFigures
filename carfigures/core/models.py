@@ -193,7 +193,9 @@ class Car(models.Model):
     collection_picture = fields.CharField(
         max_length=200, description="Image used when displaying cars"
     )
-    car_suggester = fields.CharField(max_length=64, description="Suggester of the car")
+    car_suggester = fields.CharField(
+        max_length=64, description="Suggester of the car"
+    )
     image_credits = fields.CharField(
         max_length=64, description="Author of the collection artwork"
     )
