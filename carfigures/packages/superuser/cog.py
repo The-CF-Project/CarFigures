@@ -120,8 +120,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
 
         if activity_type == discord.ActivityType.custom and name and not state:
             await interaction.response.send_message(
-                "You must provide `state` for custom activities. `name` is unused.", 
-                ephemeral=True
+                "You must provide `state` for custom activities. `name` is unused.", ephemeral=True
             )
             return
         if activity_type != discord.ActivityType.custom and not name:
