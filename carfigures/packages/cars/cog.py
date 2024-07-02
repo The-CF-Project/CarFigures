@@ -253,7 +253,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         if missing := set(y for x, y in bot_carfigures.items() if x not in owned_carfigures):
             fill_fields(
                 f"⋄ Missing {settings.collectible_name.title()}s | {len(missing) if len(missing) > 0 else '0'} total",
-                        missing,
+                    missing,
             )
         else:
             entries.append(
@@ -316,7 +316,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         """
         emoji = (
             self.bot.get_emoji(carfigure.emoji_id) or ""
-        ) # Get emoji or an empty string if not found
+        )  # Get emoji or an empty string if not found
         car_info_embed = discord.Embed(
             title=f"{emoji} {carfigure.full_name} Information:",
             description=(
@@ -333,7 +333,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
                 f"**⋄ {settings.collectible_name.title()} Suggester:** {carfigure.car_suggester}"
             ),
                 color=settings.default_embed_color,
-            )
+        )
         await interaction.response.send_message(
             embed=car_info_embed
         )  # Send the car information embed as a response
@@ -630,7 +630,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         self,
         interaction: discord.Interaction,
         first: CarInstanceTransform,
-        second: CarInstanceTransform
+        second: CarInstanceTransform,
     ):
         """
         Compare two carfigures
@@ -667,15 +667,15 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         embed.add_field(
             name="◊ Name",
             value=f""
-                f"• ID\n"
-                f"• {settings.cartype_replacement}\n"
-                f"• {settings.country_replacement}\n"
-                f"• Rarity\n"
-                f"• {settings.horsepower_replacement}\n"
-                f"• {settings.horsepower_replacement} Bonus\n"
-                f"• {settings.weight_replacement}\n"
-                f"• {settings.weight_replacement} Bonus\n"
-                f"• Catch Date",
+            f"• ID\n"
+            f"• {settings.cartype_replacement}\n"
+            f"• {settings.country_replacement}\n"
+            f"• Rarity\n"
+            f"• {settings.horsepower_replacement}\n"
+            f"• {settings.horsepower_replacement} Bonus\n"
+            f"• {settings.weight_replacement}\n"
+            f"• {settings.weight_replacement} Bonus\n"
+            f"• Catch Date",
             inline=True,
         )
         embed.add_field(
