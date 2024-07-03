@@ -20,12 +20,12 @@ def machine_info() -> str:
     disk_total = round(disk.total / (1024**3), 2)
     disk_percentage = disk.percent
     return (
-        cpu_usage, 
-        memory_usage, 
-        memory_total, 
-        memory_percentage, 
-        disk_usage, 
-        disk_total, 
+        cpu_usage,
+        memory_usage,
+        memory_total,
+        memory_percentage,
+        disk_usage,
+        disk_total,
         disk_percentage,
     )
 
