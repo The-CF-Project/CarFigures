@@ -113,7 +113,6 @@ class CommandTree(app_commands.CommandTree):
             )
             return False
 
-
         bot = interaction.client
         if not bot.is_ready():
             if interaction.type != discord.InteractionType.autocomplete:
@@ -326,7 +325,9 @@ class CarFiguresBot(commands.AutoShardedBot):
                 if not guild:
                     continue
                 synced_commands = await self.tree.sync(guild=guild)
-                log.info(f"Synced {len(synced_commands)} {settings.sudo_group_name} commands for guild {guild.id}.")
+                log.info(
+                    f"Synced {len(synced_commands)} {settings.sudo_group_name} commands for guild {guild.id}."
+                )
 
         if settings.prometheus_enabled:
             try:
