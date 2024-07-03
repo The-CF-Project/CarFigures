@@ -100,7 +100,7 @@ class EventResource(Model):
             name="banner",
             label="The Event Banner!",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=upload, null=False)
+            input_=inputs.Image(upload=upload, null=False),
         ),
         Field(
             name="catch_phrase",
@@ -133,7 +133,7 @@ class EventResource(Model):
             label="Tradeable?",
             input_=inputs.Switch(),
             display=displays.Boolean(),
-        )
+        ),
     ]
 
     async def get_actions(self, request: Request) -> List[Action]:
@@ -216,8 +216,8 @@ class EntityResource(Model):
         Field(
             name="short_name",
             label="Short Name",
-            display = displays.Display(),
-            input_ = inputs.Text(),
+            display=displays.Display(),
+            input_=inputs.Text(),
         ),
         "catch_names",
         "created_at",
@@ -230,13 +230,13 @@ class EntityResource(Model):
             name="enabled",
             label="Ready to Spawn?",
             display=displays.Boolean(),
-            input_=inputs.Switch()
+            input_=inputs.Switch(),
         ),
         Field(
             name="tradeable",
             label="Tradeable?",
             display=displays.Boolean(),
-            input_=inputs.Switch()
+            input_=inputs.Switch(),
         ),
         Field(
             name="emoji_id",
@@ -378,16 +378,13 @@ class ServerResource(Model):
             name="spawn_channel",
             label="The Channel Selected for Spawning",
         ),
-        Field(
-            name="spawn_ping",
-            label="The Role Selected for Pinging"
-        ),
+        Field(name="spawn_ping", label="The Role Selected for Pinging"),
         Field(
             name="enabled",
             label="Is Spawning Enabled?",
             display=displays.Boolean(),
-            input_=inputs.Switch()
-        )
+            input_=inputs.Switch(),
+        ),
     ]
 
 
@@ -420,7 +417,7 @@ class BlacklistedUserResource(Model):
         Field(
             name="reason",
             label="Reason Behind The Blacklist",
-        )
+        ),
     ]
 
 
@@ -453,5 +450,5 @@ class BlacklistedGuildResource(Model):
         Field(
             name="reason",
             label="Reason Behind The Blacklist",
-        )
+        ),
     ]
