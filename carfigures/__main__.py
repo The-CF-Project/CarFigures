@@ -50,9 +50,9 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
         prog="CarFigures bot", description="Collect and exchange carfigures on Discord"
     )
     parser.add_argument(
-        "--config-file", 
-        type=Path, 
-        help="Set the path to settings.toml", 
+        "--config-file",
+        type=Path,
+        help="Set the path to settings.toml",
         default=Path("./settings.toml"),
     )
     parser.add_argument("--disable-rich", action="store_true", help="Disable rich log format")
