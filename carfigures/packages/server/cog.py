@@ -50,8 +50,7 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
             return
         if not channel.permissions_for(guild.me).read_messages:
             await interaction.response.send_message(
-                f"I need the permission to read messages in {channel.mention}.",
-                ephemeral=True
+                f"I need the permission to read messages in {channel.mention}.", ephemeral=True
             )
             return
         if not channel.permissions_for(guild.me).send_messages:
