@@ -52,14 +52,14 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
             [f"\u200b **⋄** {contrib}" for contrib in settings.bot_contributors]
         )
         (
-            cpu_usage, 
-            memory_usage, 
-            memory_total, 
-            memory_percentage, 
-            disk_usage, 
-            disk_total, 
-            disk_percentage 
-        )   = machine_info()
+            cpu_usage,
+            memory_usage,
+            memory_total,
+            memory_percentage,
+            disk_usage,
+            disk_total,
+            disk_percentage,
+        ) = machine_info()
 
         assert self.bot.user
         assert self.bot.application
@@ -99,6 +99,7 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
             f"\u200b **⋄ Disk:** {disk_usage}/{disk_total}GB • {disk_percentage}%\n\n",
             inline=False,
         )
+
     #    embed.add_field(
     #         name="⋈ Developers",
     #         value=developers,
