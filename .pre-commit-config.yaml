@@ -14,7 +14,7 @@ repos:
       - id: debug-statements
         files: .*\.py$
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 23.11.0
+    rev: 24.3.0
     hooks:
       - id: black
   - repo: https://github.com/pycqa/isort
@@ -26,7 +26,7 @@ repos:
           - black
           - --filter-files
   - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.335
+    rev: v1.1.370
     hooks:
       - id: pyright
         additional_dependencies:
