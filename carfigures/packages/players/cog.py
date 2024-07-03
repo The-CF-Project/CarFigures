@@ -8,11 +8,7 @@ from typing import TYPE_CHECKING
 from discord import app_commands
 from discord.ext import commands
 
-from carfigures.core.models import (
-    DonationPolicy,
-    PrivacyPolicy,
-    Player as PlayerModel
-)
+from carfigures.core.models import DonationPolicy, PrivacyPolicy, Player as PlayerModel
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.packages.players.components import (
     _get_10_cars_emojis,
@@ -109,17 +105,13 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
         await user.save()  # do not save if the input is invalid
 
     @app_commands.command()
-    async def profile(
-        self,
-        interaction: discord.Interaction,
-        user: discord.User | None = None
-        ):
+    async def profile(self, interaction: discord.Interaction, user: discord.User | None = None):
         """
         Show your/other profile.
         """
 
         # Setting Up variables
-        player = user or interaction.user    
+        player = user or interaction.user
 
         if settings.profiles_emojis:
             cars = await _get_10_cars_emojis(self)
@@ -146,7 +138,7 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
         embed.set_thumbnail(url=user.display_avatar.url)
         embed.set_footer(
             text=f"Requested by {interaction.user.display_name}",
-            icon_url=interaction.user.display_avatar.url
+            icon_url=interaction.user.display_avatar.url,
         )
         await interaction.response.send_message(embed=embed)
 
@@ -231,4 +223,3 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
                 "Either you blocked me or you disabled DMs in this server.",
                 ephemeral=True,
             )
-
