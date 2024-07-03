@@ -417,5 +417,3 @@ class Dev(commands.Cog):
         await asyncio.sleep(2)
         ctx.message.author = old_author
         ctx.message.content = old_content
-
-    
