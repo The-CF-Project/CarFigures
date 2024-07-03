@@ -50,7 +50,10 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
         prog="CarFigures bot", description="Collect and exchange carfigures on Discord"
     )
     parser.add_argument(
-        "--config-file", type=Path, help="Set the path to settings.toml", default=Path("./settings.toml")
+        "--config-file", 
+        type=Path, 
+        help="Set the path to settings.toml", 
+        default=Path("./settings.toml"),
     )
     parser.add_argument("--disable-rich", action="store_true", help="Disable rich log format")
     parser.add_argument("--debug", action="store_true", help="Enable debug logs")
@@ -69,11 +72,7 @@ def print_welcome():
             "Discord.py version:", discord.__version__
         )
     )
-    print(
-        " [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format(
-            "CF Version:", bot_version
-        )
-    )
+    print(" [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format("CF Version:", bot_version))
     print("")
 
 
@@ -207,6 +206,7 @@ class RemoveWSBehindMsg(logging.Filter):
 
         return True
 
+
 async def init_tortoise(db_url: str):
     log.debug(f"Database URL: {db_url}")
     await Tortoise.init(config=TORTOISE_ORM)
@@ -227,7 +227,9 @@ def main():
     try:
         read_settings(cli_flags.config_file)
     except FileNotFoundError:
-        print("[red]The config file [blue]{cli_flags.config_file}[/blue] could not be found.[/red]")
+        print(
+            "[red]The config file [blue]{cli_flags.config_file}[/blue] could not be found.[/red]"
+        )
         print("[yellow]Please make sure u downloaded the settings.toml file.[/yellow]")
         sys.exit(1)
 
