@@ -40,9 +40,7 @@ async def lower_catch_names(
 class DiscordSnowflakeValidator(validators.Validator):
     def __call__(self, value: int):
         if not 17 <= len(str(value)) <= 19:
-            raise exceptions.ValidationError(
-                "Discord IDs are between 17 and 19 characters long"
-            )
+            raise exceptions.ValidationError("Discord IDs are between 17 and 19 characters long")
 
 
 class Admin(AbstractAdmin):
@@ -104,26 +102,20 @@ class Event(models.Model):
         null=True,
         default=None,
     )
-    banner = fields.CharField(
-        max_length=200, description="1920x1080 PNG image", null=True
-    )
+    banner = fields.CharField(max_length=200, description="1920x1080 PNG image", null=True)
     start_date = fields.DatetimeField()
     end_date = fields.DatetimeField()
     rarity = fields.FloatField(
         description="Value between 0 and 1, chances of using this special background."
     )
-    card = fields.CharField(
-        max_length=200, description="1428x2000 PNG image", null=True
-    )
+    card = fields.CharField(max_length=200, description="1428x2000 PNG image", null=True)
     emoji = fields.CharField(
         max_length=20,
         description="Either a unicode character or a discord emoji ID",
         null=True,
     )
     tradeable = fields.BooleanField(default=True)
-    hidden = fields.BooleanField(
-        default=False, description="Hides the event from player commands"
-    )
+    hidden = fields.BooleanField(default=False, description="Hides the event from player commands")
 
     def __str__(self) -> str:
         return self.name
@@ -144,15 +136,11 @@ class Event(models.Model):
     ) -> Tuple[str, discord.File]:
         # message content
         content = (
-            f"**Event Info:**\n"
-            f"**Event:** {self.name}\n"
-            f"**Description:** {self.description}"
+            f"**Event Info:**\n**Event:** {self.name}\n**Description:** {self.description}"
         )
         # draw image
         with ThreadPoolExecutor() as pool:
-            buffer = await interaction.client.loop.run_in_executor(
-                pool, self.draw_banner
-            )
+            buffer = await interaction.client.loop.run_in_executor(pool, self.draw_banner)
 
         return content, discord.File(buffer, "banner.png")
 
@@ -193,15 +181,9 @@ class Car(models.Model):
     collection_picture = fields.CharField(
         max_length=200, description="Image used when displaying cars"
     )
-    car_suggester = fields.CharField(
-        max_length=64, description="Suggester of the car"
-    )
-    image_credits = fields.CharField(
-        max_length=64, description="Author of the collection artwork"
-    )
-    capacity_name = fields.CharField(
-        max_length=64, description="Name of the carfigure's capacity"
-    )
+    car_suggester = fields.CharField(max_length=64, description="Suggester of the car")
+    image_credits = fields.CharField(max_length=64, description="Author of the collection artwork")
+    capacity_name = fields.CharField(max_length=64, description="Name of the carfigure's capacity")
     capacity_description = fields.CharField(
         max_length=256, description="Description of the carfigure's capacity"
     )
@@ -294,9 +276,7 @@ class CarInstance(models.Model):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(
-        self, bot: discord.Client | None = None, is_trade: bool = False
-    ) -> str:
+    def to_string(self, bot: discord.Client | None = None, is_trade: bool = False) -> str:
         emotes = ""
         if bot and self.pk in bot.locked_cars and not is_trade:  # type: ignore
             emotes += "🔒"
@@ -309,15 +289,11 @@ class CarInstance(models.Model):
         if self.eventcard:
             emotes += self.event_emoji(bot)
         full_name = (
-            self.carfigure.full_name
-            if isinstance(self.carfigure, Car)
-            else f"<Car {self.car_id}>"
+            self.carfigure.full_name if isinstance(self.carfigure, Car) else f"<Car {self.car_id}>"
         )
         return f"{emotes}#{self.pk:0X} {full_name}"
 
-    def event_emoji(
-        self, bot: discord.Client | None, use_custom_emoji: bool = True
-    ) -> str:
+    def event_emoji(self, bot: discord.Client | None, use_custom_emoji: bool = True) -> str:
         if self.eventcard:
             if not use_custom_emoji:
                 return "⚡ "
@@ -419,10 +395,7 @@ class CarInstance(models.Model):
     async def is_locked(self):
         await self.refresh_from_db(fields=("locked",))
         self.locked
-        return (
-            self.locked is not None
-            and (self.locked + timedelta(minutes=30)) > timezone.now()
-        )
+        return self.locked is not None and (self.locked + timedelta(minutes=30)) > timezone.now()
 
 
 class DonationPolicy(IntEnum):
