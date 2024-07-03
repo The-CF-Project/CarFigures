@@ -183,7 +183,7 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         Parameters
         ----------
         event: Event
-            the event u want to check info about!
+            The event u want to check info about!
         """
         await interaction.response.defer(thinking=True)
         content, file = await event.prepare_for_message(interaction)
