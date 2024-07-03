@@ -12,14 +12,22 @@ def machine_info() -> str:
     """
     cpu_usage = psutil.cpu_percent()
     memory = psutil.virtual_memory()
-    memory_usage = round(memory.used / (1024 ** 2), 2)
-    memory_total = round(memory.total / (1024 ** 2), 2)
+    memory_usage = round(memory.used / (1024**2), 2)
+    memory_total = round(memory.total / (1024**2), 2)
     memory_percentage = memory.percent
     disk = psutil.disk_usage("/")
-    disk_usage = round(disk.used / (1024 ** 3), 2)
-    disk_total = round(disk.total / (1024 ** 3), 2)
+    disk_usage = round(disk.used / (1024**3), 2)
+    disk_total = round(disk.total / (1024**3), 2)
     disk_percentage = disk.percent
-    return cpu_usage, memory_usage, memory_total, memory_percentage, disk_usage, disk_total, disk_percentage
+    return (
+        cpu_usage, 
+        memory_usage, 
+        memory_total, 
+        memory_percentage, 
+        disk_usage, 
+        disk_total, 
+        disk_percentage,
+    )
 
 
 def mention_app_command(app_command: app_commands.Command | app_commands.Group) -> str:
@@ -33,7 +41,7 @@ def mention_app_command(app_command: app_commands.Command | app_commands.Group) 
             return f"`{app_command.name}`"
         else:
             return f"`/{app_command.name}`"
-        
+
 
 async def _get_10_cars_emojis(self) -> list[discord.Emoji]:
     """
