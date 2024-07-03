@@ -135,9 +135,7 @@ class Event(models.Model):
         self, interaction: discord.Interaction
     ) -> Tuple[str, discord.File]:
         # message content
-        content = (
-            f"**Event Info:**\n**Event:** {self.name}\n**Description:** {self.description}"
-        )
+        content = f"**Event Info:**\n**Event:** {self.name}\n**Description:** {self.description}"
         # draw image
         with ThreadPoolExecutor() as pool:
             buffer = await interaction.client.loop.run_in_executor(pool, self.draw_banner)
