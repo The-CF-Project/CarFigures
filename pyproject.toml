@@ -35,9 +35,6 @@ psutil = "^6.0.0"
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.5.0"
 black = {version = "^23.1.0", allow-prereleases = true}
-flake8-pyproject = "^1.2.3"
-pyright = "^1.1.335"
-isort = "^5.12.0"
 
 
 [tool.poetry.group.metrics.dependencies]
@@ -54,11 +51,3 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 99
-
-[tool.flake8]
-ignore = "W503,E203"
-max-line-length = 99
-
-[tool.isort]
-profile = "black"
-line_length = 99
