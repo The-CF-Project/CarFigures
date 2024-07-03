@@ -87,17 +87,19 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
         if policy.value == DonationPolicy.ALWAYS_ACCEPT:
             await interaction.response.send_message(
                 f"Setting updated, you will now receive all donated {settings.collectible_name}s "
-                "immediately."
+                "immediately.", ephemeral=True
             )
         elif policy.value == DonationPolicy.REQUEST_APPROVAL:
             await interaction.response.send_message(
-                "Setting updated, you will now have to approve donation requests manually."
+                "Setting updated, you will now have to approve donation requests manually.",
+                ephemeral=True
             )
         elif policy.value == DonationPolicy.ALWAYS_DENY:
             await interaction.response.send_message(
                 "Setting updated, it is now impossible to use "
                 f"`/{settings.player_group_name} give` with "
-                "you. It is still possible to perform donations using the trade system."
+                "you. It is still possible to perform donations using the trade system.",
+                ephemeral=True
             )
         else:
             await interaction.response.send_message("Invalid input!")
