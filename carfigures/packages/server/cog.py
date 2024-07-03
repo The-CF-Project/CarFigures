@@ -45,22 +45,26 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
         user = cast(discord.Member, interaction.user)
         if not user.guild_permissions.manage_guild:
             await interaction.response.send_message(
-                "You need the permission to manage the server to use this."
+                "You need the permission to manage the server to use this.",
+                ephemeral=True
             )
             return
         if not channel.permissions_for(guild.me).read_messages:
             await interaction.response.send_message(
-                f"I need the permission to read messages in {channel.mention}."
+                f"I need the permission to read messages in {channel.mention}.",
+                ephemeral=True
             )
             return
         if not channel.permissions_for(guild.me).send_messages:
             await interaction.response.send_message(
-                f"I need the permission to send messages in {channel.mention}."
+                f"I need the permission to send messages in {channel.mention}.",
+                ephemeral=True
             )
             return
         if not channel.permissions_for(guild.me).embed_links:
             await interaction.response.send_message(
-                f"I need the permission to send embed links in {channel.mention}."
+                f"I need the permission to send embed links in {channel.mention}.",
+                ephemeral=True
             )
             return
         await interaction.response.send_message(
@@ -79,7 +83,8 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
         user = cast(discord.Member, interaction.user)
         if not user.guild_permissions.manage_guild:
             await interaction.response.send_message(
-                "You need the permission to manage the server to use this."
+                "You need the permission to manage the server to use this.",
+                ephemeral=True
             )
             return
         config, created = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
@@ -114,19 +119,20 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
             role: discord.Role
     ):
         """
-        Enable, Disable or Set Role spawn alert for your server
+        Enable, disable or set role spawn alert for your server
         """
 
         guild = cast(discord.Guild, interaction.guild)
         user = cast(discord.Member, interaction.user)
         if not user.guild_permissions.manage_guild:
             await interaction.response.send_message(
-                "You need the permission to manage the server to use this."
+                "You need the permission to manage the server to use this.",
+                ephemeral=True
             )
             return
         if not settings.spawnalert:
             await interaction.response.send_message(
-                "The Bot Owner has disabled this feature from the bot"
+                "The bot owner has disabled this feature from the bot"
             )
             return
         config, created = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
