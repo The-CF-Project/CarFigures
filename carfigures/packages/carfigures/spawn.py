@@ -143,6 +143,6 @@ class SpawnManager:
         if guild.member_count < 20:
             log.warning("Not enough members to spawn car.")
             return
-        
+
         car = await CarFigure.get_random()
         await car.spawn(cast(discord.TextChannel, channel))
