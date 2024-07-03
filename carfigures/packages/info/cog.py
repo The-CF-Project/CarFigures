@@ -110,22 +110,22 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
     #        value=testers,
     #        inline=True
     #    )
-        embed.add_field(
-            name="⋇ Links",
-            value=f"[Discord server]({settings.discord_invite}) • [Invite me]({invite_link}) • "
-            f"[Source code and issues]({settings.repository_link})\n"
-            f"[Terms of Service]({settings.terms_of_service}) • "
-            f"[Privacy policy]({settings.privacy_policy}) • "
-            f"[Top.gg Link]({settings.top_gg})",
-            inline=False,
-        )
-        embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-        v = sys.version_info
-        embed.set_footer(
-            text=f"Python {v.major}.{v.minor}.{v.micro} • discord.py {discord.__version__}"
-        )
+    embed.add_field(
+        name="⋇ Links",
+        value=f"[Discord server]({settings.discord_invite}) • [Invite me]({invite_link}) • "
+        f"[Source code and issues]({settings.repository_link})\n"
+        f"[Terms of Service]({settings.terms_of_service}) • "
+        f"[Privacy policy]({settings.privacy_policy}) • "
+        f"[Top.gg Link]({settings.top_gg})",
+        inline=False,
+    )
+    embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+    v = sys.version_info
+    embed.set_footer(
+        text=f"Python {v.major}.{v.minor}.{v.micro} • discord.py {discord.__version__}"
+    )
 
-        await interaction.response.send_message(embed=embed)
+    await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
     async def commands(self, interaction: discord.Interaction):
