@@ -230,7 +230,7 @@ def main():
         print(
             "[red]The config file [blue]{cli_flags.config_file}[/blue] could not be found.[/red]"
         )
-        print("[yellow]Please make sure u downloaded the settings.toml file.[/yellow]")
+        print("[yellow]Make sure to follow the configuration guide in the wiki.[/yellow]")
         sys.exit(1)
 
     print_welcome()
