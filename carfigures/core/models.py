@@ -10,6 +10,7 @@ import discord
 from discord.utils import format_dt
 from fastapi_admin.models import AbstractAdmin
 from tortoise import exceptions, fields, models, signals, timezone, validators
+from tortoise.fields.data import IntField
 
 from carfigures.core.image_generator.image_gen import draw_card, draw_banner
 from carfigures.settings import settings
@@ -425,6 +426,7 @@ class Player(models.Model):
         default=PrivacyPolicy.ALLOW,
     )
     cars: fields.BackwardFKRelation[CarInstance]
+    rebirths = IntField(default=0)
 
     def __str__(self) -> str:
         return str(self.discord_id)

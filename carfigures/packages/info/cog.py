@@ -35,7 +35,9 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         """
         Show the bot latency.
         """
-        await interaction.response.send_message(f"Pong! {round(self.bot.latency * 1000)}ms")
+        await interaction.response.send_message(
+            f"Pong! {round(self.bot.latency * 1000)}ms"
+        )
 
     @app_commands.command()
     async def status(self, interaction: discord.Interaction):
@@ -43,7 +45,8 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         Show information about this bot.
         """
         embed = discord.Embed(
-            title=f"❑ {settings.bot_name} Bot Status", color=settings.default_embed_color
+            title=f"❑ {settings.bot_name} Bot Status",
+            color=settings.default_embed_color,
         )
 
         cars_count = len([x for x in carfigures.values() if x.enabled])
@@ -100,34 +103,33 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
             f"\u200b **⋄ Disk:** {disk_usage}/{disk_total}GB • {disk_percentage}%\n\n",
             inline=False,
         )
+        #    embed.add_field(
+        #         name="⋈ Developers",
+        #         value=developers,
+        #         inline=True
+        #   )
+        embed.add_field(name="⋊ Contributors", value=contributors, inline=False)
+        #    embed.add_field(
+        #        name="⋋ Testers\n",
+        #        value=testers,
+        #        inline=True
+        #    )
+        embed.add_field(
+            name="⋇ Links",
+            value=f"[Discord server]({settings.discord_invite}) • [Invite me]({invite_link}) • "
+            f"[Source code and issues]({settings.repository_link})\n"
+            f"[Terms of Service]({settings.terms_of_service}) • "
+            f"[Privacy policy]({settings.privacy_policy}) • "
+            f"[Top.gg Link]({settings.top_gg})",
+            inline=False,
+        )
+        embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+        v = sys.version_info
+        embed.set_footer(
+            text=f"Python {v.major}.{v.minor}.{v.micro} • discord.py {discord.__version__}"
+        )
 
-    #    embed.add_field(
-    #         name="⋈ Developers",
-    #         value=developers,
-    #         inline=True
-    #    )
-    embed.add_field(name="⋊ Contributors", value=contributors, inline=False)
-    #    embed.add_field(
-    #        name="⋋ Testers\n",
-    #        value=testers,
-    #        inline=True
-    #    )
-    embed.add_field(
-        name="⋇ Links",
-        value=f"[Discord server]({settings.discord_invite}) • [Invite me]({invite_link}) • "
-        f"[Source code and issues]({settings.repository_link})\n"
-        f"[Terms of Service]({settings.terms_of_service}) • "
-        f"[Privacy policy]({settings.privacy_policy}) • "
-        f"[Top.gg Link]({settings.top_gg})",
-        inline=False,
-    )
-    embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-    v = sys.version_info
-    embed.set_footer(
-        text=f"Python {v.major}.{v.minor}.{v.micro} • discord.py {discord.__version__}"
-    )
-
-    await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
     async def commands(self, interaction: discord.Interaction):
@@ -160,7 +162,7 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
                 # Combine formatted command names with newlines
                 command_list = "\n".join(
                     [
-                        f"\u200B ⋄ {mention_app_command(c)}: {command_descriptions[c.name]}"
+                        f"\u200b ⋄ {mention_app_command(c)}: {command_descriptions[c.name]}"
                         for c in sorted_commands
                     ]
                 )
@@ -169,7 +171,9 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
             entry = (f"**Category: {category_name}**", f"{command_list}")
             entries.append(entry)
 
-        source = FieldPageSource(entries=entries, per_page=2)  # Adjust per_page as needed
+        source = FieldPageSource(
+            entries=entries, per_page=2
+        )  # Adjust per_page as needed
         source.embed.title = f"{settings.bot_name} Commands list"
         source.embed.colour = settings.default_embed_color
         pages = Pages(source=source, interaction=interaction, compact=True)
@@ -226,7 +230,9 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         )
         embed.add_field(
             name="How do I show my showroom?",
-            value=("To see the cars you have caught, you can use the `/showroom` command."),
+            value=(
+                "To see the cars you have caught, you can use the `/showroom` command."
+            ),
             inline=False,
         )
         embed.add_field(
