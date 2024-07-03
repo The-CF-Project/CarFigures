@@ -252,7 +252,7 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def about(self, interaction: discord.Interaction):
         """
-        Information about the bot (the reason it got created and more)
+        Information about the bot (the reason it got created, and more coming soon!)
         """
 
         entries = []
