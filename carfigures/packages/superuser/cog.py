@@ -24,6 +24,9 @@ from carfigures.core.models import (
     Player,
     Trade,
     TradeObject,
+    PrivacyPolicy,
+    DonationPolicy,
+    Player as PlayerModel,
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.core.utils.enums import DONATION_POLICY_MAP, PRIVATE_POLICY_MAP
@@ -82,7 +85,8 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
     cars = app_commands.Group(name=settings.cars_group_name, description="s management")
     logs = app_commands.Group(name="logs", description="Bot logs management")
     history = app_commands.Group(name="history", description="Trade history management")
-    info = app_commands.Group(name=settings.info_group_name, description="Information Commands")
+    info = app_commands.Group(name=settings.info_group_name, description="Information commands")
+    player = app_commands.Group(name=settings.player_group_name, description="Player commands")
 
     @app_commands.command()
     @app_commands.checks.has_any_role(*settings.root_role_ids)
@@ -1730,3 +1734,73 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         )
         embed.set_thumbnail(url=user.display_avatar)  # type: ignore
         await interaction.followup.send(embed=embed, ephemeral=True)
+
+    @player.command()
+    @app_commands.checks.has_any_role(*settings.root_role_ids)
+    @app_commands.choices(
+        policy=[
+            app_commands.Choice(name="Open Inventory", value=PrivacyPolicy.ALLOW),
+            app_commands.Choice(name="Private Inventory", value=PrivacyPolicy.DENY),
+            app_commands.Choice(name="Same Server", value=PrivacyPolicy.SAME_SERVER),
+        ]
+    )
+    async def privacy_policy(
+        self, 
+        interaction: discord.Interaction, 
+        user: discord.User,
+        policy: PrivacyPolicy,
+    ):
+        """
+        Change the privacy policy of a user.
+
+        Parameters
+        ----------
+        user: discord.User
+            The user you want to do the changes on.
+        policy: PrivacyPolicy
+            How you want to change the user's privacy policy.
+        """
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+        player.privacy_policy = policy
+        await player.save()
+        await interaction.response.send_message(
+            f"Changed the privacy policy of {user.name} to **{policy.name}**.", ephemeral=True
+        )
+
+    @player.command()
+    @app_commands.checks.has_any_role(*settings.root_role_ids)
+    @app_commands.choices(
+        policy=[
+            app_commands.Choice(
+                name="Accept all donations", value=DonationPolicy.ALWAYS_ACCEPT
+            ),
+            app_commands.Choice(
+                name="Request your approval first", value=DonationPolicy.REQUEST_APPROVAL
+            ),
+            app_commands.Choice(
+                name="Deny all donations", value=DonationPolicy.ALWAYS_DENY
+            ),
+        ]
+    )
+    async def donation_policy(
+        self, 
+        interaction: discord.Interaction, 
+        user: discord.User,
+        policy: DonationPolicy,
+    ):
+        """
+        Change the donation policy of a user.
+
+        Parameters
+        ----------
+        user: discord.User
+            The user you want to do the changes on.
+        policy: DonationPolicy
+            How you want to change the user's donation policy.
+        """
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+        player.donation_policy = policy
+        await player.save()
+        await interaction.response.send_message(
+            f"Changed the donation policy of {user.name} to **{policy.name}**.", ephemeral=True
+        )
