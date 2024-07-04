@@ -23,6 +23,7 @@ from carfigures.core.utils.transformers import (
     EventEnabledTransform,
     TradeCommandType,
 )
+from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.packages.cars.components import (
     SortingChoices,
     DonationRequest,
@@ -710,3 +711,35 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         )
 
         await interaction.followup.send(embed=embed)
+
+    @app_commands.command()
+    @app_commands.checks.cooldown(1, 120, key=lambda i: i.user.id)
+    async def delete(self, interaction: discord.Interaction, carfigure: CarInstanceTransform):
+        """
+        Delete one carfigure from your garage of your choice.
+
+        Parameters
+        ----------
+        carfigure: Car
+            The carfigure you want to delete.
+        """
+        bot_carfigures = {x: y.pk for x, y in cars.items() if y.enabled}
+
+        if not bot_carfigures:
+            await interaction.response.send_message(
+                f"There are no {settings.collectible_name}s registered on this bot yet.",
+                ephemeral=True,
+            )
+            return
+    
+        view = ConfirmChoiceView(interaction)
+        await interaction.response.send_message(
+            "Are you sure you want to delete this carfigure?", view=view, ephemeral=True
+        )
+        await view.wait()
+        if view.value is None or not view.value:
+            return
+        
+        await carfigure.delete()
+        
+        await interaction.followup.send("Carfigure deleted.", ephemeral=True)
