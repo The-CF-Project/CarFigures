@@ -23,6 +23,7 @@ from carfigures.core.utils.transformers import (
     EventEnabledTransform,
     TradeCommandType,
 )
+from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.packages.cars.components import (
     SortingChoices,
     DonationRequest,
