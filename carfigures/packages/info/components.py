@@ -6,7 +6,7 @@ from discord import app_commands
 from carfigures.core.models import Car, cars as carfigures
 
 
-def machine_info() -> str:
+def machine_info():
     """
     Function to gather information about the machine's CPU, memory, and disk usage.
     """

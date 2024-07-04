@@ -76,7 +76,7 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
             if has_caught_before:
                 event += (
                     f"This is a **new {settings.collectible_name}** "
-                    f"that has been added to your {settings.cars_group_name}!"
+                    f"that has been added to your {settings.garage_command_name}!"
                 )
 
             await interaction.followup.send(
