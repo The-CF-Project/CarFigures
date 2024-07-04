@@ -734,12 +734,16 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
     
         view = ConfirmChoiceView(interaction)
         await interaction.response.send_message(
-            "Are you sure you want to delete this carfigure?", view=view, ephemeral=True
+            f"Are you sure you want to delete this {settings.collectible_name}?", 
+            view=view, 
+            ephemeral=True
         )
         await view.wait()
         if view.value is None or not view.value:
             return
         
         await carfigure.delete()
-        
-        await interaction.followup.send("Carfigure deleted.", ephemeral=True)
+        await interaction.followup.send(
+            f"Successfully deleted the {settings.collectible_name}.", 
+            ephemeral=True
+        )
