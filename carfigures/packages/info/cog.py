@@ -129,11 +129,7 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
             text=f"Python {v.major}.{v.minor}.{v.micro} • discord.py {discord.__version__}"
         )
 
-<<<<<<< HEAD
-        await interaction.response.send_message(embed=embed)
-=======
-    await interaction.response.send_message(embed=embed, ephemeral=True)
->>>>>>> cfb2407c2572e50a6c450a8ac5cb62605976e3e5
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command()
     async def commands(self, interaction: discord.Interaction):
@@ -227,17 +223,11 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
             inline=False,
         )
         embed.add_field(
-<<<<<<< HEAD
-            name="How do I show my showroom?",
-            value=(
-                "To see the cars you have caught, you can use the `/showroom` command."
-=======
             name=f"How can I catch a {settings.collectible_name}?",
             value=(
                 f"To catch a {settings.collectible_name}, you can simply tap the blue `Catch me!` button "
                 f"when a {settings.collectible_name} spawns, type the name of it, and if you get "
                 "it right, it will be added to your showroom!"
->>>>>>> cfb2407c2572e50a6c450a8ac5cb62605976e3e5
             ),
             inline=False,
         )
