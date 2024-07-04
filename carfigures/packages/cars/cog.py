@@ -455,7 +455,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             )
             return
         if user.bot:
-            await interaction.response.send_message("You cannot donate to bots.")
+            await interaction.response.send_message("You cannot donate to bots.", ephemeral=True)
             return
         if await carfigure.is_locked():
             await interaction.response.send_message(
@@ -469,13 +469,15 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
 
         if new_player == old_player:
             await interaction.response.send_message(
-                f"You cannot give a {settings.collectible_name} to yourself."
+                f"You cannot give a {settings.collectible_name} to yourself.",
+                ephemeral=True
             )
             await carfigure.unlock()
             return
         if new_player.donation_policy == DonationPolicy.ALWAYS_DENY:
             await interaction.response.send_message(
-                "This user does not accept donations. You can use trades instead."
+                "This user does not accept donations. You can use trades instead.",
+                ephemeral=True
             )
             await carfigure.unlock()
             return
