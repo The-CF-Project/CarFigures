@@ -384,7 +384,13 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
     @app_commands.command(
         name=settings.favorite_command_name, description=settings.favorite_command_desc
     )
-    async def favorite(self, interaction: discord.Interaction, carfigure: CarInstanceTransform):
+    async def favorite(
+        self, 
+        interaction: discord.Interaction, 
+        carfigure: CarInstanceTransform,
+        event: EventEnabledTransform | None = None,
+        limited: bool | None = None,
+    ):
         """
         Set favorite carfigures.
 
@@ -392,6 +398,10 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         ----------
         carfigure: CarInstance
             The carfigure you want to set/unset as favorite
+        event: Event
+            Filter the results of autocompletion to an event. Ignored afterwards.
+        limited: bool
+            Filter the results of autocompletion to limiteds. Ignored afterwards.
         """
         # Checks if the car is not favorited
         if not carfigure.favorite:
@@ -434,6 +444,8 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         interaction: discord.Interaction,
         user: discord.User,
         carfigure: CarInstanceTransform,
+        event: EventEnabledTransform | None = None,
+        limited: bool | None = None,
     ):
         """
         Give a carfigure to a user.
