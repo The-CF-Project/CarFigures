@@ -16,7 +16,6 @@ from discord.ext.commands import when_mentioned_or
 from rich import print
 from tortoise import Tortoise
 
-from carfigures.settings import settings
 from carfigures.core.bot import CarFiguresBot
 from carfigures.logging import init_logger
 from carfigures.settings import read_settings, settings
