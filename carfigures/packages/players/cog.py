@@ -170,8 +170,10 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
         """
         Delete your player data.
         """
+        await interaction.response.defer(thinking=True)
+        
         view = ConfirmChoiceView(interaction)
-        await interaction.response.send_message(
+        await interaction.followup.send(
             "Are you sure you want to delete your player data?",
             view=view,
             ephemeral=True,
@@ -181,6 +183,8 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
             return
         player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         await player.delete()
+
+        await interaction.followup.send("Player data deleted.", ephemeral=True)
 
     @app_commands.command()
     @app_commands.choices(
