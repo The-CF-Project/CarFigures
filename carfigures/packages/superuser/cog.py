@@ -531,7 +531,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         interaction: discord.Interaction,
         carfigure: Car | None,
         channel: discord.TextChannel,
-        n: int,
+        amount: int,
     ):
         spawned = 0
 
@@ -542,17 +542,19 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
                     "@original",  # type: ignore
                     content=f"Spawn bomb in progress in {channel.mention}, "
                     f"{settings.collectible_name.title()}: {carfigure or 'Random'}\n"
-                    f"{spawned}/{n} spawned ({round((spawned/n)*100)}%)",
+                    f"{spawned}/{amount} spawned ({round((spawned/amount)*100)}%)",
                 )
                 await asyncio.sleep(5)
             await interaction.followup.edit_message(
                 "@original", content="Spawn bomb seems to have timed out."  # type: ignore
             )
 
-        await interaction.response.send_message(f"Starting spawn bomb in {channel.mention}...")
+        await interaction.response.send_message(
+            f"Starting spawn bomb in {channel.mention}...", ephemeral=True
+        )
         task = self.bot.loop.create_task(update_message_loop())
         try:
-            for i in range(n):
+            for i in range(amount):
                 if not carfigure:
                     car = await CarFigure.get_random()
                 else:
@@ -584,7 +586,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         interaction: discord.Interaction,
         carfigure: CarTransform | None = None,
         channel: discord.TextChannel | None = None,
-        n: int = 1,
+        amount: int = 1,
     ):
         """
         Force spawn a random or specified car.
@@ -595,7 +597,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             The carfigure you want to spawn. Random according to rarities if not specified.
         channel: discord.TextChannel | None
             The channel you want to spawn the carfigure in. Current channel if not specified.
-        n: int
+        amount: int
             The number of carfigures to spawn. If no carfigure was specified, it's random
             every time.
         """
@@ -603,22 +605,22 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         if interaction.response.is_done():
             return
 
-        if n < 1:
+        if amount < 1:
             await interaction.response.send_message(
-                "`n` must be superior or equal to 1.", ephemeral=True
+                "The `amount` must be superior or equal to 1.", ephemeral=True
             )
             return
-        if n > 100:
+        if amount > 100:
             await interaction.response.send_message(
-                f"That doesn't seem reasonable to spawn {n} times, "
+                f"That doesn't seem reasonable to spawn {amount} times, "
                 "the bot will be rate-limited. Try something lower than 100.",
                 ephemeral=True,
             )
             return
 
-        if n > 1:
+        if amount > 1:
             await self._spawn_bomb(
-                interaction, carfigure, channel or interaction.channel, n  # type: ignore
+                interaction, carfigure, channel or interaction.channel, amount  # type: ignore
             )
             return
 
@@ -635,7 +637,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             )
             await log_action(
                 f"{interaction.user} spawned {settings.collectible_name} {car.name} "
-                f"in {channel or interaction.channel}.",
+                f"{amount} times in {channel or interaction.channel}.",
                 self.bot,
             )
 
