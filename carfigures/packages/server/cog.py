@@ -178,4 +178,4 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
             icon_url=interaction.user.display_avatar.url,
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
