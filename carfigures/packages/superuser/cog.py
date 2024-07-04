@@ -622,6 +622,11 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             await self._spawn_bomb(
                 interaction, carfigure, channel or interaction.channel, amount  # type: ignore
             )
+            await log_action(
+                f"{interaction.user} spawned {settings.collectible_name}"
+                f" {car.name} {amount} times in {channel or interaction.channel}.",
+                self.bot,
+            )
             return
 
         await interaction.response.defer(ephemeral=True, thinking=True)
@@ -637,7 +642,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             )
             await log_action(
                 f"{interaction.user} spawned {settings.collectible_name} {car.name} "
-                f"{amount} times in {channel or interaction.channel}.",
+                f"in {channel or interaction.channel}.",
                 self.bot,
             )
 
