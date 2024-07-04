@@ -119,7 +119,7 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
             return
         if not settings.spawnalert:
             await interaction.response.send_message(
-                "The bot owner has disabled this feature from the bot"
+                "The bot owner has disabled this feature from the bot.", ephemeral=True
             )
             return
         config, created = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
@@ -140,7 +140,7 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
                 )
                 return
         else:
-            await interaction.response.send_message("Please select a proper role.")
+            await interaction.response.send_message("Please select a proper role.", ephemeral=True)
 
     @app_commands.command()
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
