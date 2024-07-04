@@ -108,7 +108,7 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
                 ephemeral=True,
             )
         else:
-            await interaction.response.send_message("Invalid input!")
+            await interaction.response.send_message("Invalid input!", ephemeral=True)
             return
         await user.save()  # do not save if the input is invalid
 
@@ -163,7 +163,7 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
             text=f"Requested by {interaction.user.display_name}",
             icon_url=interaction.user.display_avatar.url,
         )
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command()
     async def delete(self, interaction: discord.Interaction):
