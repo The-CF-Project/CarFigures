@@ -5,6 +5,8 @@ import logging
 
 from typing import TYPE_CHECKING
 
+from tortoise.exceptions import DoesNotExist
+
 from discord import app_commands
 from discord.ext import commands
 
