@@ -36,7 +36,7 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         Show the bot latency.
         """
         await interaction.response.send_message(
-            f"Pong! {round(self.bot.latency * 1000)}ms"
+            f"Pong! {round(self.bot.latency * 1000)}ms", ephemeral=True
         )
     @app_commands.command()
     async def status(self, interaction: discord.Interaction):
