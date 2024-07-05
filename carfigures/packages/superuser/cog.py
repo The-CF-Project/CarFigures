@@ -1825,4 +1825,4 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         await interaction.response.send_message(
             f"Changed the donation policy of {user.name} to **{policy.name}**.", ephemeral=True
         )
-        await log_action(f"{interaction.user} changed the privacy policy of {user.name} to {policy.name}.")
+        await log_action(f"{interaction.user} changed the donation policy of {user.name} to {policy.name}.")
