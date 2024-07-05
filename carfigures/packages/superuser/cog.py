@@ -1786,6 +1786,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         await interaction.response.send_message(
             f"Changed the privacy policy of {user.name} to **{policy.name}**.", ephemeral=True
         )
+        await log_action(f"{interaction.user} changed the privacy policy of {user.name} to {policy.name}.")
 
     @player.command()
     @app_commands.checks.has_any_role(*settings.root_role_ids)
@@ -1824,3 +1825,4 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         await interaction.response.send_message(
             f"Changed the donation policy of {user.name} to **{policy.name}**.", ephemeral=True
         )
+        await log_action(f"{interaction.user} changed the privacy policy of {user.name} to {policy.name}.")
