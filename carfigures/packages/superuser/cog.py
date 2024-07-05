@@ -673,6 +673,19 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             return
         await interaction.response.defer(ephemeral=True, thinking=True)
 
+        if amount < 1:
+            await interaction.followup.send(
+                "The `amount` must be superior or equal to 1.", ephemeral=True
+            )
+            return
+        if amount > 1000:
+            await interaction.followup.send(
+                f"It is not reasonable to give {amount} {settings.collectible_name}s, "
+                "try an amount that is lower than 1000.",
+                ephemeral=True,
+            )
+            return
+
         player, created = await Player.get_or_create(discord_id=user.id)
         for i in range(amount):
             instance = await CarInstance.create(
