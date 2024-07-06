@@ -59,12 +59,12 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         carfigure: CarEnabledTransform | None = None,
     ):
         """
-        Show Your Garage!
+        Show your yarage!
 
         Parameters
         ----------
         user: discord.User
-            The user whose collection you want to view, if not yours.
+            The user whose garage you want to view, if not yours.
         sort: SortingChoices
             Choose how carfigures are sorted. Can be used to show duplicates.
         reverse: bool
@@ -144,7 +144,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             await paginator.start()
         else:
             await paginator.start(
-                content=f"Viewing {player_obj.name}'s {settings.collectible_name}s"
+                content=f"Viewing {player_obj.name}'s garage!"
             )
 
     @app_commands.command(
