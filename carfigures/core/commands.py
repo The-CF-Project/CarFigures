@@ -30,7 +30,7 @@ class Core(commands.Cog):
         """
         Ping!
         """
-        await ctx.send("Pong")
+        await ctx.send("Pong.")
 
     @commands.command()
     @commands.is_owner()
@@ -54,7 +54,7 @@ class Core(commands.Cog):
             except commands.ExtensionNotLoaded:
                 await self.bot.load_extension(package)
         except commands.ExtensionNotFound:
-            await ctx.send("Extension not found")
+            await ctx.send("Extension not found.")
         except Exception:
             await ctx.send("Failed to reload extension.")
             log.error(f"Failed to reload extension {package}", exc_info=True)
@@ -71,7 +71,7 @@ class Core(commands.Cog):
         next start.
         """
         await self.bot.load_cache()
-        await ctx.send("Database models cache has been reloaded")
+        await ctx.send("Database models cache have been reloaded.")
 
     @commands.command()
     @commands.is_owner()
