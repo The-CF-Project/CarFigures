@@ -27,11 +27,11 @@ Before starting the installation, ensure you have the following tools installed:
 > **Note:** If you are using Linux as your main desktop (like me) or hosting the bot on a Linux server, it is generally better to use [Docker Engine](https://docs.docker.com/engine/install).
 
 ### Installing
-now since all this is done, let's start!
+Now since all this is done, let's start!
 
-1. git clone the project using git like this. ![demo2](assets/demos/demo1.png)
+1. `git clone` the project using git like this. ![demo2](assets/demos/demo1.png)
 2. Download the settings.toml file [from here](https://drive.usercontent.google.com/download?id=1ZMm3zRS__UC7QOzGGN4ZyxmjnhLbp1sl&export=download&authuser=0) and drag it to your bot folder, now your bot folder should look something like this. ![demo3](assets/demos/demo2.png)
-3. Change the bot folder name from "CarFigures" to the name of your dex/figures bot to make it easier for you in docker to know which is what (very useful if working with multiple dexes/figures bots)
+3. Change the bot folder name from "CarFigures" to the name of your dex/figures bot to make it easier for you in docker to know which is what (very useful if working with multiple dexes/figures bots).
 
 
 
@@ -61,26 +61,26 @@ Here’s a brief overview of the main configuration sections:
 - **[prometheus]**: Settings for Prometheus metrics collection.
 
 ### Starting up
-after configuring and editing the settings.toml file, now its time to start the bot instance and play with it!
+After configuring and editing the settings.toml file, now its time to start the bot instance and play with it!
 
-start by getting docker desktop up and running, then open your file explorer and head to the bot files ![demo4](assets/demos/demo3.png)
+Start by getting docker desktop up and running, then open your file explorer and head to the bot files. ![demo4](assets/demos/demo3.png)
 
-#### for windows users
-to access the command prompt pointed to this bot folder, go to the navigation bar and edit it (you can do that by click the empty part once) to type `cmd` or `powershell` then press enter, this will open a new command prompt instance that is pointed to the bot place
+#### For windows users
+To access the command prompt pointed to this bot folder, go to the navigation bar and edit it (you can do that by click the empty part once) to type `cmd` or `powershell` then press enter, this will open a new command prompt instance that is pointed to the bot place:
 ![demo5](assets/demos/demo4.png)
 ![demo6](assets/demos/demo5.png)
 
-#### for macos/linux users
-just cd to the place mate lmao, open a terminal and cd to the folder, if your bot folder is in the documents folder, usually you do `cd ~/Documents/(your bot folder name)`
+#### For macos/linux users
+You should just cd to the place, open a terminal and cd to the folder, if your bot folder is in the documents folder, usually you do `cd ~/Documents/(your bot folder name)`.
 
-after opening the terminal or command prompt, you shall be greeted with something like this (don't mind the toml thing, its git stuff)
+After opening the terminal or command prompt, you shall be greeted with something like this (don't mind the toml thing, its git stuff).
 ![demo7](assets/demos/demo6.png)
-now its time for you to build the project image (the image the contains your database which stores all your bot's progress, the code and more) using `docker compose build`
+Now its time for you to build the project image (the image the contains your database which stores all your bot's progress, the code and more) using `docker compose build`.
 ![demo8](assets/demos/demo7.png)
 
-and now, its time to start up your bot!\
-using `docker compose up` will make the docker starts all the containers and functions to start making connections to the discord's apis, allowing the bot to be alive!
-and after doing it, the final results should be like this, with the end line saying "(your bot name) is now operational!"
+And now, its time to start up your bot!\
+Using `docker compose up` will make the docker starts all the containers and functions to start making connections to the discord's apis, allowing the bot to be alive!
+And after doing it, the final results should be like this, with the end line saying "(your bot name) is now operational!"
 ![demo9](assets/demos/demo8.png)
 
 That's it! You are all set to rock and roll with CarFigures!\
