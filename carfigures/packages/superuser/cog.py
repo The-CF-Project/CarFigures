@@ -24,6 +24,9 @@ from carfigures.core.models import (
     Player,
     Trade,
     TradeObject,
+    PrivacyPolicy,
+    DonationPolicy,
+    Player as PlayerModel,
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.core.utils.enums import DONATION_POLICY_MAP, PRIVATE_POLICY_MAP
@@ -82,7 +85,8 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
     cars = app_commands.Group(name=settings.cars_group_name, description="s management")
     logs = app_commands.Group(name="logs", description="Bot logs management")
     history = app_commands.Group(name="history", description="Trade history management")
-    info = app_commands.Group(name=settings.info_group_name, description="Information Commands")
+    info = app_commands.Group(name=settings.info_group_name, description="Information commands")
+    player = app_commands.Group(name=settings.player_group_name, description="Player commands")
 
     @app_commands.command()
     @app_commands.checks.has_any_role(*settings.root_role_ids)
@@ -531,7 +535,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         interaction: discord.Interaction,
         carfigure: Car | None,
         channel: discord.TextChannel,
-        n: int,
+        amount: int,
     ):
         spawned = 0
 
@@ -542,17 +546,19 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
                     "@original",  # type: ignore
                     content=f"Spawn bomb in progress in {channel.mention}, "
                     f"{settings.collectible_name.title()}: {carfigure or 'Random'}\n"
-                    f"{spawned}/{n} spawned ({round((spawned/n)*100)}%)",
+                    f"{spawned}/{amount} spawned ({round((spawned/amount)*100)}%)",
                 )
                 await asyncio.sleep(5)
             await interaction.followup.edit_message(
                 "@original", content="Spawn bomb seems to have timed out."  # type: ignore
             )
 
-        await interaction.response.send_message(f"Starting spawn bomb in {channel.mention}...")
+        await interaction.response.send_message(
+            f"Starting spawn bomb in {channel.mention}...", ephemeral=True
+        )
         task = self.bot.loop.create_task(update_message_loop())
         try:
-            for i in range(n):
+            for i in range(amount):
                 if not carfigure:
                     car = await CarFigure.get_random()
                 else:
@@ -584,7 +590,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         interaction: discord.Interaction,
         carfigure: CarTransform | None = None,
         channel: discord.TextChannel | None = None,
-        n: int = 1,
+        amount: int = 1,
     ):
         """
         Force spawn a random or specified car.
@@ -595,7 +601,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             The carfigure you want to spawn. Random according to rarities if not specified.
         channel: discord.TextChannel | None
             The channel you want to spawn the carfigure in. Current channel if not specified.
-        n: int
+        amount: int
             The number of carfigures to spawn. If no carfigure was specified, it's random
             every time.
         """
@@ -603,22 +609,27 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         if interaction.response.is_done():
             return
 
-        if n < 1:
+        if amount < 1:
             await interaction.response.send_message(
-                "`n` must be superior or equal to 1.", ephemeral=True
+                "The `amount` must be superior or equal to 1.", ephemeral=True
             )
             return
-        if n > 100:
+        if amount > 100:
             await interaction.response.send_message(
-                f"That doesn't seem reasonable to spawn {n} times, "
+                f"That doesn't seem reasonable to spawn {amount} times, "
                 "the bot will be rate-limited. Try something lower than 100.",
                 ephemeral=True,
             )
             return
 
-        if n > 1:
+        if amount > 1:
             await self._spawn_bomb(
-                interaction, carfigure, channel or interaction.channel, n  # type: ignore
+                interaction, carfigure, channel or interaction.channel, amount  # type: ignore
+            )
+            await log_action(
+                f"{interaction.user} spawned {settings.collectible_name}"
+                f" {car.name} {amount} times in {channel or interaction.channel}.",
+                self.bot,
             )
             return
 
@@ -672,6 +683,19 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         if interaction.response.is_done():
             return
         await interaction.response.defer(ephemeral=True, thinking=True)
+
+        if amount < 1:
+            await interaction.followup.send(
+                "The `amount` must be superior or equal to 1.", ephemeral=True
+            )
+            return
+        if amount > 1000:
+            await interaction.followup.send(
+                f"It is not reasonable to give {amount} {settings.collectible_name}s, "
+                "try an amount that is lower than 1000.",
+                ephemeral=True,
+            )
+            return
 
         player, created = await Player.get_or_create(discord_id=user.id)
         for i in range(amount):
@@ -1730,3 +1754,75 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         )
         embed.set_thumbnail(url=user.display_avatar)  # type: ignore
         await interaction.followup.send(embed=embed, ephemeral=True)
+
+    @player.command()
+    @app_commands.checks.has_any_role(*settings.root_role_ids)
+    @app_commands.choices(
+        policy=[
+            app_commands.Choice(name="Open Inventory", value=PrivacyPolicy.ALLOW),
+            app_commands.Choice(name="Private Inventory", value=PrivacyPolicy.DENY),
+            app_commands.Choice(name="Same Server", value=PrivacyPolicy.SAME_SERVER),
+        ]
+    )
+    async def privacy_policy(
+        self, 
+        interaction: discord.Interaction, 
+        user: discord.User,
+        policy: PrivacyPolicy,
+    ):
+        """
+        Change the privacy policy of a user.
+
+        Parameters
+        ----------
+        user: discord.User
+            The user you want to do the changes on.
+        policy: PrivacyPolicy
+            How you want to change the user's privacy policy.
+        """
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+        player.privacy_policy = policy
+        await player.save()
+        await interaction.response.send_message(
+            f"Changed the privacy policy of {user.name} to **{policy.name}**.", ephemeral=True
+        )
+        await log_action(f"{interaction.user} changed the privacy policy of {user.name} to {policy.name}.")
+
+    @player.command()
+    @app_commands.checks.has_any_role(*settings.root_role_ids)
+    @app_commands.choices(
+        policy=[
+            app_commands.Choice(
+                name="Accept all donations", value=DonationPolicy.ALWAYS_ACCEPT
+            ),
+            app_commands.Choice(
+                name="Request your approval first", value=DonationPolicy.REQUEST_APPROVAL
+            ),
+            app_commands.Choice(
+                name="Deny all donations", value=DonationPolicy.ALWAYS_DENY
+            ),
+        ]
+    )
+    async def donation_policy(
+        self, 
+        interaction: discord.Interaction, 
+        user: discord.User,
+        policy: DonationPolicy,
+    ):
+        """
+        Change the donation policy of a user.
+
+        Parameters
+        ----------
+        user: discord.User
+            The user you want to do the changes on.
+        policy: DonationPolicy
+            How you want to change the user's donation policy.
+        """
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+        player.donation_policy = policy
+        await player.save()
+        await interaction.response.send_message(
+            f"Changed the donation policy of {user.name} to **{policy.name}**.", ephemeral=True
+        )
+        await log_action(f"{interaction.user} changed the donation policy of {user.name} to {policy.name}.")
