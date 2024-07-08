@@ -9,7 +9,7 @@
 
 ## About CarFigures
 
-**CarFigures (The CF Project)** was born out of frustration with the BallsDex team's decisions. Initially, I had no particular liking for the idea; it was more about a response to dissatisfaction. The BallsDex team wasn't keen on implementing features that many of us wanted. I knew that merely complaining wouldn't lead to any change, as hundreds of others had already done so to no avail.
+**CarFigures (The CF Project)** was born out of frustration with the BallsDex team's decisions. Initially, I had no particular liking for the idea; it was more about a response to dissatisfaction. The BallsDex team wasn't keen on implementing the features many of us wanted. I knew that merely complaining wouldn't lead to any change, as hundreds of others had already done so to no avail.
 
 Determined to make a difference, I decided to take matters into my own hands. By forking BallsDex and applying my own changes and preferences, CarFigures came into existence.
 
@@ -35,11 +35,11 @@ Now since all this is done, let's start!
 
 
 
-> **Note:** The settings.toml isn't updated by default when updating the bot files, you are required to check if any changes happened to the toml file by yourself, i will update the link of download every-time a new update for it gets released, its your responsibility.
+> **Note:** The settings.toml isn't updated by default when updating the bot files, you are required to check if any changes happened to the toml file by yourself, I will update the link of download every time a new update for it gets released, it's your responsibility.
  
 ## Post-Installation
 
-Once you have completed the installation and configuration steps, its time to configure and make the bot look the way you like it to be!
+Once you have completed the installation and configuration steps, it's time to configure and make the bot look the way you like it to be!
 
 ### Configuration File
 
@@ -61,30 +61,30 @@ Here’s a brief overview of the main configuration sections:
 - **[prometheus]**: Settings for Prometheus metrics collection.
 
 ### Starting up
-After configuring and editing the settings.toml file, now its time to start the bot instance and play with it!
+After configuring and editing the settings.toml file, it's time to start the bot instance and play with it!
 
-Start by getting docker desktop up and running, then open your file explorer and head to the bot files. ![demo4](assets/demos/demo3.png)
+Start by getting the Docker desktop up and running, then open your file explorer and head to the bot files. ![demo4](assets/demos/demo3.png)
 
-#### For windows users
-To access the command prompt pointed to this bot folder, go to the navigation bar and edit it (you can do that by click the empty part once) to type `cmd` or `powershell` then press enter, this will open a new command prompt instance that is pointed to the bot place:
+#### For Windows users
+To access the command prompt pointed to this bot folder, go to the navigation bar and edit it (you can do that by clicking the empty part once) to type `cmd` or `powershell` then press enter, this will open a new command prompt instance that is pointed to the bot place:
 ![demo5](assets/demos/demo4.png)
 ![demo6](assets/demos/demo5.png)
 
-#### For macos/linux users
-You should just cd to the place, open a terminal and cd to the folder, if your bot folder is in the documents folder, usually you do `cd ~/Documents/(your bot folder name)`.
+#### For Macos/Linux users
+You should just cd to the place, open a terminal, and cd to the folder, if your bot folder is in the documents folder, usually you do `cd ~/Documents/(your bot folder name)`.
 
-After opening the terminal or command prompt, you shall be greeted with something like this (don't mind the toml thing, its git stuff).
+After opening the terminal or command prompt, you shall be greeted with something like this (don't mind the toml thing, it's git stuff).
 ![demo7](assets/demos/demo6.png)
-Now its time for you to build the project image (the image the contains your database which stores all your bot's progress, the code and more) using `docker compose build`.
+Now it is time for you to build the project image (the image that contains your database which stores all your bot's progress—the code—and more) using `docker compose build`.
 ![demo8](assets/demos/demo7.png)
 
-And now, its time to start up your bot!\
-Using `docker compose up` will make the docker starts all the containers and functions to start making connections to the discord's apis, allowing the bot to be alive!
+And now, it is time to start up your bot!\
+Using `docker compose up` will make the docker start all the containers and functions, creating connections to the discord's APIs, and allowing the bot to be alive!
 And after doing it, the final results should be like this, with the end line saying "(your bot name) is now operational!"
 ![demo9](assets/demos/demo8.png)
 
 That's it! You are all set to rock and roll with CarFigures!\
-If you run into any trouble along the way, don't hesitate to reach out for help. We're here to make sure you have a smooth ride.
+If you run into any trouble, don't hesitate to ask for help. We're here to make sure you have a smooth ride.
 
 ## Contributing to CarFigures!
 
@@ -129,9 +129,9 @@ To make sure your PR can be checked out and merged smoothly, please follow these
 
 - Clearly describe the purpose of the PR and the changes made. This will make it easy for me to judge the PR. Usually, I don't refuse them, but more clarity = faster response.
 - Provide tests and documentation for any new features or changes in functionality. This is good practice to always debug your code before pushing it.
-- If possible, include screenshots showing before/after states of any visual changes. This can make it easier for me to review stuff, but I like reading changes too, so no worries on this part.
-- Ensure that all existing tests pass without failure, i think i don't need to explain this.
-- Make sure your code follows the project's coding standards and vibes, because off-vibe code makes it weird for me to look at, and I end up making it look like the rest of the codebase, so please save me some time lmao.
+- Include screenshots showing before/after states of any visual changes if possible. This can make it easier for me to review stuff, but I like reading changes too, so no worries about this section.
+- Ensure that all existing tests pass without failure.
+- Make sure your code follows the project's coding standards and style because code that doesn't correlate with the project's style makes it weird for me to review, and I end up formatting it to look like the rest of the codebase, so please save me some time.
 - Go with the least amount of line changes and commits as possible, this will be easier to track and validate, which allows me to review it fast and give small comments if necessary.
 
 ### Code of Conduct
@@ -146,10 +146,10 @@ I'm here to support you every step of the way.
 
 I'm stoked about every contribution from the community. Let's join forces and make the project even more rad!\
 
-> **Note:** For access to the dev category on the CarFigures Discord server, inform me that you are making a bot using CF, and I will assign you the forker role.
+> **Note:** For access to the dev category in the CarFigures Discord server, inform me that you are making a bot using CF, and I will assign you the forker role.
 
 ## Roadmap and Future Plans
-I'm excited about the future of the project and all the bots that uses it! Here are some features and improvements I have planned:
+I'm excited about the future of the project and all the bots that use it! Here are some features and improvements I have planned:
 
 ### Upcoming Features
 
@@ -167,9 +167,9 @@ I'm excited about the future of the project and all the bots that uses it! Here 
 
 ## Final Thoughts
 
-I am incredibly grateful to everyone who contributes to The CF Project. Whether you provide code, suggest features, report bugs, or offer emotional support, your efforts are deeply appreciated. Knowing that I am not alone in this project and having a supportive community means the world to me.
+I am incredibly grateful to everyone who contributes to The CF Project. Whether you provide code, suggest features, report bugs, or offer emotional support, your efforts are deeply appreciated. Knowing I am not alone in this project and having a supportive community means the world to me.
 
 Thank you all from the bottom of my heart ❤️ (especially you, Peri :] ❤️).
 
-Let's continue to make the project an awesome and valuable project for everyone!
+Let's continue making this project an awesome and valuable project for everyone!
 
