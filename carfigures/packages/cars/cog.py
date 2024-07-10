@@ -59,7 +59,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         carfigure: CarEnabledTransform | None = None,
     ):
         """
-        Show your yarage!
+        Show your garage!
 
         Parameters
         ----------
@@ -89,7 +89,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
                 )
             return
 
-        # Seeing if the player's garage is private'
+        # Seeing if the player's garage is private.
         if player is not None:
             if (
                 await inventory_privacy(self.bot, interaction, player, player_obj)
@@ -131,7 +131,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             carfigures = await player.cars.filter(**filters).order_by(
                 "-favorite", "-limited"
             )
-        # Error Handling where the player chooses a car he doesn't have or have no cars in general
+        # Error Handling where the player chooses a car he doesn't have or has no cars in general
         if len(carfigures) < 1:
             car_txt = carfigure.full_name if carfigure else ""
             if player_obj == interaction.user:
@@ -271,7 +271,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         else:
             entries.append(
                 (
-                    f"__**:partying_face: No missing {settings.collectible_name}, "
+                    f"__**:partying_face: No missing {settings.collectible_name}s, "
                     "congratulations! :partying_face:**__",
                     "\u200b",
                 )
