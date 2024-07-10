@@ -93,15 +93,16 @@ weight = "Weight"
 kg = "KG"
 hp = "HP"
 
-[appearance.commands.groups]
+[commands.groups]
 cars = "cars"
+sudo = "sudo"
 info = "info"
 player = "player"
 server = "server"
 superuser = "sudo"
 trade = "trade"
 
-[appearance.commands.names]
+[commands.names]
 garage = "garage"
 exhibit = "exhibit"
 show = "show"
@@ -113,7 +114,7 @@ count = "count"
 rarity = "rarity"
 compare = "compare"
 
-[appearance.commands.descs]
+[commands.descs]
 garage = "Show Your garage!"
 exhibit = "Show your showroom in the bot."
 show = "Display info from your carfigures collection."
@@ -222,9 +223,8 @@ Using `docker compose up` will make the docker starts all the containers and fun
 And after doing it, the final results should be like this, with the end line saying "(your bot name) is now operational!"
 ![demo8](assets/demos/demo8.png)
 </details>
-\
-That's it! You are all set to rock and roll with CarFigures!\
-If you run into any trouble, don't hesitate to ask for help. We're here to make sure you have a smooth ride.
+
+That's it! You are all set to rock and roll with CarFigures, If you run into any trouble, don't hesitate to ask for help. We're here to make sure you have a smooth ride.
 
 ## Contributing to CarFigures!
 
@@ -240,27 +240,34 @@ There are several ways you can contribute to the CarFigures project:
 5. **Spread the Word:** Share the project with others who might be interested in using or contributing to it.
 6. **Join Discussions:** Participate in discussions on GitHub issues or the Discord server to help shape the future direction of the project.
 
-#### Opening Issues
+<details>
+<summary><strong>Opening Issues</strong></summary>
 
 1. Go to the Issues section of the repository.
 2. Click on the "New Issue" button.
 3. Provide a clear and descriptive title for the issue.
 4. Include detailed information in the body, such as steps to reproduce the bug or a detailed description of the feature request.
+</details>
 
-#### Helping with Documentation
+<details>
+<summary><strong>Helping with Documentation</strong></summary>
+ 
 1. Fork the repository to your GitHub account.
 2. Create a new branch for your documentation changes: git checkout -b improve-docs
 3. Make your changes and commit them with descriptive messages: git commit -m 'Improve documentation for installation process'
 4. Push your changes to your branch: git push origin improve-docs
 Open a pull request (PR) against the stable branch of the original repository.
+</details>
 
-#### Submitting Pull Requests
+<details>
+<summary><strong>Submitting Features/Bug Fixes</strong></summary>
+
 1. Fork the repository to your GitHub account.
 2. Create a new branch for your feature or bug fix: git checkout -b new-feature
 3. Make your changes and commit them with descriptive messages: git commit -m 'Add new feature'
 4. Push your changes to your branch: git push origin new-feature
 Open a pull request (PR) against the upstream branch of the original repository.
-
+</details>
 
 
 ### Pull Request (PR) Guidelines
