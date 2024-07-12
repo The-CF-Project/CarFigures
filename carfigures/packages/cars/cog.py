@@ -180,14 +180,14 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         player_obj = user or interaction.user
         if user is not None:
             try:
-                user = await Player.get(discord_id=player_obj.id)
+                player = await Player.get(discord_id=player_obj.id)
             except DoesNotExist:
                 await interaction.response.send_message(
                     f"{player_obj.name} doesn't have any {settings.collectible_name} yet."
                 )
                 return
             if (
-                await inventory_privacy(self.bot, interaction, user, player_obj)
+                await inventory_privacy(self.bot, interaction, player, player_obj)
                 is False
             ):
                 return
@@ -374,13 +374,13 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         user: discord.Member
             The user you would like to see
         """
-        player_obj = user if user else interaction.user
+        player_obj = user or interaction.user
         await interaction.response.defer(thinking=True)
         # Try to check if the player have any carfigures
         try:
             player = await Player.get(discord_id=player_obj.id)
         except DoesNotExist:
-            msg = f"{'You do' if player is None else f'{player_obj.display_name} does'}"
+            msg = f"{'You do' if user is None else f'{player_obj.display_name} does'}"
             await interaction.followup.send(
                 f"{msg} not have any {settings.collectible_name} yet.",
                 ephemeral=True,
@@ -399,9 +399,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             await player.cars.all().order_by("-id").first().select_related("car")
         )
         if not carfigure:
-            msg = (
-                f"{'You do' if [player] is None else f'{player_obj.display_name} does'}"
-            )
+            msg = f"{'You do' if player is None else f'{player_obj.display_name} does'}"
             await interaction.followup.send(
                 f"{msg} not have any {settings.collectible_name} yet.",
                 ephemeral=True,
@@ -419,8 +417,6 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         self,
         interaction: discord.Interaction,
         carfigure: CarInstanceTransform,
-        event: EventEnabledTransform | None = None,
-        limited: bool | None = None,
     ):
         """
         Set favorite carfigures.
@@ -480,8 +476,6 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         interaction: discord.Interaction,
         user: discord.User,
         carfigure: CarInstanceTransform,
-        event: EventEnabledTransform | None = None,
-        limited: bool | None = None,
     ):
         """
         Give a carfigure to a user.

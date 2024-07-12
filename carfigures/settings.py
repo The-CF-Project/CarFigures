@@ -56,7 +56,8 @@ class Settings:
     shard_count: int | None = None
     prefix: str = ""
     spawnalert: bool = False
-    max_favorites: int | None = None
+    profiles_emojis: bool = False
+    max_favorites: int = 50
     default_embed_color: int = 0
 
     collectible_name: str = ""
@@ -106,6 +107,7 @@ class Settings:
     # /info about
     info_description: str = ""
     info_history: str = ""
+    developers: list[str] = field(default_factory=list)
     contributors: list[str] = field(default_factory=list)
 
     # /sudo
@@ -133,6 +135,7 @@ def read_settings(path: "Path"):
     settings.bot_token = config["settings"]["bot_token"]
     settings.bot_name = config["settings"]["bot_name"]
     settings.prefix = config["settings"]["text_prefix"]
+    settings.profiles_emojis = config["settings"]["profiles_emojis"]
     settings.spawnalert = config["settings"]["spawnalert"]
     settings.default_embed_color = int(config["settings"]["default_embed_color"], 16)
 
@@ -181,6 +184,7 @@ def read_settings(path: "Path"):
 
     settings.info_description = config["info"]["about"]["description"]
     settings.info_history = config["info"]["about"]["history"]
+    settings.developers = config["info"]["about"]["developers"]
     settings.contributors = config["info"]["about"]["contributors"]
 
     settings.superuser_guild_ids = config["superuser"]["guild_ids"]

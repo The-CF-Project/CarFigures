@@ -157,7 +157,7 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
             f"\u200b **⋄ Privacy Policy:** {privacy}\n"
             f"\u200b **⋄ Donation Policy:** {donation}\n\n"
             f"**∧ Player Info\n**"
-            f"\u200b **⋄ Cars Collected:** {len(player.cars)}\n"
+            f"\u200b **⋄ Cars Collected:** {player.cars.filter().count()}\n"
         )
 
         embed.set_thumbnail(url=player_obj.display_avatar.url)
@@ -182,13 +182,13 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
             return
         else:
             await interaction.followup.send(
-                "Are you sure you want to delete your player data?", 
-                view=view, 
+                "Are you sure you want to delete your player data?",
+                view=view,
             )
         await view.wait()
         if view.value is None or not view.value:
             return
-        
+
         await player.delete()
         await interaction.followup.send("Player data deleted.", ephemeral=True)
 

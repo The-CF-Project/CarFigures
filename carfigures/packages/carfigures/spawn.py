@@ -44,7 +44,9 @@ class SpawnCooldown:
     amount: float = field(default=SPAWN_CHANCE_RANGE[0] // 2)
     chance: int = field(default_factory=lambda: random.randint(*SPAWN_CHANCE_RANGE))
     lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False)
-    message_cache: deque[CachedMessage] = field(default_factory=lambda: deque(maxlen=100))
+    message_cache: deque[CachedMessage] = field(
+        default_factory=lambda: deque(maxlen=100)
+    )
 
     def reset(self, time: datetime):
         self.amount = 1.0
@@ -73,7 +75,14 @@ class SpawnCooldown:
             if len(message.content) < 5:
                 amount /= 2
             if len(set(x.author_id for x in self.message_cache)) < 4 or (
-                len(list(filter(lambda x: x.author_id == message.author.id, self.message_cache)))
+                len(
+                    list(
+                        filter(
+                            lambda x: x.author_id == message.author.id,
+                            self.message_cache,
+                        )
+                    )
+                )
                 / self.message_cache.maxlen  # type: ignore
                 > 0.4
             ):
@@ -140,7 +149,7 @@ class SpawnManager:
                 f"Lost permissions to send messages in {channel.name} for guild {guild.name}."
             )
             return
-        if guild.member_count < 20:
+        if guild.members.count() < 20:
             log.warning("Not enough members to spawn car.")
             return
 
