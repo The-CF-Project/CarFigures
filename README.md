@@ -15,7 +15,15 @@ Determined to make a difference, I decided to take matters into my own hands. By
 
 CarFigures aims to address the community's frustrations and provide an alternative base to use and build their bots on. It's a project driven by a desire for improvement and a commitment to providing a better user experience.
 
-## Installation
+<h2>
+     <sub>
+          <img  src="https://www.iconsdb.com/icons/preview/white/download-2-xxl.png"
+            height="25"
+            width="25">
+     </sub>
+     Installation
+</h2>
+
 ### Prerequisites
 
 Before starting the installation, ensure you have the following tools installed:
@@ -40,11 +48,18 @@ Now since all this is done, let's start!
 
 Once you have completed the installation and configuration steps, it's time to configure and make the bot look the way you like it to be!
 
-### Configuration File
+<h3>
+     <sub>
+          <img  src="https://www.iconsdb.com/icons/preview/white/settings-4-xxl.png"
+            height="25"
+            width="25">
+     </sub>
+     Configuration File
+</h3>
 
-CarFigures is designed to be highly customizable, allowing you to tailor the bot's behavior and appearance to your liking. By building your own configuration file, you can adjust various settings, commands, and more!\
+CarFigures is designed to be highly customizable, allowing you to tailor the bot's behavior and appearance to your liking. By building your own configuration file, you can adjust various settings, commands, and more!
 
-This is part of CF's philosophy to make customizing your instance as easy as possible. For now, it's not much, but I'm planning for more soon! :3\
+This is part of CF's philosophy to make customizing your instance as easy as possible. For now, it's not much, but I'm planning for more soon! :3
 
 now, time to start making that file,
 So in ur Bot files, create a new file called settings.toml
@@ -182,7 +197,14 @@ port = 15260
 
 ```
 
-### Starting up
+<h3>
+     <sub>
+          <img  src="https://www.iconsdb.com/icons/preview/white/start-xxl.png"
+            height="25"
+            width="25">
+     </sub>
+     Starting UP!
+</h3>
 After configuring and editing the settings.toml file, it's time to start the bot instance and play with it!
 
 Start by getting docker desktop up and running, then open your file explorer and head to the bot files. ![demo3](assets/demos/demo3.png)
