@@ -575,8 +575,8 @@ uvicorn = {version = "*", extras = ["standard"]}
 [package.source]
 type = "git"
 url = "https://github.com/fastapi-admin/fastapi-admin"
-reference = "66b69c29fc5df1dbd4383fda5f305895a3f173f9"
-resolved_reference = "66b69c29fc5df1dbd4383fda5f305895a3f173f9"
+reference = "ebea3bf71689caa583fe55aa25db899cf8eeae31"
+resolved_reference = "ebea3bf71689caa583fe55aa25db899cf8eeae31"
 
 [[package]]
 name = "fastapi-cli"
@@ -1881,13 +1881,13 @@ tortoise-orm = "*"
 
 [[package]]
 name = "tortoise-orm"
-version = "0.21.3"
+version = "0.21.4"
 description = "Easy async ORM for python, built with relations in mind"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "tortoise_orm-0.21.3-py3-none-any.whl", hash = "sha256:9b8f8f8ba23a51f3407bfdc76cf9b2e5bc901ff07c7bec71250a83fa7724dab4"},
-    {file = "tortoise_orm-0.21.3.tar.gz", hash = "sha256:d6e3a627915d4037d312f6ca0cb7d0bf6593630cf1da466df60c7c4c3128398e"},
+    {file = "tortoise_orm-0.21.4-py3-none-any.whl", hash = "sha256:2ade41ae1d9c7279adb9c69199357cb1dce9380c4c880c32713f99c1e057ce5f"},
+    {file = "tortoise_orm-0.21.4.tar.gz", hash = "sha256:1d6a4ed450ac831e5f520c369c6ba8e0ff947c8e34b4edd40ba8a94c4efcd0aa"},
 ]
 
 [package.dependencies]
@@ -2406,4 +2406,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "b7ceebc62cf64f95f5e1bc970b4c836721b690ecc0747682e06abd2862fe36c0"
+content-hash = "4f35957f98751fd52f8d2c82c9477f97eff4f0dc72106b0a520f8acc62935cdb"
