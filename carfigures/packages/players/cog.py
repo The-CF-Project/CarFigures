@@ -174,7 +174,7 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
             f"\u200b **⋄ Privacy Policy:** {privacy}\n"
             f"\u200b **⋄ Donation Policy:** {donation}\n\n"
             f"**∧ Player Info\n**"
-            f"\u200b **⋄ Cars Collected:** {player.cars.filter().count()}\n"
+            f"\u200b **⋄ Cars Collected:** {await player.cars.filter().count()}\n"
             f"\u200b **⋄ Rebirths Done:** {player.rebirths}"
         )
 
