@@ -7,7 +7,14 @@
 [![Top.gg](https://img.shields.io/badge/Top.gg-white?style=for-the-badge&logo=top.gg&logoColor=ff3366)](https://top.gg/bot/1127506544578277446)
 [![Server Invite](https://img.shields.io/badge/Server_Invite-white?style=for-the-badge&logo=discord&logoColor=7289da&)](https://discord.gg/PVFyN34ykA)
 
-## About CarFigures
+<h2>
+     <sub>
+          <img  src="https://www.iconsdb.com/icons/preview/white/warning-4-xxl.png"
+            height="25"
+            width="25">
+     </sub>
+     About CarFigures
+</h2>
 
 **CarFigures (The CF Project)** was born out of frustration with the BallsDex team's decisions. Initially, I had no particular liking for the idea; it was more about a response to dissatisfaction. The BallsDex team wasn't keen on implementing the features many of us wanted. I knew that merely complaining wouldn't lead to any change, as hundreds of others had already done so to no avail.
 
@@ -44,18 +51,14 @@ Now since all this is done, let's start!
 
 > **Note:** The settings.toml isn't updated by default when updating the bot files, you are required to check if any changes happened to the toml file by yourself, I will update the link of download every time a new update for it gets released, it's your responsibility.
  
-## Post-Installation
-
-Once you have completed the installation and configuration steps, it's time to configure and make the bot look the way you like it to be!
-
-<h3>
+<h2>
      <sub>
-          <img  src="https://www.iconsdb.com/icons/preview/white/settings-4-xxl.png"
+          <img  src="https://www.iconsdb.com/icons/preview/white/settings-11-xxl.png"
             height="25"
             width="25">
      </sub>
      Configuration File
-</h3>
+</h2>
 
 CarFigures is designed to be highly customizable, allowing you to tailor the bot's behavior and appearance to your liking. By building your own configuration file, you can adjust various settings, commands, and more!
 
@@ -88,6 +91,7 @@ bot_name = "CarFigures"
 text_prefix = "c."
 max_favorites = 50
 spawnalert = true
+profile_emojis = true
 # Default embed color in the bot (hex without #)
 default_embed_color = "5865F2"
 
@@ -114,7 +118,6 @@ sudo = "sudo"
 info = "info"
 player = "player"
 server = "server"
-superuser = "sudo"
 trade = "trade"
 
 [commands.names]
@@ -197,14 +200,14 @@ port = 15260
 
 ```
 
-<h3>
+<h2>
      <sub>
-          <img  src="https://www.iconsdb.com/icons/preview/white/start-xxl.png"
-            height="25"
-            width="25">
+          <img  src="https://www.iconsdb.com/icons/preview/white/arrow-150-xl.png"
+            height="30"
+            width="30">
      </sub>
-     Starting UP!
-</h3>
+     Booting!
+</h2>
 After configuring and editing the settings.toml file, it's time to start the bot instance and play with it!
 
 Start by getting docker desktop up and running, then open your file explorer and head to the bot files. ![demo3](assets/demos/demo3.png)
@@ -248,7 +251,14 @@ And after doing it, the final results should be like this, with the end line say
 
 That's it! You are all set to rock and roll with CarFigures, If you run into any trouble, don't hesitate to ask for help. We're here to make sure you have a smooth ride.
 
-## Contributing to CarFigures!
+<h2>
+     <sub>
+          <img  src="https://www.iconsdb.com/icons/preview/white/bookmark-2-xxl.png"
+            height="25"
+            width="25">
+     </sub>
+     Contributing
+</h2>
 
 Here's how you can jump in and help make this project even better:
 
@@ -317,7 +327,15 @@ I'm stoked about every contribution from the community. Let's join forces and ma
 
 > **Note:** For access to the dev category in the CarFigures Discord server, inform me that you are making a bot using CF, and I will assign you the forker role.
 
-## Roadmap and Future Plans
+<h2>
+     <sub>
+          <img  src="https://www.iconsdb.com/icons/preview/white/map-3-xl.png"
+            height="25"
+            width="25">
+     </sub>
+     Roadmap
+</h2>
+
 I'm excited about the future of the project and all the bots that use it! Here are some features and improvements I have planned:
 
 ### Upcoming Features
@@ -334,7 +352,14 @@ I'm excited about the future of the project and all the bots that use it! Here a
 - Implement a premium plan inside CF.
 - Combine some existing commands into one (e.g., /user privacy and /user donation policy into /user settings)
 
-## Final Thoughts
+<h2>
+     <sub>
+          <img  src="https://www.iconsdb.com/icons/preview/white/heart-xl.png"
+            height="25"
+            width="25">
+     </sub>
+     Final Thoughts
+</h2>
 
 I am incredibly grateful to everyone who contributes to The CF Project. Whether you provide code, suggest features, report bugs, or offer emotional support, your efforts are deeply appreciated. Knowing I am not alone in this project and having a supportive community means the world to me.
 
