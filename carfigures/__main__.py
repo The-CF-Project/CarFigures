@@ -54,7 +54,9 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
         help="Set the path to settings.toml",
         default=Path("./settings.toml"),
     )
-    parser.add_argument("--disable-rich", action="store_true", help="Disable rich log format")
+    parser.add_argument(
+        "--disable-rich", action="store_true", help="Disable rich log format"
+    )
     parser.add_argument("--debug", action="store_true", help="Enable debug logs")
     parser.add_argument("--dev", action="store_true", help="Enable developer mode")
     args = parser.parse_args(arguments, namespace=CLIFlags())
@@ -71,7 +73,11 @@ def print_welcome():
             "Discord.py version:", discord.__version__
         )
     )
-    print(" [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format("CF Version:", bot_version))
+    print(
+        " [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format(
+            "CF Version:", bot_version
+        )
+    )
     print("")
 
 
@@ -117,7 +123,9 @@ def patch_gateway(proxy_url: str):
     def is_ws_ratelimited(self):
         return False
 
-    async def before_identify_hook(self, shard_id: int | None, *, initial: bool = False):
+    async def before_identify_hook(
+        self, shard_id: int | None, *, initial: bool = False
+    ):
         pass
 
     discord.http.HTTPClient.get_gateway = ProductionHTTPClient.get_gateway  # type: ignore
@@ -149,7 +157,9 @@ async def shutdown_handler(bot: CarFiguresBot, signal_type: str | None = None):
         pending = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
         [task.cancel() for task in pending]
         try:
-            await asyncio.wait_for(asyncio.gather(*pending, return_exceptions=True), timeout=5)
+            await asyncio.wait_for(
+                asyncio.gather(*pending, return_exceptions=True), timeout=5
+            )
         except asyncio.TimeoutError:
             log.error(
                 f"Timed out cancelling tasks. {len([t for t in pending if not t.cancelled])}/"
@@ -158,7 +168,9 @@ async def shutdown_handler(bot: CarFiguresBot, signal_type: str | None = None):
         sys.exit(0 if signal_type else 1)
 
 
-def global_exception_handler(bot: CarFiguresBot, loop: asyncio.AbstractEventLoop, context: dict):
+def global_exception_handler(
+    bot: CarFiguresBot, loop: asyncio.AbstractEventLoop, context: dict
+):
     """
     Logs unhandled exceptions in other tasks
     """
@@ -188,7 +200,9 @@ def bot_exception_handler(bot: CarFiguresBot, bot_task: asyncio.Future):
     except (SystemExit, KeyboardInterrupt, asyncio.CancelledError):
         pass  # Handled by the global_exception_handler, or cancellation
     except Exception as exc:
-        log.critical("The main bot task didn't handle an exception and has crashed", exc_info=exc)
+        log.critical(
+            "The main bot task didn't handle an exception and has crashed", exc_info=exc
+        )
         log.warning("Attempting to die as gracefully as possible...")
         asyncio.create_task(shutdown_handler(bot))
 
@@ -229,7 +243,9 @@ def main():
         print(
             "[red]The config file [blue]{cli_flags.config_file}[/blue] could not be found.[/red]"
         )
-        print("[yellow]Make sure to follow the configuration guide in the wiki.[/yellow]")
+        print(
+            "[yellow]Make sure to follow the configuration guide in the wiki.[/yellow]"
+        )
         sys.exit(1)
 
     print_welcome()
@@ -251,7 +267,9 @@ def main():
         db_url = os.environ.get("CARFIGURESBOT_DB_URL", None)
         if not db_url:
             log.error("Database URL not found!")
-            print("[red]You must provide a DB URL with the CARFIGURESBOT_DB_URL env var.[/red]")
+            print(
+                "[red]You must provide a DB URL with the CARFIGURESBOT_DB_URL env var.[/red]"
+            )
             time.sleep(1)
             sys.exit(0)
 

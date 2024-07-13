@@ -45,22 +45,26 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
         user = cast(discord.Member, interaction.user)
         if not user.guild_permissions.manage_guild:
             await interaction.response.send_message(
-                "You need the permission to manage the server to use this.", ephemeral=True
+                "You need the permission to manage the server to use this.",
+                ephemeral=True,
             )
             return
         if not channel.permissions_for(guild.me).read_messages:
             await interaction.response.send_message(
-                f"I need the permission to read messages in {channel.mention}.", ephemeral=True
+                f"I need the permission to read messages in {channel.mention}.",
+                ephemeral=True,
             )
             return
         if not channel.permissions_for(guild.me).send_messages:
             await interaction.response.send_message(
-                f"I need the permission to send messages in {channel.mention}.", ephemeral=True
+                f"I need the permission to send messages in {channel.mention}.",
+                ephemeral=True,
             )
             return
         if not channel.permissions_for(guild.me).embed_links:
             await interaction.response.send_message(
-                f"I need the permission to send embed links in {channel.mention}.", ephemeral=True
+                f"I need the permission to send embed links in {channel.mention}.",
+                ephemeral=True,
             )
             return
         await interaction.response.send_message(
@@ -76,7 +80,8 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
         user = cast(discord.Member, interaction.user)
         if not user.guild_permissions.manage_guild:
             await interaction.response.send_message(
-                "You need the permission to manage the server to use this.", ephemeral=True
+                "You need the permission to manage the server to use this.",
+                ephemeral=True,
             )
             return
         config, created = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
@@ -93,7 +98,9 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
             config.enabled = True  # type: ignore
             await config.save()
             self.bot.dispatch("carfigures_settings_change", guild, enabled=True)
-            if config.spawn_channel and (channel := guild.get_channel(config.spawn_channel)):
+            if config.spawn_channel and (
+                channel := guild.get_channel(config.spawn_channel)
+            ):
                 await interaction.response.send_message(
                     f"{settings.bot_name} is now enabled in this server, "
                     f"{settings.collectible_name}s will start spawning soon in {channel.mention}."
@@ -114,12 +121,13 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
         user = cast(discord.Member, interaction.user)
         if not user.guild_permissions.manage_guild:
             await interaction.response.send_message(
-                "You need the permission to manage the server to use this.", ephemeral=True
+                "You need the permission to manage the server to use this.",
+                ephemeral=True,
             )
             return
         if not settings.spawnalert:
             await interaction.response.send_message(
-                "The bot owner has disabled this feature from the bot"
+                "The bot owner has disabled this feature from the bot.", ephemeral=True
             )
             return
         config, created = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
@@ -140,7 +148,9 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
                 )
                 return
         else:
-            await interaction.response.send_message("Please select a proper role.")
+            await interaction.response.send_message(
+                "Please select a proper role.", ephemeral=True
+            )
 
     @app_commands.command()
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
@@ -178,4 +188,4 @@ class Server(commands.GroupCog, group_name=settings.server_group_name):
             icon_url=interaction.user.display_avatar.url,
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.send_message(embed=embed, ephemeral=True)

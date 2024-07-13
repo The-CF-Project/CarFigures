@@ -12,7 +12,11 @@ from carfigures.core.models import cars as carfigures
 from carfigures.core.utils.transformers import EventTransform
 from carfigures.core.utils.paginator import FieldPageSource, Pages
 from carfigures.core.utils.tortoise import row_count_estimate
-from carfigures.packages.info.components import machine_info, mention_app_command
+from carfigures.packages.info.components import (
+    machine_info,
+    mention_app_command,
+    _get_10_cars_emojis,
+)
 
 from carfigures.settings import settings
 
@@ -38,6 +42,7 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         await interaction.response.send_message(
             f"Pong! {round(self.bot.latency * 1000)}ms", ephemeral=True
         )
+
     @app_commands.command()
     async def status(self, interaction: discord.Interaction):
         """
@@ -51,8 +56,13 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         cars_count = len([x for x in carfigures.values() if x.enabled])
         players_count = await row_count_estimate("player")
         cars_instances_count = await row_count_estimate("carinstance")
-        contributors = "\n".join(
-            [f"\u200b **⋄** {contrib}" for contrib in settings.bot_contributors]
+        developers = "\n".join([f"\u200b **⋄** {dev}" for dev in settings.developers])
+        first_contributors = "\n".join(
+            [f"\u200b **⋄** {contrib}" for contrib in settings.contributors[:4]]
+        )
+
+        remaining_contributors = "\n".join(
+            [f"\u200b **⋄** {contrib}" for contrib in settings.contributors[4:]]
         )
         (
             cpu_usage,
@@ -102,18 +112,12 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
             f"\u200b **⋄ Disk:** {disk_usage}/{disk_total}GB • {disk_percentage}%\n\n",
             inline=False,
         )
+        # ⋋
+        embed.add_field(name="⋈ Developers", value=developers, inline=True)
+        embed.add_field(name="⋊ Contributors", value=first_contributors, inline=True)
+        if remaining_contributors:
+            embed.add_field(name="\u200b", value=remaining_contributors, inline=True)
 
-        #    embed.add_field(
-        #         name="⋈ Developers",
-        #         value=developers,
-        #         inline=True
-        #    )
-        embed.add_field(name="⋊ Contributors", value=contributors, inline=False)
-        #    embed.add_field(
-        #        name="⋋ Testers\n",
-        #        value=testers,
-        #        inline=True
-        #    )
         embed.add_field(
             name="⋇ Links",
             value=f"[Discord server]({settings.discord_invite}) • [Invite me]({invite_link}) • "
@@ -151,9 +155,9 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
 
         # Create the paginated source directly using categories dictionary
         entries = []
-        for category_name, app_commands in category_to_commands.items():
+        for category_name, cog_commands in category_to_commands.items():
             sorted_commands = sorted(
-                app_commands, key=lambda c: c.name
+                cog_commands, key=lambda c: c.name
             )  # Sort commands alphabetically
             command_descriptions = {
                 c.name: c.description for c in sorted_commands
@@ -207,16 +211,26 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         This command is a good starting point for new users who
         are not sure how to use the bot.
         """
+
+        if settings.profiles_emojis:
+            cars = await _get_10_cars_emojis(self)
+        else:
+            cars = []
+
         embed = discord.Embed(
             title="Tutorial",
-            description="Tutorial on how to use the bot.",
+            description=(
+                f"{' '.join(str(x) for x in cars)}\n Tutorial on how to use the bot."
+            ),
             color=settings.default_embed_color,
         )
 
-        embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+        if self.bot.user:
+            embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+
         embed.add_field(
             name=f"What is {settings.bot_name}?",
-            value= (
+            value=(
                 f"{settings.bot_name} is a bot that allows you to collect {settings.collectible_name}s "
                 "by catching them, trading for them, and having fun with all of our commands!"
             ),
@@ -233,7 +247,7 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         )
         embed.add_field(
             name="How can I show my showroom?",
-            value= (
+            value=(
                 "To see the cars you have caught, you can\n"
                 f"use the `/{settings.cars_group_name}` command!"
             ),
@@ -264,12 +278,12 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         assert self.bot.user
         assert self.bot.application
 
-        description = ("Brief Description", settings.bot_description)
+        description = ("Brief Description", settings.info_description)
         entries.append(description)
         descriptionblack = ("", "")
         entries.append(descriptionblack)
 
-        history = ("History", settings.bot_history)
+        history = ("History", settings.info_history)
         entries.append(history)
         historyblack = ("", "")
         entries.append(historyblack)
@@ -284,3 +298,4 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         )
         pages = Pages(source=source, interaction=interaction, compact=True)
         await pages.start(ephemeral=True)
+
