@@ -298,3 +298,4 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         )
         pages = Pages(source=source, interaction=interaction, compact=True)
         await pages.start(ephemeral=True)
+

@@ -36,7 +36,9 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
         self.car = car
         self.button = button
 
-    async def on_error(self, interaction: discord.Interaction, error: Exception, /) -> None:
+    async def on_error(
+        self, interaction: discord.Interaction, error: Exception, /
+    ) -> None:
         log.exception("An error occurred in carfigure catching prompt", exc_info=error)
         if interaction.response.is_done():
             await interaction.followup.send(
@@ -85,9 +87,13 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
                 f"{event}"
             )
             self.button.disabled = True
-            await interaction.followup.edit_message(self.car.message.id, view=self.button.view)
+            await interaction.followup.edit_message(
+                self.car.message.id, view=self.button.view
+            )
         else:
-            await interaction.response.send_message(f"{interaction.user.mention} Wrong name!")
+            await interaction.response.send_message(
+                f"{interaction.user.mention} Wrong name!"
+            )
 
     async def catch_car(
         self, bot: "CarFiguresBot", user: discord.Member
@@ -101,7 +107,9 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
 
         # check if we can spawn cards with the event card
         event: "Event | None" = None
-        population = [x for x in events.values() if x.start_date <= datetime_now() <= x.end_date]
+        population = [
+            x for x in events.values() if x.start_date <= datetime_now() <= x.end_date
+        ]
         if not limited and population:
             # Here we try to determine what should be the chance of having a common card
             # since the rarity field is a value between 0 and 1, 1 being no common
@@ -112,9 +120,13 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
 
             weights = [x.rarity for x in population] + [common_weight]
             # None is added representing the common carfigure
-            event = random.choices(population=population + [None], weights=weights, k=1)[0]
+            event = random.choices(
+                population=population + [None], weights=weights, k=1
+            )[0]
 
-        is_new = not await CarInstance.filter(player=player, car=self.car.model).exists()
+        is_new = not await CarInstance.filter(
+            player=player, car=self.car.model
+        ).exists()
         car = await CarInstance.create(
             car=self.car.model,
             player=player,
@@ -141,7 +153,8 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
                 limited=limited,
                 event=event,
                 # observe the size of the server, rounded to the nearest power of 10
-                guild_size=10 ** math.ceil(math.log(max(user.guild.member_count - 1, 1), 10)),
+                guild_size=10
+                ** math.ceil(math.log(max(user.guild.member_count - 1, 1), 10)),
             ).inc()
         return car, is_new
 
@@ -153,7 +166,9 @@ class CatchButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         if self.car.caught:
-            await interaction.response.send_message("I was caught already!", ephemeral=True)
+            await interaction.response.send_message(
+                "I was caught already!", ephemeral=True
+            )
         else:
             await interaction.response.send_modal(CarFigureNamePrompt(self.car, self))
 

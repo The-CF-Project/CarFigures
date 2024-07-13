@@ -149,7 +149,7 @@ class SpawnManager:
                 f"Lost permissions to send messages in {channel.name} for guild {guild.name}."
             )
             return
-        if guild.members.count() < 20:
+        if guild.member_count < 20:
             log.warning("Not enough members to spawn car.")
             return
 

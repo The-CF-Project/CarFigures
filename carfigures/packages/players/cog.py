@@ -10,7 +10,13 @@ from tortoise.exceptions import DoesNotExist
 from discord import app_commands
 from discord.ext import commands
 
-from carfigures.core.models import DonationPolicy, PrivacyPolicy, Player as PlayerModel
+from carfigures.core.models import (
+    DonationPolicy,
+    PrivacyPolicy,
+    Player as PlayerModel,
+    CarInstance,
+    cars,
+)
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.packages.players.components import (
     _get_10_cars_emojis,
@@ -138,6 +144,17 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
             title=f" ❖ {player_obj.display_name}'s Profile",
             color=settings.default_embed_color,
         )
+        if player.privacy_policy == PrivacyPolicy.ALLOW:
+            privacy = "Open Inventory"
+        else:
+            privacy = "Private Inventory"
+
+        if player.donation_policy == DonationPolicy.ALWAYS_ACCEPT:
+            donation = "All Accepted"
+        elif player.donation_policy == DonationPolicy.REQUEST_APPROVAL:
+            donation = "Approval Required"
+        else:
+            donation = "All Denied"
 
         if player.privacy_policy == PrivacyPolicy.ALLOW:
             privacy = "Open Inventory"
@@ -158,6 +175,7 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
             f"\u200b **⋄ Donation Policy:** {donation}\n\n"
             f"**∧ Player Info\n**"
             f"\u200b **⋄ Cars Collected:** {player.cars.filter().count()}\n"
+            f"\u200b **⋄ Rebirths Done:** {player.rebirths}"
         )
 
         embed.set_thumbnail(url=player_obj.display_avatar.url)
@@ -166,6 +184,67 @@ class Player(commands.GroupCog, group_name=settings.player_group_name):
             icon_url=interaction.user.display_avatar.url,
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    @app_commands.command()
+    async def rebirth(self, interaction: discord.Interaction):
+        """
+        Delete all your cars if you have full completion, to get advantages back
+        """
+
+        bot_carfigures = {x: y.pk for x, y in cars.items() if y.enabled}
+        filters = {"player__discord_id": interaction.user.id, "car__enabled": True}
+
+        if not bot_carfigures:
+            await interaction.response.send_message(
+                f"There are no {settings.collectible_name}s registered on this bot yet.",
+                ephemeral=True,
+            )
+            return
+
+        owned_carfigures = set(
+            x[0]
+            for x in await CarInstance.filter(**filters)
+            .distinct()  # Do not query everything
+            .values_list("car_id")
+        )
+
+        if missing := set(
+            y for x, y in bot_carfigures.items() if x not in owned_carfigures
+        ):
+            await interaction.response.send_message(
+                "You haven't reached 100% of the bot collection yet."
+                f"there is still {missing}",
+                ephemeral=True,
+            )
+            return
+
+        view = ConfirmChoiceView(interaction)
+        await interaction.response.send_message(
+            f"Are you sure you want to delete all your {settings.collectible_name}s for advantages?",
+            view=view,
+        )
+
+        await view.wait()
+        if view.value is None or not view.value:
+            return
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+        player.rebirths += 1
+        await player.save()
+        await CarInstance.filter(player=player).delete()
+
+        ordinal_rebirth = (
+            "1st"
+            if player.rebirths == 1
+            else "2nd"
+            if player.rebirths == 2
+            else "3rd"
+            if player.rebirths == 3
+            else f"{player.rebirths}th"
+        )
+
+        await interaction.followup.send(
+            f"Congratulations! this is your {ordinal_rebirth} Rebirth, hopefully u get even more!"
+        )
 
     @app_commands.command()
     async def delete(self, interaction: discord.Interaction):

@@ -80,7 +80,10 @@ class EventResource(Model):
     page_title = "Events"
     filters = [
         filters.Search(
-            name="name", label="Name", search_mode="icontains", placeholder="Search for events"
+            name="name",
+            label="Name",
+            search_mode="icontains",
+            placeholder="Search for events",
         )
     ]
     fields = [
@@ -112,13 +115,17 @@ class EventResource(Model):
             name="start_date",
             label="Start date of the event",
             display=displays.DateDisplay(),
-            input_=inputs.Date(help_text="Date when special entities will start spawning"),
+            input_=inputs.Date(
+                help_text="Date when special entities will start spawning"
+            ),
         ),
         Field(
             name="end_date",
             label="End date of the event",
             display=displays.DateDisplay(),
-            input_=inputs.Date(help_text="Date when special entities will stop spawning"),
+            input_=inputs.Date(
+                help_text="Date when special entities will stop spawning"
+            ),
         ),
         "rarity",
         Field(
@@ -349,6 +356,7 @@ class PlayerResource(Model):
     fields = [
         "discord_id",
         "cars",
+        "rebirths",
         "donation_policy",
         "privacy_policy",
     ]
