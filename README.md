@@ -9,11 +9,11 @@
 
 <h2>
      <sub>
-          <img  src="https://www.iconsdb.com/icons/preview/white/warning-4-xxl.png"
+          <img  src="https://www.iconsdb.com/icons/preview/white/bookmark-2-xxl.png"
             height="25"
             width="25">
      </sub>
-     About CarFigures
+     History
 </h2>
 
 **CarFigures (The CF Project)** was born out of frustration with the BallsDex team's decisions. Initially, I had no particular liking for the idea; it was more about a response to dissatisfaction. The BallsDex team wasn't keen on implementing the features many of us wanted. I knew that merely complaining wouldn't lead to any change, as hundreds of others had already done so to no avail.
@@ -152,9 +152,6 @@ privacy_policy = "https://codeberg.org/array_ye/CarFigures/src/branch/stable/ass
 top_gg = "https://top.gg/bot/1127506544578277446"
 
 [info.about]
-# While this is made to make it easier to include yourself and your team/contributors
-# you are NOT allowed to remove El Laggron or Array_YE.
-# Separate names with commas (,)
 description = """
 CarFigures (CF) was born out of frustration with the BallsDex team's decisions. Initially, I had no particular liking for the idea; it was more about a response to dissatisfaction. The BallsDex team wasn't keen on implementing features that many of us wanted. I knew that merely complaining wouldn't lead to any change, as hundreds of others had already done so to no avail.
 
@@ -163,13 +160,17 @@ Determined to make a difference, I decided to take matters into my own hands. By
 CarFigures aims to address the community's frustrations and provide an alternative base to use and build their bots on. It's a project driven by a desire for improvement and a commitment to providing a better user experience.
 """
 history = ""
-contributors = [
+
+# While this is made to make it easier to include yourself and your team/contributors
+# you are NOT allowed to remove El Laggron or Array_YE.
+# Separate names with commas (,)
+developers = [
     "El Laggron",
     "Array_YE",
+]
+contributors = [
     "Queen_the_darkner",
     "HiboMan",
-    "Kotobc",
-    "Pole_n",
     "KingOfTheHill4965",
     "DistinguishedAxolotl"
 ]
@@ -206,7 +207,7 @@ port = 15260
             height="30"
             width="30">
      </sub>
-     Booting!
+     Booting
 </h2>
 After configuring and editing the settings.toml file, it's time to start the bot instance and play with it!
 
@@ -253,7 +254,7 @@ That's it! You are all set to rock and roll with CarFigures, If you run into any
 
 <h2>
      <sub>
-          <img  src="https://www.iconsdb.com/icons/preview/white/bookmark-2-xxl.png"
+          <img  src="https://www.iconsdb.com/icons/preview/white/plus-5-xxl.png"
             height="25"
             width="25">
      </sub>
