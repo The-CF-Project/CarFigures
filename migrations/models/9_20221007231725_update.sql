@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS "event" (
     "catch_phrase" VARCHAR(128),
     "start_date" TIMESTAMPTZ NOT NULL,
     "end_date" TIMESTAMPTZ NOT NULL,
-    "rarity" DOUBLE PRECISION NOT NULL,
-    "union_card" VARCHAR(200) NOT NULL
+    "card" VARCHAR(200) NOT NULL,
+    "rarity" DOUBLE PRECISION NOT NULL
 );
 COMMENT ON COLUMN "event"."catch_phrase" IS 'Sentence sent in bonus when someone catches a event card';
 COMMENT ON COLUMN "event"."rarity" IS 'Value between 0 and 1, chances of using this event background.';
