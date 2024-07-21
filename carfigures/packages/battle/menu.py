@@ -273,17 +273,17 @@ class BattleMenu:
         If the battle is concluded, return True, otherwise if an error occurs, return False
         """
         for carfigure in self.battler1.proposal:
-            cweight1 = carfigure.health
-            weight1 = health1 + chealth1
-            chorsepower1 = carfigure.attack
-            horsepower1 = attack1 + cattack1
+            cweight1 = carfigure.weight
+            weight1 = weight1 + cweight1
+            chorsepower1 = carfigure.horsepower
+            horsepower1 = horsepower1 + chorsepower1
 
         for carfigure in self.battler2.proposal:
-            cweight2 = carfigure.health
-            weight2 = health1 + chealth2
-            chorsepower2 = carfigure.attack
-            horsepower2 = attack1 + cattack2
-        
+            cweight2 = carfigure.weight
+            weight2 = weight2 + cweight2
+            chorsepower2 = carfigure.horsepower
+            horsepower2 = horsepower2 + chorsepower2
+
         worl1 = weight1/horsepower2
         worl2 = weight2/horsepower1
 
