@@ -292,10 +292,10 @@ class BattleMenu:
         elif worl2 > worl1:
             winner = self.battler2
         elif worl1==worl2:
-            winner = None
+            winner = False
         else:
             error = True
-            winner = True
+            winner = False
 
         result = True
         battler.accepted = True
