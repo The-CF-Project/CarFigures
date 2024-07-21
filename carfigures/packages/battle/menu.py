@@ -8,12 +8,12 @@ from typing import TYPE_CHECKING, cast
 import discord
 from discord.ui import Button, View, button
 
-from ballsdex.core.models import BallInstance
-from ballsdex.core.models import Trade as Battle
-from ballsdex.core.models import TradeObject as BattleObject
-from ballsdex.packages.battle.display import fill_battle_embed_fields
-from ballsdex.packages.battle.battle_user import BattlingUser
-from ballsdex.settings import settings
+from carfigures.core.models import CarInstance
+from carfigures.core.models import Trade as Battle
+from carfigures.core.models import TradeObject as BattleObject
+from carfigures.packages.battle.display import fill_battle_embed_fields
+from carfigures.packages.battle.battle_user import BattlingUser
+from carfigures.settings import settings
 
 if TYPE_CHECKING:
     from ballsdex.core.bot import BallsDexBot
@@ -73,8 +73,8 @@ class BattleView(View):
                 ephemeral=True,
             )
         else:
-            for countryball in battler.proposal:
-                await countryball.unlock()
+            for carfigure in battler.proposal:
+                await carfigure.unlock()
             battler.proposal.clear()
             await interaction.response.send_message("Proposal cleared.", ephemeral=True)
 
@@ -141,7 +141,7 @@ class BattleMenu:
     def __init__(
         self,
         cog: BattleCog,
-        interaction: discord.Interaction["BallsDexBot"],
+        interaction: discord.Interaction["CarFiguresBot"],
         battler1: BattlingUser,
         battler2: BattlingUser,
     ):
@@ -272,20 +272,20 @@ class BattleMenu:
 
         If the battle is concluded, return True, otherwise if an error occurs, return False
         """
-        for countryball in self.battler1.proposal:
-            chealth1 = countryball.health
-            health1 = health1 + chealth1
-            cattack1 = countryball.attack
-            attack1 = attack1 + cattack1
+        for carfigure in self.battler1.proposal:
+            cweight1 = carfigure.health
+            weight1 = health1 + chealth1
+            chorsepower1 = carfigure.attack
+            horsepower1 = attack1 + cattack1
 
-        for countryball in self.battler2.proposal:
-            chealth2 = countryball.health
-            health2 = health2 + chealth2
-            cattack2 = countryball.attack
-            attack2 = attack2 + cattack2
+        for carfigure in self.battler2.proposal:
+            cweight2 = carfigure.health
+            weight2 = health1 + chealth2
+            chorsepower2 = carfigure.attack
+            horsepower2 = attack1 + cattack2
         
-        worl1 = health1/attack2
-        worl2 = health2/attack1
+        worl1 = weight1/horsepower2
+        worl2 = weight2/horsepower1
 
         if worl1 > worl2:
             winner = self.battler1
