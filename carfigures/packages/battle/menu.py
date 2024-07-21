@@ -303,7 +303,9 @@ class BattleMenu:
             if self.task and not self.task.cancelled():
                 # shouldn't happen but just in case
                 self.task.cancel()
-
+            if not winner:
+                self.embed.description = f"Battle concluded! Result: Draw"
+                return
             self.embed.description = f"Battle concluded! Winner : {winner}"
             self.embed.colour = discord.Colour.green()
             self.current_view.stop()
