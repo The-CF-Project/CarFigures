@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
 
-from ballsdex.packages.battle.cog import Battle
+from carfigures.packages.battle.cog import Battle
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from carfigures.core.bot import CarFiguresBot
 
 
-async def setup(bot: "BallsDexBot"):
+async def setup(bot: "CarFiguresBot"):
     await bot.add_cog(Battle(bot))
