@@ -292,10 +292,10 @@ class BattleMenu:
         elif worl2 > worl1:
             winner = self.battler2
         elif worl1==worl2:
-            winner = False
+            winner = "Draw"
         else:
-            error = True
-            winner = False
+            winner = "Error"
+            await interaction.followup.send_message("An error occured")
 
         result = True
         battler.accepted = True
@@ -304,12 +304,10 @@ class BattleMenu:
             if self.task and not self.task.cancelled():
                 # shouldn't happen but just in case
                 self.task.cancel()
-            if error:
-                await interaction.followup.send_message("An error occured")
-                return
-            if not winner:
-                self.embed.description = f"Battle concluded! Result: Draw"
-                return
+            if winner == "Draw":
+                self.embed.description = f"Battle concluded! Result : Draw"
+            elif:
+                self.embed.description = f"Battle concluded! Result : Error"
             self.embed.description = f"Battle concluded! Winner : {winner}"
             self.embed.colour = discord.Colour.green()
             self.current_view.stop()
