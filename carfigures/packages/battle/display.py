@@ -2,13 +2,13 @@ from typing import TYPE_CHECKING, Iterable
 
 import discord
 
-from ballsdex.core.models import Trade as BattleModel
-from ballsdex.core.utils import menus
-from ballsdex.core.utils.paginator import Pages
-from ballsdex.packages.battle.battle_user import BattlingUser
+from carfigures.core.models import Trade as BattleModel
+from carfigures.core.utils import menus
+from carfigures.core.utils.paginator import Pages
+from carfigures.packages.battle.battle_user import BattlingUser
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from carfigures.core.bot import CarFiguresBot
 
 def _get_prefix_emote(battler: BattlingUser) -> str:
     if battler.cancelled:
@@ -22,14 +22,14 @@ def _get_prefix_emote(battler: BattlingUser) -> str:
 
 
 def _build_list_of_strings(
-    battler: BattlingUser, bot: "BallsDexBot", short: bool = False
+    battler: BattlingUser, bot: "CarFiguresBot", short: bool = False
 ) -> list[str]:
     # this builds a list of strings always lower than 1024 characters
     # while not cutting in the middle of a line
     proposal: list[str] = [""]
     i = 0
 
-    for countryball in battler.proposal:
+    for carfigure in battler.proposal:
         cb_text = countryball.description(short=short, include_emoji=True, bot=bot, is_trade=True)
         if battler.locked:
             text = f"- *{cb_text}*\n"
@@ -52,7 +52,7 @@ def _build_list_of_strings(
 
 def fill_battle_embed_fields(
     embed: discord.Embed,
-    bot: "BallsDexBot",
+    bot: "CarFiguresBot",
     battler1: BattlingUser,
     battler2: BattlingUser,
     compact: bool = False,
@@ -66,14 +66,14 @@ def fill_battle_embed_fields(
     ----------
     embed: discord.Embed
         The embed being updated. Its fields are cleared.
-    bot: BallsDexBot
+    bot: CarFiguresBot
         The bot object, used for getting emojis.
     battler1: BattlingUser
         The player that initiated the battle, displayed on the left side.
     battler2: BattlingUser
         The player that was invited to battle, displayed on the right side.
     compact: bool
-        If `True`, display countryballs in a compact way. This should not be used directly.
+        If `True`, display carfigures in a compact way. This should not be used directly.
     """
     embed.clear_fields()
 
