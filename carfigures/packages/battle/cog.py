@@ -8,29 +8,29 @@ from discord.ext import commands
 from discord.utils import MISSING
 from tortoise.expressions import Q
 
-from ballsdex.core.models import Player
-from ballsdex.core.models import Trade as BattleModel
-from ballsdex.core.utils.buttons import ConfirmChoiceView
-from ballsdex.core.utils.paginator import Pages
-from ballsdex.core.utils.transformers import (
-    BallInstanceTransform,
-    SpecialEnabledTransform,
+from carfigures.core.models import Player
+from carfigures.core.models import Trade as BattleModel
+from carfigures.core.utils.buttons import ConfirmChoiceView
+from carfigures.core.utils.paginator import Pages
+from carfigures.core.utils.transformers import (
+    CarInstanceTransform,
+    EventEnabledTransform,
 )
-from ballsdex.core.utils.transformers import TradeCommandType as BattleCommandType
-from ballsdex.packages.battle.menu import BattleMenu
-from ballsdex.packages.battle.battle_user import BattlingUser
-from ballsdex.settings import settings
+from carfigures.core.utils.transformers import TradeCommandType as BattleCommandType
+from carfigures.packages.battle.menu import BattleMenu
+from carfigures.packages.battle.battle_user import BattlingUser
+from carfigures.settings import settings
 
 if TYPE_CHECKING:
-    from ballsdex.core.bot import BallsDexBot
+    from carfigures.core.bot import CarFiguresBot
 
 
 class Battle(commands.GroupCog):
     """
-    Battle countryballs with other players.
+    Battle carfigures with other players.
     """
 
-    def __init__(self, bot: "BallsDexBot"):
+    def __init__(self, bot: "CarFiguresBot"):
         self.bot = bot
         self.battles: dict[int, dict[int, list[BattleMenu]]] = defaultdict(lambda: defaultdict(list))
 
@@ -94,7 +94,7 @@ class Battle(commands.GroupCog):
         return (battle, battler)
 
     @app_commands.command()
-    async def begin(self, interaction: discord.Interaction["BallsDexBot"], user: discord.User):
+    async def begin(self, interaction: discord.Interaction["CarFiguresBot"], user: discord.User):
         """
         Begin a battle with the chosen user.
 
@@ -144,27 +144,27 @@ class Battle(commands.GroupCog):
     async def add(
         self,
         interaction: discord.Interaction,
-        countryball: BallInstanceTransform,
-        special: SpecialEnabledTransform | None = None,
-        shiny: bool | None = None,
+        carfigure: CarInstanceTransform,
+        event: EventEnabledTransform | None = None,
+        limited: bool | None = None,
     ):
         """
-        Add a countryball to the ongoing battle.
+        Add a carfigure to the ongoing battle.
 
         Parameters
         ----------
-        countryball: BallInstance
-            The countryball you want to add to your proposal
-        special: Special
+        carfigure: CarInstance
+            The carfigure you want to add to your proposal
+        event: Event
             Filter the results of autocompletion to a special event. Ignored afterwards.
-        shiny: bool
+        limited: bool
             Filter the results of autocompletion to shinies. Ignored afterwards.
         """
-        if not countryball:
+        if not carfigure:
             return
-        if not countryball.is_tradeable:
+        if not carfigure.is_tradeable:
             await interaction.response.send_message(
-                "You cannot battle this countryball.", ephemeral=True
+                "You cannot battle this carfigure.", ephemeral=True
             )
             return
         await interaction.response.defer(ephemeral=True, thinking=True)
@@ -180,13 +180,13 @@ class Battle(commands.GroupCog):
                 ephemeral=True,
             )
             return
-        if countryball in battler.proposal:
+        if carfigure in battler.proposal:
             await interaction.followup.send(
                 f"You already have this {settings.collectible_name} in your proposal.",
                 ephemeral=True,
             )
             return
-        if await countryball.is_locked():
+        if await carfigure.is_locked():
             await interaction.followup.send(
                 f"This {settings.collectible_name} is currently in an active battle, trade or donation, "
                 "please try again later.",
@@ -194,23 +194,23 @@ class Battle(commands.GroupCog):
             )
             return
 
-        await countryball.lock_for_trade()
-        battler.proposal.append(countryball)
+        await carfigure.lock_for_trade()
+        battler.proposal.append(carfigure)
         await interaction.followup.send(
-            f"{countryball.countryball.country} added.", ephemeral=True
+            f"{carfigure.carfigure.full_name} added.", ephemeral=True
         )
 
     @app_commands.command(extras={"trade": BattleCommandType.REMOVE})
-    async def remove(self, interaction: discord.Interaction, countryball: BallInstanceTransform):
+    async def remove(self, interaction: discord.Interaction, carfigure: CarInstanceTransform):
         """
-        Remove a countryball from what you proposed in the ongoing battle.
+        Remove a carfigure from what you proposed in the ongoing battle.
 
         Parameters
         ----------
-        countryball: BallInstance
-            The countryball you want to remove from your proposal
+        carfigure: CarInstance
+            The carfigure you want to remove from your proposal
         """
-        if not countryball:
+        if not carfigure:
             return
 
         battle, battler = self.get_battle(interaction)
@@ -226,13 +226,13 @@ class Battle(commands.GroupCog):
                 ephemeral=True,
             )
             return
-        if countryball not in battler.proposal:
+        if carfigure not in battler.proposal:
             await interaction.response.send_message(
                 f"That {settings.collectible_name} is not in your proposal.", ephemeral=True
             )
             return
         battler.proposal.remove(countryball)
         await interaction.response.send_message(
-            f"{countryball.countryball.country} removed.", ephemeral=True
+            f"{carfigure.carfigure.full_name} removed.", ephemeral=True
         )
-        await countryball.unlock()
+        await carfigure.unlock()
