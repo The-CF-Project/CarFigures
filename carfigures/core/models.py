@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 cars: dict[int, Car] = {}
 cartypes: dict[int, CarType] = {}
 countries: dict[int, Country] = {}
+exclusives: dict[int, Exclusive] = {}
 events: dict[int, Event] = {}
 
 
@@ -299,6 +300,11 @@ class CarInstance(models.Model):
         return self.carfigure.weight + bonus
 
     @property
+    def exclusive_card(self) -> str | None:
+        if self.exclusivecard:
+            return self.exclusivecard.card or self.carfigure.collection_picture
+
+    @property
     def event_card(self) -> str | None:
         if self.eventcard:
             return self.eventcard.card or self.carfigure.collection_picture
@@ -306,6 +312,10 @@ class CarInstance(models.Model):
     @property
     def carfigure(self) -> Car:
         return cars.get(self.car_id, self.car)
+    
+    @property
+    def exclusivecard(self) -> Exclusive | None:
+        return exclusives.get(self.exclusive_id, self.exclusive)
 
     @property
     def eventcard(self) -> Event | None:
@@ -323,7 +333,7 @@ class CarInstance(models.Model):
         if self.favorite:
             emotes += "❤️"
         if self.limited:
-            emotes += "💠"
+            emotes += self.exclusive_emoji(bot)
         if emotes:
             emotes += " "
         if self.eventcard:
@@ -334,6 +344,24 @@ class CarInstance(models.Model):
             else f"<Car {self.car_id}>"
         )
         return f"{emotes}#{self.pk:0X} {full_name}"
+
+    def exclusive_emoji(
+        self, bot: discord.Client | None, use_custom_emoji: bool = True
+    ) -> str:
+        if self.exclusivecard:
+            if not use_custom_emoji:
+                return "⚡ "
+            exclusive_emoji = ""
+            try:
+                emoji_id = int(self.exclusivecard.emoji)
+                exclusive_emoji = bot.get_emoji(emoji_id) if bot else "⚡ "
+            except ValueError:
+                exclusive_emoji = self.exclusivecard.emoji
+            except TypeError:
+                return ""
+            if exclusive_emoji:
+                return f"{exclusive_emoji} "
+        return ""
 
     def event_emoji(
         self, bot: discord.Client | None, use_custom_emoji: bool = True
