@@ -35,7 +35,7 @@ CarFigures aims to address the community's frustrations and provide an alternati
 
 Before starting the installation, ensure you have the following softwares installed:
 
-- Git: Used for cloning the project and updating your bot to the latest versions. Download Git [here](https://git-scm.com/downloads)
+- Git: Used for cloning the project and updating your bot to the latest versions. Download Git [here.](https://git-scm.com/downloads)
 - Docker Desktop: Provides an easy way to run your bot in isolated containers. Download Docker Desktop [here.](https://www.docker.com/products/docker-desktop)
 - Discord Bot: Required to create and manage your bot on Discord. Create your own Discord bot [here.](https://discord.com/developers/applications)
 
@@ -45,7 +45,7 @@ Before starting the installation, ensure you have the following softwares instal
 
 Ensuring you have all the softwares installed and configured, continue reading!
 
-1. Open any terminal of your choice and `git clone` the project ![demo1](assets/demos/demo1.png)
+1. Open any terminal of your choice and `git clone` the project: ![demo1](assets/demos/demo1.png)
 2. To make it easier for you to know which is which in Docker, change the bot folder name from "CarFigures" to the name of your dex/figures bot (very useful if you work with multiple dexes/figures bots).
 
 > **Note:** The `settings.toml` file isn't updated by default when updating the bot files, you are required to check if any changes happened to the file by yourself. The link will be updated every time an update is released, it is your responsibility to follow.
