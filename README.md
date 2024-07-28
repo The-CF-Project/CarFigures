@@ -1,4 +1,4 @@
-# CarFigures - The Better Alternative.
+# CarFigures - The Better Alternative
 
 ![CarFigures Logo](assets/logos/Banner.png)
 [![Array's Profile](https://img.shields.io/badge/Array's%20Profile-ffffff?style=for-the-badge&logo=github&logoColor=black)](https://github.com/arrayunderscore/)
@@ -16,11 +16,11 @@
      History
 </h2>
 
-**CarFigures (The CF Project)** was born out of frustration with the BallsDex team's decisions. Initially, I had no particular liking for the idea; it was more about a response to dissatisfaction. The BallsDex team wasn't keen on implementing the features many of us wanted. I knew that merely complaining wouldn't lead to any change, as hundreds of others had already done so to no avail.
+**CarFigures (CF Project)** was born out of frustration with the decisions of the BallsDex team. I didn't really like the idea at first; it was more of a reaction to dissatisfaction. The BallsDex team wasn't very keen on implementing the features that most of us wanted. I knew that just complaining wouldn't lead to any changes, because hundreds of people had already done it to no avail.
 
-Determined to make a difference, I decided to take matters into my own hands. By forking BallsDex and applying my own changes and preferences, CarFigures came into existence.
+Determined to make a difference, I decided to take matters into my own hands. By forking BallsDex and implementing my own changes and preferences, CarFigures was born.
 
-CarFigures aims to address the community's frustrations and provide an alternative base to use and build their bots on. It's a project driven by a desire for improvement and a commitment to providing a better user experience.
+CarFigures aims to address the community's frustrations and provide an alternative foundation to use and build upon their bots. It is a project driven by a desire for improvement and a commitment to providing a better user experience.
 
 <h2>
      <sub>
@@ -31,26 +31,25 @@ CarFigures aims to address the community's frustrations and provide an alternati
      Installation
 </h2>
 
-### Prerequisites
+## Prerequisites
 
-Before starting the installation, ensure you have the following tools installed:
+Before starting the installation, ensure you have the following softwares installed:
 
-- Git: Used for cloning the project and updating your bot to the latest versions. [Download Git](https://git-scm.com/downloads)
-- Docker Desktop: Provides an easy way to run your bot in isolated containers. [Download Docker Desktop](https://www.docker.com/products/docker-desktop)
-- Discord Bot Instance: Required to create and manage your bot on Discord. [Create a Discord Bot](https://discord.com/developers/applications)
+- Git: Used for cloning the project and updating your bot to the latest versions. Download Git [here](https://git-scm.com/downloads)
+- Docker Desktop: Provides an easy way to run your bot in isolated containers. Download Docker Desktop [here.](https://www.docker.com/products/docker-desktop)
+- Discord Bot: Required to create and manage your bot on Discord. Create your own Discord bot [here.](https://discord.com/developers/applications)
 
-> **Note:** If you are using Linux as your main desktop (like me) or hosting the bot on a Linux server, it is generally better to use [Docker Engine](https://docs.docker.com/engine/install).
+> **Note:** If you are using Linux as your main desktop or hosting the bot on a Linux server, it is generally better to use [Docker Engine](https://docs.docker.com/engine/install) rather than Docker Desktop.
 
 ### Installing
-Now since all this is done, let's start!
 
-1. `git clone` the project using git like this. ![demo1](assets/demos/demo1.png)
-2. Change the bot folder name from "CarFigures" to the name of your dex/figures bot to make it easier for you in docker to know which is what (very useful if working with multiple dexes/figures bots).
+Ensuring you have all the softwares installed and configured, continue reading!
 
+1. Open any terminal of your choice and `git clone` the project ![demo1](assets/demos/demo1.png)
+2. To make it easier for you to know which is which in Docker, change the bot folder name from "CarFigures" to the name of your dex/figures bot (very useful if you work with multiple dexes/figures bots).
 
+> **Note:** The `settings.toml` file isn't updated by default when updating the bot files, you are required to check if any changes happened to the file by yourself. The link will be updated every time an update is released, it is your responsibility to follow.
 
-> **Note:** The settings.toml isn't updated by default when updating the bot files, you are required to check if any changes happened to the toml file by yourself, I will update the link of download every time a new update for it gets released, it's your responsibility.
- 
 <h2>
      <sub>
           <img  src="https://www.iconsdb.com/icons/preview/white/settings-11-xxl.png"
@@ -60,14 +59,14 @@ Now since all this is done, let's start!
      Configuration File
 </h2>
 
-CarFigures is designed to be highly customizable, allowing you to tailor the bot's behavior and appearance to your liking. By building your own configuration file, you can adjust various settings, commands, and more!
+CarFigures are designed to be highly customizable, allowing you to customize the bot's behavior and appearance to your liking. You can create your own configuration file to edit various settings, commands, and more!
 
-This is part of CF's philosophy to make customizing your instance as easy as possible. For now, it's not much, but I'm planning for more soon! :3
+It's part of CarFigures' philosophy to make customizing your sample as easy as possible. Not too much for now, but I plan on more soon! :3
 
-now, time to start making that file,
-So in ur Bot files, create a new file called settings.toml
+## Creating The Settings File
+
+- In your bot files, create a new file called `settings.toml`.
 ![demo2](assets/demos/demo2.png)
-Read the comments I left in there to help you out!
 
 Here’s a brief overview of the main configuration sections:
 
@@ -207,28 +206,29 @@ port = 15260
             height="30"
             width="30">
      </sub>
-     Booting
+     Booting The Bot
 </h2>
-After configuring and editing the settings.toml file, it's time to start the bot instance and play with it!
+After configuring and editing the settings file, it's time to start the bot instance and configure it!
 
-Start by getting docker desktop up and running, then open your file explorer and head to the bot files. ![demo3](assets/demos/demo3.png)
+1. Start by getting Docker Desktop up and running, then open your file explorer and head to the bot files. ![demo3](assets/demos/demo3.png)
 
 <details>
 <summary><strong>For Windows Users</strong></summary>
 
-To access the command prompt pointed to this bot folder, go to the navigation bar and edit it (you can do that by click the empty part once) to type `cmd` or `powershell` then press enter, this will open a new command prompt instance that is pointed to the bot place:
+To access the command prompt in this bot folder go to the navigation bar and edit it (you can do this by clicking once on the empty part)i type `cmd` or `powershell` and press enter, this will open a new command prompt instead of the bot one, for example:
 ![demo4](assets/demos/demo4.png)
 ![demo5](assets/demos/demo5.png)
 
-After opening the terminal or command prompt, you shall be greeted with something like this (don't mind the toml thing, its git stuff).
+- After opening the terminal or command prompt, you shall be greeted with something like this (don't mind the toml thing, it's git stuff).
 ![demo6](assets/demos/demo6.png)
 Now its time for you to build the project image (the image the contains your database which stores all your bot's progress, the code and more) using `docker compose build`.
 ![demo7](assets/demos/demo7.png)
 =======
-Start by getting the Docker desktop up and running, then open your file explorer and head to the bot files. ![demo4](assets/demos/demo3.png)
 
-And now, it is time to start up your bot!\
-Using `docker compose up` will make the docker start all the containers and functions, creating connections to the discord's APIs, and allowing the bot to be alive!
+Start by getting the Docker Desktop up and running, then open your file explorer and head to the bot files. ![demo4](assets/demos/demo3.png)
+
+And now, it is time to start up your bot!
+Using `docker compose up` will make the docker start all the containers and functions, creating connections to Discord's APIs, and allowing the bot to be online!
 And after doing it, the final results should be like this, with the end line saying "(your bot name) is now operational!"
 ![demo8](assets/demos/demo8.png)
 
@@ -237,20 +237,20 @@ And after doing it, the final results should be like this, with the end line say
 <details>
 <summary><strong>For macOS/Linux Users</strong></summary>
 
-You should just cd to the place, open a terminal and cd to the folder, if your bot folder is in the documents folder, usually you do `cd ~/Documents/(your bot folder name)`.
+You should just cd to the place (the function used to navigate to a folder), open a terminal and cd to the folder, if your bot folder is in the documents folder, usually you can do `cd ~/Documents/(your bot folder name)`.
 
-After opening the terminal or command prompt, you shall be greeted with something like this (don't mind the toml thing, its git stuff).
+After opening the terminal or command prompt, you shall be greeted with something like this (don't mind the toml thing, it's git stuff).
 ![demo6](assets/demos/demo6.png)
 Now its time for you to build the project image (the image the contains your database which stores all your bot's progress, the code and more) using `docker compose build`.
 ![demo7](assets/demos/demo7.png)
 
-And now, its time to start up your bot!\
-Using `docker compose up` will make the docker starts all the containers and functions to start making connections to the discord's apis, allowing the bot to be alive!
+And now, its time to start up your bot!
+Using `docker compose up` will make the docker starts all the containers and functions to start making connections to Discord's API's, allowing the bot to be online!
 And after doing it, the final results should be like this, with the end line saying "(your bot name) is now operational!"
 ![demo8](assets/demos/demo8.png)
 </details>
 
-That's it! You are all set to rock and roll with CarFigures, If you run into any trouble, don't hesitate to ask for help. We're here to make sure you have a smooth ride.
+That's it! You're ready to rock and roll with CarFigures. If you run into any issues, don't hesitate to [ask for help.](https://discord.gg/UX3jEPy6YH) We're here to make sure you have a smooth ride.
 
 <h2>
      <sub>
@@ -261,72 +261,89 @@ That's it! You are all set to rock and roll with CarFigures, If you run into any
      Contributing
 </h2>
 
-Here's how you can jump in and help make this project even better:
+If you want to contribute to this project, continue reading!
 
 ### How to Contribute
-There are several ways you can contribute to the CarFigures project:
 
-1. **Open Issues:** Found a bug or have a feature request? Open an issue to let us know. This helps us identify and fix problems or consider new features.
-2. **Help with Documentation:** Improve the documentation to make it easier for others to get started and understand the project. This includes tutorials, guides, and updating the README.
-3. **Submit Pull Requests:** Fix bugs, add features, or improve existing code. See below for guidelines on how to submit a pull request.
-4. **Provide Feedback:** Test the project and give feedback on your experience. This helps us understand what works well and what needs improvement.
-5. **Spread the Word:** Share the project with others who might be interested in using or contributing to it.
+There are several ways you can contribute to the CarFigures Project:
+
+1. **Open Issues:** Found a bug or have a feature request? Open an issue to let us know. This helps us identify and fix issues or consider new features.
+
+2. **Help Us with Documentation:** Improve the documentation to make it easier for others to get started and understand the project. This includes tutorials, guides, and updating the README.md file.
+
+3. **Submit Pull Requests:** Fix bugs, add features, or improve existing code. See below for instructions on submitting a pull request.
+
+4. **Provide Feedback:** Test the project and provide feedback on your experience. This helps us understand what works well and what needs improvement.
+
+5. **Publish the Project:** Share the project with others who might want to use it or contribute.
+
 6. **Join Discussions:** Participate in discussions on GitHub issues or the Discord server to help shape the future direction of the project.
 
 <details>
-<summary><strong>Opening Issues</strong></summary>
+<summary><strong>How To Open An Issue</strong></summary>
 
-1. Go to the Issues section of the repository.
+1. Go to the "Issues" section of the repository.
+
 2. Click on the "New Issue" button.
+
 3. Provide a clear and descriptive title for the issue.
-4. Include detailed information in the body, such as steps to reproduce the bug or a detailed description of the feature request.
+
+4. Include detailed information in the body, such as steps to reproduce the bug or a detailed description of the feature request. We recommend you to use the labels while creating an issue!
+
 </details>
 
 <details>
-<summary><strong>Helping with Documentation</strong></summary>
- 
+<summary><strong>How To Help With Documentations</strong></summary>
+
 1. Fork the repository to your GitHub account.
-2. Create a new branch for your documentation changes: git checkout -b improve-docs
-3. Make your changes and commit them with descriptive messages: git commit -m 'Improve documentation for installation process'
-4. Push your changes to your branch: git push origin improve-docs
-Open a pull request (PR) against the stable branch of the original repository.
+
+2. Create a new branch for your documentation changes: `git checkout -b improve-docs`
+
+3. Make your changes and commit them with descriptive messages: `git commit -m 'Improve documentation for installation process'`
+
+4. Push your changes to your branch: `git push origin improve-docs`
+
+5. Open a pull request (PR) against the stable branch of the original repository.
+
 </details>
 
 <details>
-<summary><strong>Submitting Features/Bug Fixes</strong></summary>
+<summary><strong>How To Submit Features/Bugs</strong></summary>
 
 1. Fork the repository to your GitHub account.
-2. Create a new branch for your feature or bug fix: git checkout -b new-feature
-3. Make your changes and commit them with descriptive messages: git commit -m 'Add new feature'
-4. Push your changes to your branch: git push origin new-feature
+
+2. Create a new branch for your feature or bug fix: `git checkout -b new-feature`
+
+3. Make your changes and commit them with descriptive messages: `git commit -m 'Add new feature'`
+
+4. Push your changes to your branch: `git checkout -b new-feature`
 Open a pull request (PR) against the upstream branch of the original repository.
-</details>
 
+</details>
 
 ### Pull Request (PR) Guidelines
 
-To make sure your PR can be checked out and merged smoothly, please follow these guidelines:
+To make sure your PR can be checked and merged smoothly, please follow these guidelines:
 
-- Clearly describe the purpose of the PR and the changes made. This will make it easy for me to judge the PR. Usually, I don't refuse them, but more clarity = faster response.
-- Provide tests and documentation for any new features or changes in functionality. This is good practice to always debug your code before pushing it.
-- Include screenshots showing before/after states of any visual changes if possible. This can make it easier for me to review stuff, but I like reading changes too, so no worries about this section.
-- Ensure that all existing tests pass without failure.
-- Make sure your code follows the project's coding standards and style because code that doesn't correlate with the project's style makes it weird for me to review, and I end up formatting it to look like the rest of the codebase, so please save me some time.
-- Go with the least amount of line changes and commits as possible, this will be easier to track and validate, which allows me to review it fast and give small comments if necessary.
+- Clearly explain the purpose of the PR and the changes made. This will make it easier to review the PR. I usually don't reject them, but more clarity = faster response.
+- Provide tests and documentation for any new features or changes to functionality. It's always a good practice to debug the code before shipping it.
+- Include screenshots of the visual before/after changes if possible. This can make it easier for me to review things, but I also like reading changes, so don't worry about this part.
+- Make sure all current tests pass without errors.
+- Make sure your code complies with the project's coding standards and style, because code that doesn't match the project's style makes my review weird and I end up formatting it to look like the rest of the codebase, so please save me some time.
+- Go with as few line changes and commits as possible, this will be easier to track and verify, allowing me to quickly review it and give minor comments if needed.
 
 ### Code of Conduct
 
-I'm all about creating a welcoming and chill community.
+We are all about creating a welcoming and chill community.
 Everyone who contributes is expected to stick to the [Code of Conduct](./assets/CODE_OF_CONDUCT.md) when getting involved with the project and its community members.
 
 ### Help and Feedback
 
-If you need help, have questions, or want to share your thoughts, don't hesitate to open an issue or ask about it in the dev category inside the CarFigures Discord server.\
-I'm here to support you every step of the way.
+- If you need help, have questions, or want to share your thoughts, don't hesitate to open an issue or ask about it in the dev category inside the CarFigures Discord server. I'm here to support you every step of the way.
 
-I'm stoked about every contribution from the community. Let's join forces and make the project even more rad!\
+- I'm stoked about every contribution from the community. Let's join forces and make the project even more rad!
 
-> **Note:** For access to the dev category in the CarFigures Discord server, inform me that you are making a bot using CF, and I will assign you the forker role.
+> **Note:** For access to the developer category in the CarFigures Discord server, inform me that you are making a bot using CarFigures, and I will assign you the forker role.
 
 <h2>
      <sub>
@@ -334,7 +351,7 @@ I'm stoked about every contribution from the community. Let's join forces and ma
             height="25"
             width="25">
      </sub>
-     Roadmap
+     Road Map
 </h2>
 
 I'm excited about the future of the project and all the bots that use it! Here are some features and improvements I have planned:
@@ -364,7 +381,6 @@ I'm excited about the future of the project and all the bots that use it! Here a
 
 I am incredibly grateful to everyone who contributes to The CF Project. Whether you provide code, suggest features, report bugs, or offer emotional support, your efforts are deeply appreciated. Knowing I am not alone in this project and having a supportive community means the world to me.
 
-Thank you all from the bottom of my heart ❤️ (especially you, Peri :] ❤️).
+Thank you all from the bottom of my heart ❤️ (especially you, Peri :3 ❤️).
 
 Let's continue making this project an awesome and valuable project for everyone!
-
