@@ -56,9 +56,8 @@ def draw_card(car_instance: "CarInstance"):
     car = car_instance.carfigure
     car_weight = (255, 255, 255, 255)
 
-    if car_instance.limited:
-        image = Image.open("." + car_instance.exclusive_card)
-        car_weight = (255, 255, 255, 255)
+    if exclusive_image := car_instance.exclusive_card:
+        image = Image.open("." + exclusive_image)
     elif event_image := car_instance.event_card:
         image = Image.open("." + event_image)
     else:

@@ -302,7 +302,7 @@ class CarInstance(models.Model):
     @property
     def exclusive_card(self) -> str | None:
         if self.exclusivecard:
-            return self.exclusivecard.card or self.carfigure.collection_picture
+            return self.exclusivecard.image or self.carfigure.collection_picture
 
     @property
     def event_card(self) -> str | None:
@@ -312,7 +312,7 @@ class CarInstance(models.Model):
     @property
     def carfigure(self) -> Car:
         return cars.get(self.car_id, self.car)
-    
+
     @property
     def exclusivecard(self) -> Exclusive | None:
         return exclusives.get(self.exclusive_id, self.exclusive)

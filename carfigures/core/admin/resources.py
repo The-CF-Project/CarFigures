@@ -363,6 +363,7 @@ class InstanceResource(Model):
         "catch_date",
         "server_id",
         "limited",
+        "exclusive",
         "event",
         "favorite",
         "weight_bonus",

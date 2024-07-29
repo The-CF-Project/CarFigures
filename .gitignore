@@ -31,6 +31,6 @@ venv
 
 # settings
 docker-compose.override.yml
-settings.toml
+configuration.toml
 
 static/uploads/*

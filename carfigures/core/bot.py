@@ -36,10 +36,12 @@ from carfigures.core.models import (
     Country,
     CarType,
     Event,
+    Exclusive,
     cars,
     countries,
     cartypes,
     events,
+    exclusives
 )
 from carfigures.settings import settings
 
@@ -218,6 +220,11 @@ class CarFiguresBot(commands.AutoShardedBot):
         for event in await Event.all():
             events[event.pk] = event
         table.add_row("Events", str(len(events)))
+
+        exclusives.clear()
+        for exclusive in await Exclusive.all():
+            exclusives[exclusive.pk] = exclusive
+        table.add_row("Exclusives", str(len(exclusives)))
 
         self.blacklist_user = set()
         for blacklisted_id in await BlacklistedUser.all().only("discord_id"):
