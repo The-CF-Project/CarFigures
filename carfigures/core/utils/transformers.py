@@ -18,6 +18,7 @@ from carfigures.core.models import (
     Country,
     CarType,
     Event,
+    Exclusive,
     cars,
     countries,
     cartypes,
@@ -263,6 +264,14 @@ class CarTransformer(TTLModelTransformer[Car]):
 class CarEnabledTransformer(CarTransformer):
     async def load_items(self) -> Iterable[Car]:
         return {k: v for k, v in cars.items() if v.enabled}.values()
+
+
+class ExclusiveTransformer(TTLModelTransformer[Exclusive]):
+    name = "exclusive"
+    model = Exclusive()
+
+    def key(self, model: Exclusive) -> str:
+        return model.name
 
 
 class EventTransformer(TTLModelTransformer[Event]):

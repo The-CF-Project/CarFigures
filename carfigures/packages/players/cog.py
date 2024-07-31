@@ -3,7 +3,7 @@ from io import BytesIO
 import discord
 import logging
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from tortoise.exceptions import DoesNotExist
 
