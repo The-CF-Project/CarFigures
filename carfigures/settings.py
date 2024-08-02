@@ -56,7 +56,7 @@ class Settings:
     shard_count: int | None = None
     prefix: str = ""
     spawnalert: bool = False
-    profiles_emojis: bool = False
+    minimal_profile: bool = False
     max_favorites: int = 50
     default_embed_color: int = 0
 
@@ -71,9 +71,8 @@ class Settings:
     cars_group_name: str = ""
     sudo_group_name: str = ""
     info_group_name: str = ""
+    my_group_name: str = ""
     trade_group_name: str = ""
-    server_group_name: str = ""
-    player_group_name: str = ""
 
     garage_command_name: str = ""
     exhibit_command_name: str = ""
@@ -135,7 +134,7 @@ def read_settings(path: "Path"):
     settings.bot_token = config["settings"]["bot_token"]
     settings.bot_name = config["settings"]["bot_name"]
     settings.prefix = config["settings"]["text_prefix"]
-    settings.profiles_emojis = config["settings"]["profiles_emojis"]
+    settings.minimal_profile = config["settings"]["minimal_profile"]
     settings.spawnalert = config["settings"]["spawnalert"]
     settings.default_embed_color = int(config["settings"]["default_embed_color"], 16)
 
@@ -150,9 +149,8 @@ def read_settings(path: "Path"):
     settings.cars_group_name = config["commands"]["groups"]["cars"]
     settings.sudo_group_name = config["commands"]["groups"]["sudo"]
     settings.info_group_name = config["commands"]["groups"]["info"]
+    settings.my_group_name = config["commands"]["groups"]["my"]
     settings.trade_group_name = config["commands"]["groups"]["trade"]
-    settings.server_group_name = config["commands"]["groups"]["server"]
-    settings.player_group_name = config["commands"]["groups"]["player"]
 
     settings.garage_command_name = config["commands"]["names"]["garage"]
     settings.exhibit_command_name = config["commands"]["names"]["exhibit"]

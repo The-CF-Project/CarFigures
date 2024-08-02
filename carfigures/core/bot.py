@@ -41,7 +41,7 @@ from carfigures.core.models import (
     countries,
     cartypes,
     events,
-    exclusives
+    exclusives,
 )
 from carfigures.settings import settings
 
@@ -51,7 +51,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.core.bot")
 http_counter = Histogram("discord_http_requests", "HTTP requests", ["key", "code"])
 
-PACKAGES = ["carfigures", "cars", "server", "info", "superuser", "trade", "players"]
+PACKAGES = ["carfigures", "cars", "info", "my", "superuser", "trade"]
 
 
 def owner_check(ctx: commands.Context[CarFiguresBot]):
@@ -105,7 +105,9 @@ async def on_request_end(
 
 
 class CommandTree(app_commands.CommandTree):
-    async def interaction_check(self, interaction: discord.Interaction[CarFiguresBot], /) -> bool:
+    async def interaction_check(
+        self, interaction: discord.Interaction[CarFiguresBot], /
+    ) -> bool:
         # checking if the moment we receive this interaction isn't too late already
         # there is a 3 seconds limit for initial response, taking a little margin into account
         # https://discord.com/developers/docs/interactions/receiving-and-responding#responding-to-an-interaction
@@ -133,14 +135,19 @@ class CarFiguresBot(commands.AutoShardedBot):
     CarFigures Discord bot
     """
 
-    def __init__(self, command_prefix: PrefixType[CarFiguresBot], dev: bool = False, **options):
+    def __init__(
+        self, command_prefix: PrefixType[CarFiguresBot], dev: bool = False, **options
+    ):
         # An explanation for the used intents
         # guilds: needed for basically anything, the bot needs to know what guilds it has
         # and accordingly enable automatic spawning in the enabled ones
         # guild_messages: spawning is based on messages sent, content is not necessary
         # emojis_and_stickers: DB holds emoji IDs for the cars which are fetched from 3 servers
         intents = discord.Intents(
-            guilds=True, guild_messages=True, emojis_and_stickers=True, message_content=True
+            guilds=True,
+            guild_messages=True,
+            emojis_and_stickers=True,
+            message_content=True,
         )
 
         if settings.prometheus_enabled:
@@ -149,7 +156,9 @@ class CarFiguresBot(commands.AutoShardedBot):
             trace.on_request_end.append(on_request_end)
             options["http_trace"] = trace
 
-        super().__init__(command_prefix, intents=intents, tree_cls=CommandTree, **options)
+        super().__init__(
+            command_prefix, intents=intents, tree_cls=CommandTree, **options
+        )
 
         self.dev = dev
         self.prometheus_server: PrometheusServer | None = None
@@ -173,7 +182,9 @@ class CarFiguresBot(commands.AutoShardedBot):
         await self.prometheus_server.run()
 
     def assign_ids_to_app_groups(
-        self, group: app_commands.Group, synced_commands: list[app_commands.AppCommandGroup]
+        self,
+        group: app_commands.Group,
+        synced_commands: list[app_commands.AppCommandGroup],
     ):
         for synced_command in synced_commands:
             bot_command = group.get_command(synced_command.name)
@@ -182,18 +193,24 @@ class CarFiguresBot(commands.AutoShardedBot):
             bot_command.extras["mention"] = synced_command.mention
             if isinstance(bot_command, app_commands.Group) and bot_command.commands:
                 self.assign_ids_to_app_groups(
-                    bot_command, cast(list[app_commands.AppCommandGroup], synced_command.options)
+                    bot_command,
+                    cast(list[app_commands.AppCommandGroup], synced_command.options),
                 )
 
-    def assign_ids_to_app_commands(self, synced_commands: list[app_commands.AppCommand]):
+    def assign_ids_to_app_commands(
+        self, synced_commands: list[app_commands.AppCommand]
+    ):
         for synced_command in synced_commands:
-            bot_command = self.tree.get_command(synced_command.name, type=synced_command.type)
+            bot_command = self.tree.get_command(
+                synced_command.name, type=synced_command.type
+            )
             if not bot_command:
                 continue
             bot_command.extras["mention"] = synced_command.mention
             if isinstance(bot_command, app_commands.Group) and bot_command.commands:
                 self.assign_ids_to_app_groups(
-                    bot_command, cast(list[app_commands.AppCommandGroup], synced_command.options)
+                    bot_command,
+                    cast(list[app_commands.AppCommandGroup], synced_command.options),
                 )
 
     async def load_cache(self):
@@ -341,7 +358,9 @@ class CarFiguresBot(commands.AutoShardedBot):
             try:
                 await self.start_prometheus_server()
             except Exception:
-                log.exception("Failed to start Prometheus server, stats will be unavailable.")
+                log.exception(
+                    "Failed to start Prometheus server, stats will be unavailable."
+                )
 
         print(
             f"\n    [bold][red]{settings.bot_name} bot[/red] [green]"
@@ -380,7 +399,8 @@ class CarFiguresBot(commands.AutoShardedBot):
         self, context: commands.Context, exception: commands.errors.CommandError
     ):
         if isinstance(
-            exception, (commands.CommandNotFound, commands.CheckFailure, commands.DisabledCommand)
+            exception,
+            (commands.CommandNotFound, commands.CheckFailure, commands.DisabledCommand),
         ):
             return
 
@@ -397,7 +417,9 @@ class CarFiguresBot(commands.AutoShardedBot):
 
         if isinstance(exception, commands.CommandInvokeError):
             if isinstance(exception.original, discord.Forbidden):
-                await context.send("The bot does not have the permission to do something.")
+                await context.send(
+                    "The bot does not have the permission to do something."
+                )
                 # log to know where permissions are lacking
                 log.warning(
                     f"Missing permissions for text command {context.command.name}",
@@ -405,7 +427,10 @@ class CarFiguresBot(commands.AutoShardedBot):
                 )
                 return
 
-            log.error(f"Error in text command {context.command.name}", exc_info=exception.original)
+            log.error(
+                f"Error in text command {context.command.name}",
+                exc_info=exception.original,
+            )
             await context.send(
                 "An error occurred when running the command. Contact support if this persists."
             )
@@ -414,7 +439,9 @@ class CarFiguresBot(commands.AutoShardedBot):
         await context.send(
             "An error occurred when running the command. Contact support if this persists."
         )
-        log.error(f"Unknown error in text command {context.command.name}", exc_info=exception)
+        log.error(
+            f"Unknown error in text command {context.command.name}", exc_info=exception
+        )
 
     async def on_application_command_error(
         self, interaction: discord.Interaction, error: app_commands.AppCommandError
@@ -463,14 +490,17 @@ class CarFiguresBot(commands.AutoShardedBot):
                 # still including traceback because it may be a programming error
 
             log.error(
-                f"Error in slash command {interaction.command.name}", exc_info=error.original
+                f"Error in slash command {interaction.command.name}",
+                exc_info=error.original,
             )
             await send(
                 "An error occurred when running the command. Contact support if this persists."
             )
             return
 
-        await send("An error occurred when running the command. Contact support if this persists.")
+        await send(
+            "An error occurred when running the command. Contact support if this persists."
+        )
         log.error("Unknown error in interaction", exc_info=error)
 
     async def on_error(self, event_method: str, /, *args, **kwargs):

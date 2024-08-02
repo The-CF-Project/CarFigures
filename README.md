@@ -65,8 +65,7 @@ CarFigures is designed to be highly customizable, allowing you to tailor the bot
 This is part of CF's philosophy to make customizing your instance as easy as possible. For now, it's not much, but I'm planning for more soon! :3
 
 now, time to start making that file,
-So in ur Bot files, create a new file called settings.toml
-![demo2](assets/demos/demo2.png)
+So in ur Bot files, create a new file called configuration.toml
 Read the comments I left in there to help you out!
 
 Here’s a brief overview of the main configuration sections:
@@ -91,7 +90,7 @@ bot_name = "CarFigures"
 text_prefix = "c."
 max_favorites = 50
 spawnalert = true
-profile_emojis = true
+minimal_profile = true
 # Default embed color in the bot (hex without #)
 default_embed_color = "5865F2"
 

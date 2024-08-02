@@ -1,13 +1,23 @@
 from __future__ import annotations
 
 import random
-from typing import List, TYPE_CHECKING
-
 import discord
 from discord.ui import Button, View, button
 
 from carfigures.core.models import GuildConfig, Car, cars as carfigures
 from carfigures.settings import settings
+
+
+activation_embed = discord.Embed(
+    colour=settings.default_embed_color,
+    title=f"{settings.bot_name} activation",
+    description=f"To enable {settings.bot_name} in your server, you must "
+    f"read and accept the [Terms of Service]({settings.terms_of_service}).\n\n"
+    "As a summary, these are the rules of the bot:\n"
+    f"- No farming (spamming or creating servers for {settings.collectible_name}s)\n"
+    "- Do not attempt to abuse the bot's internals\n"
+    "**Not respecting these rules will lead to a blacklist**",
+)
 
 
 class AcceptTOSView(View):
@@ -55,25 +65,27 @@ class AcceptTOSView(View):
         )
 
         self.accept_button.disabled = True
-        try:
-            await self.original_interaction.followup.edit_message(
-                "@original",
-                view=self,  # type: ignore
-            )
-        except discord.HTTPException:
-            pass
+        if self.original_interaction.message:
+            try:
+                await self.original_interaction.followup.edit_message(
+                    self.original_interaction.message.id,
+                    view=self,  # type: ignore
+                )
+            except discord.HTTPException:
+                pass
 
     async def on_timeout(self) -> None:
         self.stop()
         for item in self.children:
             item.disabled = True  # type: ignore
-        try:
-            await self.original_interaction.followup.edit_message(
-                "@original",
-                view=self,  # type: ignore
-            )
-        except discord.HTTPException:
-            pass
+        if self.original_interaction.message:
+            try:
+                await self.original_interaction.followup.edit_message(
+                    self.original_interaction.message.id,
+                    view=self,  # type: ignore
+                )
+            except discord.HTTPException:
+                pass
 
 
 async def _get_10_cars_emojis(self) -> list[discord.Emoji]:
