@@ -65,25 +65,27 @@ class AcceptTOSView(View):
         )
 
         self.accept_button.disabled = True
-        try:
-            await self.original_interaction.followup.edit_message(
-                "@original",
-                view=self,  # type: ignore
-            )
-        except discord.HTTPException:
-            pass
+        if self.original_interaction.message:
+            try:
+                await self.original_interaction.followup.edit_message(
+                    self.original_interaction.message.id,
+                    view=self,  # type: ignore
+                )
+            except discord.HTTPException:
+                pass
 
     async def on_timeout(self) -> None:
         self.stop()
         for item in self.children:
             item.disabled = True  # type: ignore
-        try:
-            await self.original_interaction.followup.edit_message(
-                "@original",
-                view=self,  # type: ignore
-            )
-        except discord.HTTPException:
-            pass
+        if self.original_interaction.message:
+            try:
+                await self.original_interaction.followup.edit_message(
+                    self.original_interaction.message.id,
+                    view=self,  # type: ignore
+                )
+            except discord.HTTPException:
+                pass
 
 
 async def _get_10_cars_emojis(self) -> list[discord.Emoji]:

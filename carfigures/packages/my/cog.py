@@ -1,4 +1,3 @@
-from attr import has
 import discord
 import logging
 
@@ -125,16 +124,15 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
         """
         Show your profile.
         """
-
-        if settings.profiles_emojis:
-            cars = await _get_10_cars_emojis(self)
-        else:
-            cars = []
-
+        
         player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         await player.fetch_related("cars")
-        
-        filters = {"player__discord_id": interaction.user.id}
+
+        emojis = ""
+        if settings.minimal_profile == False:
+            cars = await _get_10_cars_emojis(self)
+            emojis = " ".join(str(x) for x in cars)
+
         # Creating the Embed and Storting the variables in it
         embed = discord.Embed(
             title=f" ❖ {interaction.user.display_name}'s Profile",
@@ -153,11 +151,11 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
             donation = "All Denied"
 
         embed.description = (
-            f"{' '.join(str(x) for x in cars)}\n"
-            f"**∨ Player Settings**\n"
+            f"{emojis}\n"
+            f"**Ⅲ Player Settings**\n"
             f"\u200b **⋄ Privacy Policy:** {privacy}\n"
             f"\u200b **⋄ Donation Policy:** {donation}\n\n"
-            f"**∧ Player Info\n**"
+            f"**Ⅲ Player Info\n**"
             f"\u200b **⋄ Cars Collected:** {await player.cars.filter().count()}\n"
             f"\u200b **⋄ Rebirths Done:** {player.rebirths}\n"
         )
@@ -278,7 +276,7 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
                 ephemeral=True,
             )
             return
-        config, created = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
+        config = await GuildConfig.get(guild_id=interaction.guild_id)
         if config.enabled:
             config.enabled = False  # type: ignore
             await config.save()
@@ -324,7 +322,7 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
                 "The bot owner has disabled this feature from the bot.", ephemeral=True
             )
             return
-        config, created = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
+        config = await GuildConfig.get(guild_id=interaction.guild_id)
         if role:
             if config.spawn_ping == role.id:
                 config.spawn_ping = None  # type: ignore
@@ -349,28 +347,33 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
         Display information about the server.
         """
 
-        if settings.profiles_emojis:
-            cars = await _get_10_cars_emojis(self)
-        else:
-            cars = []
-
         guild = cast(discord.Guild, interaction.guild)
         config = await GuildConfig.get(guild_id=guild.id)
+        spawn_channel = guild.get_channel(config.spawn_channel)
+        spawn_role = guild.get_role(config.spawn_ping)
+        emojis = ""
+        if settings.minimal_profile == False:
+            cars = await _get_10_cars_emojis(self)
+            emojis = " ".join(str(x) for x in cars)
+            spawn_channel = f"<#{guild.get_channel(config.spawn_channel).id}>"
+            spawn_role = f"<@&{guild.get_role(config.spawn_ping).id}>"
+
         embed = discord.Embed(
             title=f"❖ {guild.name} Server Info",
             color=settings.default_embed_color,
         )
         embed.description = (
-            f"{' '.join(str(x) for x in cars)}\n"
-            f"**◲ Server Settings**\n"
-            f"\u200b **⋄ Spawn Channel:** {f'{guild.get_channel(config.spawn_channel)}' or 'Not set'}\n"
-            f"\u200b **⋄ Spawn Alert Role:** {f'{guild.get_role(config.spawn_ping)}' or 'Not set'}\n\n"
+            f"{emojis}\n"
+            f"**Ⅲ Server Settings**\n"
+            f"\u200b **⋄ Spawn State:** {'Enabled' if config.enabled else 'Disabled'}\n"
+            f"\u200b **⋄ Spawn Channel:** {spawn_channel or 'Not set'}\n"
+            f"\u200b **⋄ Spawn Alert Role:** {spawn_role or 'Not set'}\n\n"
             f"**Ⅲ Server Info**\n"
             f"\u200b **⋄ Server ID:** {guild.id}\n"
             f"\u200b **⋄ Server Owner:** <@{guild.owner_id}>\n"
             f"\u200b **⋄ Member Count:** {guild.member_count}\n"
             f"\u200b **⋄ Created Since:** {format_dt(guild.created_at, style='R')}\n\n"
-            f"\u200b **⋄ "
+            f"\u200b **⋄ Cars Caught Here:** {await CarInstance.filter(server_id=guild.id).count()}"
         )
         embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
         await interaction.response.send_message(embed=embed)

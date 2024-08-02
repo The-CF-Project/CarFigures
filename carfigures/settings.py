@@ -56,7 +56,7 @@ class Settings:
     shard_count: int | None = None
     prefix: str = ""
     spawnalert: bool = False
-    profiles_emojis: bool = False
+    minimal_profile: bool = False
     max_favorites: int = 50
     default_embed_color: int = 0
 
@@ -134,7 +134,7 @@ def read_settings(path: "Path"):
     settings.bot_token = config["settings"]["bot_token"]
     settings.bot_name = config["settings"]["bot_name"]
     settings.prefix = config["settings"]["text_prefix"]
-    settings.profiles_emojis = config["settings"]["profiles_emojis"]
+    settings.minimal_profile = config["settings"]["minimal_profile"]
     settings.spawnalert = config["settings"]["spawnalert"]
     settings.default_embed_color = int(config["settings"]["default_embed_color"], 16)
 
