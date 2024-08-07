@@ -534,6 +534,28 @@ class BlacklistedGuild(models.Model):
         return str(self.discord_id)
 
 
+class TopicType(IntEnum):
+    PLAYER = 1
+    DEVERLOPER = 2
+
+
+class Library(models.Model):
+    topic = fields.CharField(
+        max_length=100,
+        description="What this topic name is",
+    )
+    description = fields.CharField(
+        max_length=256, description="The Desc about this Topic"
+    )
+    type = fields.IntEnumField(
+        TopicType, description="The type of the Topic", default=TopicType.PLAYER
+    )
+    text = fields.TextField(null=True, default=None)
+
+    def __str__(self) -> str:
+        return self.topic
+
+
 class Trade(models.Model):
     id: int
     player1: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(

@@ -14,7 +14,7 @@ activation_embed = discord.Embed(
     description=f"To enable {settings.bot_name} in your server, you must "
     f"read and accept the [Terms of Service]({settings.terms_of_service}).\n\n"
     "As a summary, these are the rules of the bot:\n"
-    f"- No farming (spamming or creating servers for {settings.collectible_name}s)\n"
+    f"- No farming (spamming or creating servers for {settings.collectible_plural})\n"
     "- Do not attempt to abuse the bot's internals\n"
     "**Not respecting these rules will lead to a blacklist**",
 )
@@ -60,7 +60,7 @@ class AcceptTOSView(View):
         )
         self.stop()
         await interaction.response.send_message(
-            f"{settings.collectible_name.title()}s will start spawning as"
+            f"{settings.collectible_plural.title()}s will start spawning as"
             " users talk unless the bot is disabled."
         )
 

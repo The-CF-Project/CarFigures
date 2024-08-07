@@ -16,6 +16,7 @@ from carfigures.core.models import (
     Country,
     Exclusive,
     GuildConfig,
+    Library,
     Player,
     CarType,
     Event,
@@ -397,8 +398,23 @@ class PlayerResource(Model):
 
 
 @app.register
+class LibraryResources(Model):
+    label = "Library"
+    model = Library
+    icon = "fas fa-bookmark"
+    page_pre_title = "The List of:"
+    page_title = "Library Topics"
+    fields = [
+        Field(name="topic", label="The Name of the Topic"),
+        Field(name="description", label="Small Description about the Topic"),
+        "type",
+        "text",
+    ]
+
+
+@app.register
 class ServerResource(Model):
-    label = "Server Settings"
+    label = "Servers"
     model = GuildConfig
     icon = "fas fa-cog"
     page_pre_title = "The List of:"

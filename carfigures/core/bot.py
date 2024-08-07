@@ -37,6 +37,8 @@ from carfigures.core.models import (
     CarType,
     Event,
     Exclusive,
+    GuildConfig,
+    Library,
     cars,
     countries,
     cartypes,
@@ -226,12 +228,12 @@ class CarFiguresBot(commands.AutoShardedBot):
         cartypes.clear()
         for cartype in await CarType.all():
             cartypes[cartype.pk] = cartype
-        table.add_row(f"{settings.cartype_replacement}s", str(len(cartypes)))
+        table.add_row("Cards", str(len(cartypes)))
 
         countries.clear()
         for country in await Country.all():
             countries[country.pk] = country
-        table.add_row(f"{settings.country_replacement}s", str(len(countries)))
+        table.add_row("Icons", str(len(countries)))
 
         events.clear()
         for event in await Event.all():
@@ -242,6 +244,9 @@ class CarFiguresBot(commands.AutoShardedBot):
         for exclusive in await Exclusive.all():
             exclusives[exclusive.pk] = exclusive
         table.add_row("Exclusives", str(len(exclusives)))
+
+        table.add_row("Servers", str(await GuildConfig.all().count()))
+        table.add_row("Library Topics", str(await Library.all().count()))
 
         self.blacklist_user = set()
         for blacklisted_id in await BlacklistedUser.all().only("discord_id"):

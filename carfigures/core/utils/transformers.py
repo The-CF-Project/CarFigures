@@ -80,7 +80,9 @@ class ModelTransformer(app_commands.Transformer, Generic[T]):
         """
         raise NotImplementedError()
 
-    async def validate(self, interaction: discord.Interaction["CarFiguresBot"], item: T):
+    async def validate(
+        self, interaction: discord.Interaction["CarFiguresBot"], item: T
+    ):
         """
         A function to validate the fetched item before calling back the command.
 
@@ -124,7 +126,9 @@ class ModelTransformer(app_commands.Transformer, Generic[T]):
         )
         return choices
 
-    async def transform(self, interaction: Interaction["CarFiguresBot"], value: str) -> T | None:
+    async def transform(
+        self, interaction: Interaction["CarFiguresBot"], value: str
+    ) -> T | None:
         if not value:
             await interaction.response.send_message(
                 "You need to use the autocomplete function for the economy selection."
@@ -154,10 +158,14 @@ class CarInstanceTransformer(ModelTransformer[CarInstance]):
     async def get_from_pk(self, value: int) -> CarInstance:
         return await self.model.get(pk=value).prefetch_related("player")
 
-    async def validate(self, interaction: discord.Interaction["CarFiguresBot"], item: CarInstance):
+    async def validate(
+        self, interaction: discord.Interaction["CarFiguresBot"], item: CarInstance
+    ):
         # checking if the car does belong to user, and a custom ID wasn't forced
         if item.player.discord_id != interaction.user.id:
-            raise ValidationError(f"That {settings.collectible_name} doesn't belong to you.")
+            raise ValidationError(
+                f"That {settings.collectible_name} doesn't belong to you."
+            )
 
     async def get_options(
         self, interaction: Interaction["CarFiguresBot"], value: str
@@ -166,10 +174,14 @@ class CarInstanceTransformer(ModelTransformer[CarInstance]):
 
         if (event := getattr(interaction.namespace, "event", None)) and event.isdigit():
             cars_queryset = cars_queryset.filter(event_id=int(event))
-        if (limited := getattr(interaction.namespace, "limited", None)) and limited is not None:
+        if (
+            limited := getattr(interaction.namespace, "limited", None)
+        ) and limited is not None:
             cars_queryset = cars_queryset.filter(limited=limited)
 
-        if interaction.command and (trade_type := interaction.command.extras.get("trade", None)):
+        if interaction.command and (
+            trade_type := interaction.command.extras.get("trade", None)
+        ):
             if trade_type == TradeCommandType.PICK:
                 cars_queryset = cars_queryset.filter(
                     Q(
@@ -179,7 +191,8 @@ class CarInstanceTransformer(ModelTransformer[CarInstance]):
                 )
             else:
                 cars_queryset = cars_queryset.filter(
-                    locked__isnull=False, locked__gt=tortoise_now() - timedelta(minutes=30)
+                    locked__isnull=False,
+                    locked__gt=tortoise_now() - timedelta(minutes=30),
                 )
         cars_queryset = (
             cars_queryset.select_related("car")
@@ -194,7 +207,9 @@ class CarInstanceTransformer(ModelTransformer[CarInstance]):
         )
 
         choices: list[app_commands.Choice] = [
-            app_commands.Choice(name=x.description(bot=interaction.client), value=str(x.pk))
+            app_commands.Choice(
+                name=x.description(bot=interaction.client), value=str(x.pk)
+            )
             for x in await cars_queryset
         ]
         return choices
@@ -243,7 +258,9 @@ class TTLModelTransformer(ModelTransformer[T]):
         choices: list[app_commands.Choice] = []
         for item in self.items.values():
             if value.lower() in self.search_map[item]:
-                choices.append(app_commands.Choice(name=self.key(item), value=str(item.pk)))
+                choices.append(
+                    app_commands.Choice(name=self.key(item), value=str(item.pk))
+                )
                 i += 1
                 if i == 25:
                     break
@@ -251,7 +268,7 @@ class TTLModelTransformer(ModelTransformer[T]):
 
 
 class CarTransformer(TTLModelTransformer[Car]):
-    name = settings.collectible_name.lower()
+    name = settings.collectible_singular.lower()
     model = Car()
 
     def key(self, model: Car) -> str:
@@ -312,6 +329,7 @@ class CountryTransformer(TTLModelTransformer[Country]):
 CarTransform = app_commands.Transform[Car, CarTransformer]
 CarInstanceTransform = app_commands.Transform[CarInstance, CarInstanceTransformer]
 EventTransform = app_commands.Transform[Event, EventTransformer]
+ExclusiveTransform = app_commands.Transform[Exclusive, ExclusiveTransformer]
 CarTypeTransform = app_commands.Transform[CarType, CarTypeTransformer]
 CountryTransform = app_commands.Transform[Country, CountryTransformer]
 EventEnabledTransform = app_commands.Transform[Event, EventEnabledTransformer]

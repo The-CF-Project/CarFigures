@@ -84,7 +84,9 @@ class TradeView(View):
     )
     async def cancel(self, interaction: discord.Interaction, button: Button):
         await self.trade.user_cancel(self.trade._get_trader(interaction.user))
-        await interaction.response.send_message("Trade has been cancelled.", ephemeral=True)
+        await interaction.response.send_message(
+            "Trade has been cancelled.", ephemeral=True
+        )
 
 
 class ConfirmView(View):
@@ -104,7 +106,8 @@ class ConfirmView(View):
             return True
 
     @discord.ui.button(
-        style=discord.ButtonStyle.success, emoji="\N{HEAVY CHECK MARK}\N{VARIATION SELECTOR-16}"
+        style=discord.ButtonStyle.success,
+        emoji="\N{HEAVY CHECK MARK}\N{VARIATION SELECTOR-16}",
     )
     async def accept_button(self, interaction: discord.Interaction, button: Button):
         trader = self.trade._get_trader(interaction.user)
@@ -117,14 +120,18 @@ class ConfirmView(View):
         result = await self.trade.confirm(trader)
         if self.trade.trader1.accepted and self.trade.trader2.accepted:
             if result:
-                await interaction.followup.send("The trade is now concluded.", ephemeral=True)
+                await interaction.followup.send(
+                    "The trade is now concluded.", ephemeral=True
+                )
             else:
                 await interaction.followup.send(
-                    ":warning: An error occurred while concluding the trade.", ephemeral=True
+                    ":warning: An error occurred while concluding the trade.",
+                    ephemeral=True,
                 )
         else:
             await interaction.followup.send(
-                "You have accepted the trade, waiting for the other user...", ephemeral=True
+                "You have accepted the trade, waiting for the other user...",
+                ephemeral=True,
             )
 
     @discord.ui.button(
@@ -133,7 +140,9 @@ class ConfirmView(View):
     )
     async def deny_button(self, interaction: discord.Interaction, button: Button):
         await self.trade.user_cancel(self.trade._get_trader(interaction.user))
-        await interaction.response.send_message("Trade has been cancelled.", ephemeral=True)
+        await interaction.response.send_message(
+            "Trade has been cancelled.", ephemeral=True
+        )
 
 
 class TradeMenu:
@@ -146,14 +155,18 @@ class TradeMenu:
     ):
         self.cog = cog
         self.bot = interaction.client
-        self.channel: discord.TextChannel = cast(discord.TextChannel, interaction.channel)
+        self.channel: discord.TextChannel = cast(
+            discord.TextChannel, interaction.channel
+        )
         self.trader1 = trader1
         self.trader2 = trader2
         self.embed = discord.Embed()
         self.task: asyncio.Task | None = None
         self.current_view: TradeView | ConfirmView = TradeView(self)
         self.message: discord.Message
-        self.end_time = math.ceil((datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp())
+        self.end_time = math.ceil(
+            (datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp()
+        )
 
     def _get_trader(self, user: discord.User | discord.Member) -> TradingUser:
         if user.id == self.trader1.user.id:
@@ -167,10 +180,10 @@ class TradeMenu:
         remove_command = self.cog.remove.extras.get("mention", "`/trade remove`")
         timestamp = f"<t:{self.end_time}:R>"
 
-        self.embed.title = f"{settings.collectible_name.title()}s trading"
+        self.embed.title = f"{settings.collectible_plural.title()} trading"
         self.embed.color = settings.default_embed_color
         self.embed.description = (
-            f"Add or remove {settings.collectible_name}s you want to propose to the other player "
+            f"Add or remove {settings.collectible_plural} you want to propose to the other player "
             f"using the {add_command} and {remove_command} commands.\n"
             "Once you're finished, click the lock button below to confirm your proposal.\n"
             "You can also lock with nothing if you're receiving a gift.\n\n"
@@ -197,7 +210,9 @@ class TradeMenu:
                 return
 
             try:
-                fill_trade_embed_fields(self.embed, self.bot, self.trader1, self.trader2)
+                fill_trade_embed_fields(
+                    self.embed, self.bot, self.trader1, self.trader2
+                )
                 await self.message.edit(embed=self.embed)
             except Exception:
                 log.exception(
@@ -253,11 +268,11 @@ class TradeMenu:
             fill_trade_embed_fields(self.embed, self.bot, self.trader1, self.trader2)
 
             self.embed.colour = discord.Colour.yellow()
-            self.embed.description = (
-                "Both users locked their propositions! Now confirm to conclude this trade."
-            )
+            self.embed.description = "Both users locked their propositions! Now confirm to conclude this trade."
             self.current_view = ConfirmView(self)
-            await self.message.edit(content=None, embed=self.embed, view=self.current_view)
+            await self.message.edit(
+                content=None, embed=self.embed, view=self.current_view
+            )
 
     async def user_cancel(self, trader: TradingUser):
         """
@@ -270,7 +285,9 @@ class TradeMenu:
     async def perform_trade(self):
         valid_transferable_carfigures: list[CarInstance] = []
 
-        trade = await Trade.create(player1=self.trader1.player, player2=self.trader2.player)
+        trade = await Trade.create(
+            player1=self.trader1.player, player2=self.trader2.player
+        )
 
         for carfigure in self.trader1.proposal:
             await carfigure.refresh_from_db()
@@ -324,15 +341,19 @@ class TradeMenu:
             try:
                 await self.perform_trade()
             except InvalidTradeOperation:
-                log.warning(f"Illegal trade operation between {self.trader1=} and {self.trader2=}")
+                log.warning(
+                    f"Illegal trade operation between {self.trader1=} and {self.trader2=}"
+                )
                 self.embed.description = (
-                    f":warning: An attempt to modify the {settings.collectible_name}s "
+                    f":warning: An attempt to modify the {settings.collectible_plural} "
                     "during the trade was detected and the trade was cancelled."
                 )
                 self.embed.colour = discord.Colour.red()
                 result = False
             except Exception:
-                log.exception(f"Failed to conclude trade {self.trader1=} {self.trader2=}")
+                log.exception(
+                    f"Failed to conclude trade {self.trader1=} {self.trader2=}"
+                )
                 self.embed.description = "An error occurred when concluding the trade."
                 self.embed.colour = discord.Colour.red()
                 result = False

@@ -20,7 +20,9 @@ if TYPE_CHECKING:
 
 log = logging.getLogger("carfigures.packages.carfigures.components")
 caught_cars = Counter(
-    "caught_cf", "Caught carfigures", ["full_name", "limited", "exclusive", "event", "guild_size"]
+    "caught_cf",
+    "Caught carfigures",
+    ["full_name", "limited", "exclusive", "event", "guild_size"],
 )
 
 
@@ -71,7 +73,7 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
             )
 
             event = ""
-            if car.limited and car.exclusivecard.catch_phrase:
+            if car.exclusivecard and car.exclusivecard.catch_phrase:
                 event += f"*{car.exclusivecard.catch_phrase}*\n"
             if car.eventcard and car.eventcard.catch_phrase:
                 event += f"*{car.eventcard.catch_phrase}*\n"
@@ -128,7 +130,7 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
             event = random.choices(
                 population=population + [None], weights=weights, k=1
             )[0]
-        
+
         elif limited and exclusivity:
             # Here we try to determine what should be the chance of having a common card
             # since the rarity field is a value between 0 and 1, 1 being no
@@ -140,7 +142,7 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
             weights = [x.rarity for x in exclusivity] + [common_weight]
             # None is added representing the common carfigure
             exclusive = random.choices(
-                exclusivity=exclusivity + [None], weights=weights, k=1
+                population=exclusivity + [None], weights=weights, k=1
             )[0]
 
         is_new = not await CarInstance.filter(

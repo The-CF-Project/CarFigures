@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 import logging
 import random
@@ -37,6 +36,7 @@ from carfigures.core.utils.transformers import (
     CarTypeTransform,
     CountryTransform,
     EventTransform,
+    ExclusiveTransform,
 )
 from carfigures.packages.carfigures.carfigure import CarFigure
 from carfigures.packages.trade.display import TradeViewFormat, fill_trade_embed_fields
@@ -66,7 +66,7 @@ async def save_file(attachment: discord.Attachment) -> Path:
 
 @app_commands.guilds(*settings.superuser_guild_ids)
 @app_commands.default_permissions(administrator=True)
-class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
+class SuperUser(commands.GroupCog, group_name=settings.sudo_group):
     """
     Bot admin commands.
     """
@@ -82,7 +82,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
     blacklist_guild = app_commands.Group(
         name="blacklistguild", description="Guild blacklist management"
     )
-    cars = app_commands.Group(name=settings.cars_group_name, description="s management")
+    cars = app_commands.Group(name=settings.cars_group, description="s management")
     logs = app_commands.Group(name="logs", description="Bot logs management")
     history = app_commands.Group(name="history", description="Trade history management")
     info = app_commands.Group(name="info", description="Information commands")
@@ -503,8 +503,9 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         for guild in guilds:
             config = await GuildConfig.get_or_none(guild_id=guild.id)
             spawn_enabled = False
-            if config and guild.member_count <= 15:
-                spawn_enabled = config.enabled and config.guild_id
+            if guild.member_count:
+                if config and guild.member_count <= 15:
+                    spawn_enabled = config.enabled and config.guild_id
 
             field_name = f"`{guild.id}`"
             field_value = ""
@@ -552,60 +553,6 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         )
         await pages.start(ephemeral=True)
 
-    async def _spawn_bomb(
-        self,
-        interaction: discord.Interaction,
-        carfigure: Car | None,
-        channel: discord.TextChannel,
-        amount: int,
-    ):
-        spawned = 0
-
-        async def update_message_loop():
-            nonlocal spawned
-            for i in range(5 * 12 * 10):  # timeout progress after 10 minutes
-                await interaction.followup.edit_message(
-                    "@original",  # type: ignore
-                    content=f"Spawn bomb in progress in {channel.mention}, "
-                    f"{settings.collectible_name.title()}: {carfigure or 'Random'}\n"
-                    f"{spawned}/{amount} spawned ({round((spawned/amount)*100)}%)",
-                )
-                await asyncio.sleep(5)
-            await interaction.followup.edit_message(
-                "@original",
-                content="Spawn bomb seems to have timed out.",  # type: ignore
-            )
-
-        await interaction.response.send_message(
-            f"Starting spawn bomb in {channel.mention}...", ephemeral=True
-        )
-        task = self.bot.loop.create_task(update_message_loop())
-        try:
-            for i in range(amount):
-                if not carfigure:
-                    car = await CarFigure.get_random()
-                else:
-                    car = CarFigure(carfigure)
-                result = await car.spawn(channel)
-                if not result:
-                    task.cancel()
-                    await interaction.followup.edit_message(
-                        "@original",  # type: ignore
-                        content=f"A {settings.collectible_name} failed to spawn, probably "
-                        "indicating a lack of permissions to send messages "
-                        f"or upload files in {channel.mention}.",
-                    )
-                    return
-                spawned += 1
-            task.cancel()
-            await interaction.followup.edit_message(
-                "@original",  # type: ignore
-                content=f"Successfully spawned {spawned} {settings.collectible_name}s "
-                f"in {channel.mention}!",
-            )
-        finally:
-            task.cancel()
-
     @cars.command()
     @app_commands.checks.has_any_role(*settings.root_role_ids)
     async def spawn(
@@ -613,7 +560,6 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         interaction: discord.Interaction,
         carfigure: CarTransform | None = None,
         channel: discord.TextChannel | None = None,
-        amount: int = 1,
     ):
         """
         Force spawn a random or specified car.
@@ -624,39 +570,9 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             The carfigure you want to spawn. Random according to rarities if not specified.
         channel: discord.TextChannel | None
             The channel you want to spawn the carfigure in. Current channel if not specified.
-        amount: int
-            The number of carfigures to spawn. If no carfigure was specified, it's random
-            every time.
         """
         # the transformer triggered a response, meaning user tried an incorrect input
         if interaction.response.is_done():
-            return
-
-        if amount < 1:
-            await interaction.response.send_message(
-                "The `amount` must be superior or equal to 1.", ephemeral=True
-            )
-            return
-        if amount > 100:
-            await interaction.response.send_message(
-                f"That doesn't seem reasonable to spawn {amount} times, "
-                "the bot will be rate-limited. Try something lower than 100.",
-                ephemeral=True,
-            )
-            return
-
-        if amount > 1:
-            await self._spawn_bomb(
-                interaction,
-                carfigure,
-                channel or interaction.channel,
-                amount,  # type: ignore
-            )
-            await log_action(
-                f"{interaction.user} spawned {settings.collectible_name}"
-                f" {car.name} {amount} times in {channel or interaction.channel}.",
-                self.bot,
-            )
             return
 
         await interaction.response.defer(ephemeral=True, thinking=True)
@@ -668,10 +584,10 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
 
         if result:
             await interaction.followup.send(
-                f"{settings.collectible_name.title()} spawned.", ephemeral=True
+                f"{settings.collectible_singular.title()} spawned.", ephemeral=True
             )
             await log_action(
-                f"{interaction.user} spawned {settings.collectible_name} {car.name} "
+                f"{interaction.user} spawned {settings.collectible_singular} {car.name} "
                 f"in {channel or interaction.channel}.",
                 self.bot,
             )
@@ -683,9 +599,8 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         interaction: discord.Interaction,
         car: CarTransform,
         user: discord.User,
-        amount: int | None = 1,
         event: EventTransform | None = None,
-        limited: bool | None = None,
+        exclusive: ExclusiveTransform | None = None,
         weight_bonus: int | None = None,
         horsepower_bonus: int | None = None,
     ):
@@ -694,12 +609,14 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
 
         Parameters
         ----------
-        car: Car
+        carfigure: Car
+            The car u want to give
         user: discord.User
-        amount: int
+            The user who is this car given to
         event: Event | None
-        limited: bool
-            Omit this to make it random.
+            The event u want to assosiate this carfigure with
+        exclusive: Exclusive | None
+            The exclusive card u want to attact with the carfigure.
         weight_bonus: int | None
             Omit this to make it random (-50/+50%).
         horsepower_bonus: int | None
@@ -710,52 +627,34 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             return
         await interaction.response.defer(ephemeral=True, thinking=True)
 
-        if amount < 1:
-            await interaction.followup.send(
-                "The `amount` must be superior or equal to 1.", ephemeral=True
-            )
-            return
-        if amount > 1000:
-            await interaction.followup.send(
-                f"It is not reasonable to give {amount} {settings.collectible_name}s, "
-                "try an amount that is lower than 1000.",
-                ephemeral=True,
-            )
-            return
-
         player, created = await Player.get_or_create(discord_id=user.id)
-        for i in range(amount):
-            instance = await CarInstance.create(
-                car=car,
-                player=player,
-                limited=(
-                    limited if limited is not None else random.randint(1, 2048) == 1
-                ),
-                horsepower_bonus=(
-                    horsepower_bonus
-                    if horsepower_bonus is not None
-                    else random.randint(-50, 50)
-                ),
-                weight_bonus=(
-                    weight_bonus
-                    if weight_bonus is not None
-                    else random.randint(-50, 50)
-                ),
-                event=event,
-            )
+        instance = await CarInstance.create(
+            car=car,
+            player=player,
+            exclusive=exclusive,
+            horsepower_bonus=(
+                horsepower_bonus
+                if horsepower_bonus is not None
+                else random.randint(-50, 50)
+            ),
+            weight_bonus=(
+                weight_bonus if weight_bonus is not None else random.randint(-50, 50)
+            ),
+            event=event,
+        )
         await interaction.followup.send(
-            f"`{amount}` `{car.full_name + 's' if amount > 1 else car.full_name}` "
-            f"{settings.collectible_name} was successfully given to `{user}`.\n"
+            f"`a {car.full_name}` was successfully given to `{user}`.\n"
             f"Event: `{event.name if event else None}` "
+            f"Exclusive: `{exclusive.name if exclusive else None} "
             f"• `{settings.hp_replacement}`:`{instance.horsepower_bonus:+d}` • "
-            f"{settings.kg_replacement}:`{instance.weight_bonus:+d}` • Limited: `{instance.limited}`"
+            f"{settings.kg_replacement}:`{instance.weight_bonus:+d}`"
         )
         await log_action(
-            f"{interaction.user} gave {amount} {settings.collectible_name} "
-            f"{car.full_name + 's' if amount > 1 else car.full_name} to {user}. "
+            f"{interaction.user} gave a {car.full_name} to {user}.  "
             f"Event={event.name if event else None} "
+            f"Exclusive={exclusive.name if exclusive else None}"
             f"{settings.hp_replacement}={instance.horsepower_bonus:+d} "
-            f"{settings.kg_replacement}={instance.weight_bonus:+d} limited={instance.limited}",
+            f"{settings.kg_replacement}={instance.weight_bonus:+d}",
             self.bot,
         )
 
@@ -1091,20 +990,20 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
     @app_commands.checks.has_any_role(
         *settings.root_role_ids, *settings.superuser_role_ids
     )
-    async def cars_info(self, interaction: discord.Interaction, car_id: str):
+    async def cars_info(self, interaction: discord.Interaction, carfigure_id: str):
         """
         Show information about a car.
 
         Parameters
         ----------
-        car_id: str
+        carfigure_id: str
             The ID of the car you want to get information about.
         """
         try:
-            pk = int(car_id, 16)
+            pk = int(carfigure_id, 16)
         except ValueError:
             await interaction.response.send_message(
-                f"The {settings.collectible_name} ID you gave is not valid.",
+                f"The {settings.collectible_singular} ID you gave is not valid.",
                 ephemeral=True,
             )
             return
@@ -1114,7 +1013,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             )
         except DoesNotExist:
             await interaction.response.send_message(
-                f"The {settings.collectible_name} ID you gave does not exist.",
+                f"The {settings.collectible_singular} ID you gave does not exist.",
                 ephemeral=True,
             )
             return
@@ -1127,12 +1026,12 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             else "N/A"
         )
         await interaction.response.send_message(
-            f"**{settings.collectible_name.title()} ID:** {car.pk}\n"
+            f"**{settings.collectible_singular.title()} ID:** {car.pk}\n"
             f"**Player:** {car.player}\n"
             f"**Name:** {car.carfigure}\n"
             f"**{settings.horsepower_replacement} bonus:** {car.horsepower_bonus}\n"
             f"**{settings.weight_replacement} bonus:** {car.weight_bonus}\n"
-            f"**Limited:** {car.limited}\n"
+            f"**Exclusive:** {car.exclusive.name if car.exclusive else None}\n"
             f"**Event:** {car.event.name if car.event else None}\n"
             f"**Caught at:** {format_dt(car.catch_date, style='R')}\n"
             f"**Spawned at:** {spawned_time}\n"
@@ -1143,59 +1042,26 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         )
         await log_action(f"{interaction.user} got info for {car} ({car.pk})", self.bot)
 
-    @cars.command(name="delete")
-    @app_commands.checks.has_any_role(*settings.root_role_ids)
-    async def cars_delete(self, interaction: discord.Interaction, car_id: str):
-        """
-        Delete a car.
-
-        Parameters
-        ----------
-        car_id: str
-            The ID of the car you want to get information about.
-        """
-        try:
-            carIdConverted = int(car_id, 16)
-        except ValueError:
-            await interaction.response.send_message(
-                f"The {settings.collectible_name} ID you gave is not valid.",
-                ephemeral=True,
-            )
-            return
-        try:
-            car = await CarInstance.get(id=carIdConverted)
-        except DoesNotExist:
-            await interaction.response.send_message(
-                f"The {settings.collectible_name} ID you gave does not exist.",
-                ephemeral=True,
-            )
-            return
-        await car.delete()
-        await interaction.response.send_message(
-            f"{settings.collectible_name.title()} {car_id} deleted.", ephemeral=True
-        )
-        await log_action(f"{interaction.user} deleted {car} ({car.pk})", self.bot)
-
     @cars.command(name="transfer")
     @app_commands.checks.has_any_role(*settings.root_role_ids)
     async def cars_transfer(
-        self, interaction: discord.Interaction, car_id: str, user: discord.User
+        self, interaction: discord.Interaction, carfigure_id: str, user: discord.User
     ):
         """
         Transfer a car to another user.
 
         Parameters
         ----------
-        car_id: str
+        carfigure_id: str
             The ID of the car you want to get information about.
         user: discord.User
             The user you want to transfer the car to.
         """
         try:
-            carIdConverted = int(car_id, 16)
+            carIdConverted = int(carfigure_id, 16)
         except ValueError:
             await interaction.response.send_message(
-                f"The {settings.collectible_name} ID you gave is not valid.",
+                f"The {settings.collectible_singular} ID you gave is not valid.",
                 ephemeral=True,
             )
             return
@@ -1204,7 +1070,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             original_player = car.player
         except DoesNotExist:
             await interaction.response.send_message(
-                f"The {settings.collectible_name} ID you gave does not exist.",
+                f"The {settings.collectible_singular} ID you gave does not exist.",
                 ephemeral=True,
             )
             return
@@ -1212,8 +1078,6 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         car.player = player
         await car.save()
 
-        trade = await Trade.create(player1=original_player, player2=player)
-        await TradeObject.create(trade=trade, carinstance=car, player=original_player)
         await interaction.response.send_message(
             f"Transfered {car} ({car.pk}) from {original_player} to {user}.",
             ephemeral=True,
@@ -1255,11 +1119,11 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         await interaction.response.defer(ephemeral=True, thinking=True)
 
         if not percentage:
-            text = f"Are you sure you want to delete {user}'s {settings.collectible_name}s?"
+            text = f"Are you sure you want to delete {user}'s {settings.collectible_plural}?"
         else:
             text = (
                 f"Are you sure you want to delete {percentage}% of "
-                f"{user}'s {settings.collectible_name}s?"
+                f"{user}'s {settings.collectible_plural}?"
             )
         view = ConfirmChoiceView(interaction)
         await interaction.followup.send(
@@ -1279,7 +1143,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         else:
             count = await CarInstance.filter(player=player).delete()
         await interaction.followup.send(
-            f"{count} {settings.collectible_name}s from {user} have been reset.",
+            f"{count} {settings.collectible_plural} from {user} have been reset.",
             ephemeral=True,
         )
         await log_action(
@@ -1293,8 +1157,8 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         self,
         interaction: discord.Interaction,
         user: discord.User | None = None,
-        car: CarTransform | None = None,
-        limited: bool | None = None,
+        carfigure: CarTransform | None = None,
+        exclusive: ExclusiveTransform | None = None,
         event: EventTransform | None = None,
     ):
         """
@@ -1305,35 +1169,39 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         user: discord.User
             The user you want to count the cars of.
         car: Car
-        limited: bool
+        exclusive: Exclusive
         event: Event
         """
         if interaction.response.is_done():
             return
         filters = {}
-        if car:
-            filters["car"] = car
-        if limited is not None:
-            filters["limited"] = limited
+        if carfigure:
+            filters["car"] = carfigure
+        if exclusive:
+            filters["exclusive"] = exclusive
         if event:
             filters["event"] = event
         if user:
             filters["player__discord_id"] = user.id
         await interaction.response.defer(ephemeral=True, thinking=True)
         cars = await CarInstance.filter(**filters).count()
-        full_name = f"{car.full_name} " if car else ""
-        plural = "s" if cars > 1 or cars == 0 else ""
+        full_name = f"{carfigure.full_name} " if carfigure else ""
+        collectible = (
+            f"{settings.collectible_plural}"
+            if cars > 1 or cars == 0
+            else f"{settings.collectible_singular}"
+        )
         event_str = f"{event.name} " if event else ""
-        limited_str = "limited " if limited else ""
+        exclusive_str = f"{exclusive.name} " if exclusive else ""
         if user:
             await interaction.followup.send(
-                f"{user} has {cars} {event_str}{limited_str}"
-                f"{full_name}{settings.collectible_name}{plural}."
+                f"{user} has {cars} {event_str}{exclusive_str}"
+                f"{full_name}{collectible}."
             )
         else:
             await interaction.followup.send(
-                f"There are {cars} {event_str}{limited_str}"
-                f"{full_name}{settings.collectible_name}{plural}."
+                f"There are {cars} {event_str}{exclusive_str}"
+                f"{full_name}{collectible}."
             )
 
     @cars.command(name="create")
@@ -1414,7 +1282,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         if not spawn_image and not default_path.exists():
             missing_default = (
                 "**Warning:** The default spawn image is not set. This will result in errors when "
-                f"attempting to spawn this {settings.collectible_name}. You can edit this on the "
+                f"attempting to spawn this {settings.collectible_singular}. You can edit this on the "
                 "web panel or add an image at `./carfigures/core/image_generator/src/default.png`.\n"
             )
 
@@ -1461,7 +1329,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         except BaseORMException as e:
             log.exception("Failed creating carfigure with admin command", exc_info=True)
             await interaction.followup.send(
-                f"Failed creating the {settings.collectible_name}.\n"
+                f"Failed creating the {settings.collectible_singular}.\n"
                 f"Partial error: {', '.join(str(x) for x in e.args)}\n"
                 "The full error is in the bot logs."
             )
@@ -1471,7 +1339,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
                 files.append(await spawn_image.to_file())
             await self.bot.load_cache()
             await interaction.followup.send(
-                f"Successfully created a {settings.collectible_name} with ID {car.pk}! "
+                f"Successfully created a {settings.collectible_singular} with ID {car.pk}! "
                 "The internal cache was reloaded.\n"
                 f"{missing_default}\n"
                 f"{name=} {settings.cartype_replacement}={cartype.name} "
@@ -1609,7 +1477,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
     async def history_car(
         self,
         interaction: discord.Interaction["CarFiguresBot"],
-        carid: str,
+        carfigure_id: str,
         sorting: app_commands.Choice[str],
     ):
         """
@@ -1624,10 +1492,10 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         """
 
         try:
-            pk = int(carid, 16)
+            pk = int(carfigure_id, 16)
         except ValueError:
             await interaction.response.send_message(
-                f"The {settings.collectible_name} ID you gave is not valid.",
+                f"The {settings.collectible_singular} ID you gave is not valid.",
                 ephemeral=True,
             )
             return
@@ -1635,7 +1503,7 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         car = await CarInstance.get(id=pk)
         if not car:
             await interaction.response.send_message(
-                f"The {settings.collectible_name} ID you gave does not exist.",
+                f"The {settings.collectible_singular} ID you gave does not exist.",
                 ephemeral=True,
             )
             return
@@ -1652,7 +1520,9 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             .order_by(sorting.value)
             .prefetch_related("player1", "player2")
         )
-        source = TradeViewFormat(trades, f"{settings.collectible_name} {car}", self.bot)
+        source = TradeViewFormat(
+            trades, f"{settings.collectible_singular} {car}", self.bot
+        )
         pages = Pages(source=source, interaction=interaction)
         await pages.start(ephemeral=True)
 
@@ -1759,11 +1629,11 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
         embed.add_field(name="Spawn Enabled", value=spawn_enabled)
         embed.add_field(name="Created at", value=format_dt(guild.created_at, style="R"))
         embed.add_field(
-            name=f"{settings.collectible_name.title()}s Caught ({days} days)",
+            name=f"{settings.collectible_plural.title()} Caught ({days} days)",
             value=len(total_server_cars),
         )
         embed.add_field(
-            name=f"Amount of Users who caught {settings.collectible_name}s ({days} days)",
+            name=f"Amount of Users who caught {settings.collectible_plural} ({days} days)",
             value=len(set([x.player.discord_id for x in total_server_cars])),
         )
 
@@ -1808,27 +1678,27 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             color=settings.default_embed_color,
         )
         embed.add_field(
-            name=f"{settings.collectible_name.title()}s Caught ({days} days)",
+            name=f"{settings.collectible_plural.title()} Caught ({days} days)",
             value=len(total_user_cars),
         )
         embed.add_field(
-            name=f"{settings.collectible_name.title()}s Caught (Unique - ({days} days))",
+            name=f"{settings.collectible_plural.title()} Caught (Unique - ({days} days))",
             value=len(set(total_user_cars)),
         )
         embed.add_field(
-            name=f"Total Servers with {settings.collectible_name}s caught ({days} days))",
+            name=f"Total Servers with {settings.collectible_plural} caught ({days} days))",
             value=len(set([x.server_id for x in total_user_cars])),
         )
         embed.add_field(
-            name=f"Total {settings.collectible_name.title()}s Caught",
+            name=f"Total {settings.collectible_plural.title()} Caught",
             value=await CarInstance.filter(player__discord_id=user.id).count(),
         )
         embed.add_field(
-            name=f"Total Unique {settings.collectible_name.title()}s Caught",
+            name=f"Total Unique {settings.collectible_plural.title()} Caught",
             value=len(set([x.carfigure for x in total_user_cars])),
         )
         embed.add_field(
-            name=f"Total Servers with {settings.collectible_name.title()}s Caught",
+            name=f"Total Servers with {settings.collectible_plural.title()} Caught",
             value=len(set([x.server_id for x in total_user_cars])),
         )
         embed.set_thumbnail(url=user.display_avatar)  # type: ignore
@@ -1867,7 +1737,8 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             ephemeral=True,
         )
         await log_action(
-            f"{interaction.user} changed the privacy policy of {user.name} to {policy.name}."
+            f"{interaction.user} changed the privacy policy of {user.name} to {policy.name}.",
+            self.bot,
         )
 
     @player.command()
@@ -1910,7 +1781,8 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             ephemeral=True,
         )
         await log_action(
-            f"{interaction.user} changed the donation policy of {user.name} to {policy.name}."
+            f"{interaction.user} changed the donation policy of {user.name} to {policy.name}.",
+            self.bot,
         )
 
     @player.command()
@@ -1954,7 +1826,8 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             f"Successfully added {amount} rebirth{plural} to {user.name}."
         )
         await log_action(
-            f"{interaction.user} added {amount} rebirth{plural} to {user.name}."
+            f"{interaction.user} added {amount} rebirth{plural} to {user.name}.",
+            self.bot,
         )
 
     @player.command()
@@ -2005,5 +1878,6 @@ class SuperUser(commands.GroupCog, group_name=settings.sudo_group_name):
             f"Successfully removed {amount} rebirth{plural} from {user.name}."
         )
         await log_action(
-            f"{interaction.user} removed {amount} rebirth{plural} from {user.name}."
+            f"{interaction.user} removed {amount} rebirth{plural} from {user.name}.",
+            self.bot,
         )

@@ -1,9 +1,12 @@
 import psutil
-import random
+from typing import List
 
 import discord
 from discord import app_commands
-from carfigures.core.models import Car, cars as carfigures
+from discord.ui import Select, View
+
+from carfigures.core.models import Library
+from carfigures.settings import settings
 
 
 def machine_info():
@@ -43,15 +46,36 @@ def mention_app_command(app_command: app_commands.Command | app_commands.Group) 
             return f"`/{app_command.name}`"
 
 
-async def _get_10_cars_emojis(self) -> list[discord.Emoji]:
-    """
-    Return a list of up to 10 Discord emojis representing cars.
-    """
-    cars: list[Car] = random.choices(
-        [x for x in carfigures.values() if x.enabled], k=min(10, len(carfigures))
-    )
-    emotes: list[discord.Emoji] = []
-    for car in cars:
-        if emoji := self.bot.get_emoji(car.emoji_id):
-            emotes.append(emoji)
-    return emotes
+class LibrarySelector(View):
+    def __init__(self, topics: List[Library]):
+        super().__init__()
+        self.add_item(LibrarySource(topics))
+
+
+class LibrarySource(Select):
+    def __init__(self, library: List[Library]):
+        options = [
+            discord.SelectOption(
+                label=topic.topic,
+                description=topic.description,
+                value=str(topic.pk),
+            )
+            for topic in library
+        ]
+        super().__init__(
+            placeholder="Choose a topic...", min_values=1, max_values=1, options=options
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        topic_id = int(self.values[0])
+        selected_topic = await Library.get(id=topic_id)
+        embed = discord.Embed(
+            title=f"☳ {settings.bot_name} Documentations",
+            description=f"∴ {selected_topic.description}",
+            color=settings.default_embed_color,
+        )
+        embed.add_field(
+            name=f"⋄ {selected_topic.topic} | {selected_topic.description}",
+            value=selected_topic.text,
+        )
+        await interaction.response.edit_message(embed=embed, view=self.view)

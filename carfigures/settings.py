@@ -60,7 +60,8 @@ class Settings:
     max_favorites: int = 50
     default_embed_color: int = 0
 
-    collectible_name: str = ""
+    collectible_singular: str = ""
+    collectible_plural: str = ""
     cartype_replacement: str = ""
     country_replacement: str = ""
     horsepower_replacement: str = ""
@@ -68,33 +69,33 @@ class Settings:
     hp_replacement: str = ""
     kg_replacement: str = ""
 
-    cars_group_name: str = ""
-    sudo_group_name: str = ""
-    info_group_name: str = ""
-    my_group_name: str = ""
-    trade_group_name: str = ""
+    cars_group: str = ""
+    sudo_group: str = ""
+    info_group: str = ""
+    my_group: str = ""
+    trade_group: str = ""
 
-    garage_command_name: str = ""
-    exhibit_command_name: str = ""
-    show_command_name: str = ""
-    info_command_name: str = ""
-    last_command_name: str = ""
-    favorite_command_name: str = ""
-    give_command_name: str = ""
-    count_command_name: str = ""
-    rarity_command_name: str = ""
-    compare_command_name: str = ""
+    garage_name: str = ""
+    exhibit_name: str = ""
+    show_name: str = ""
+    info_name: str = ""
+    last_name: str = ""
+    favorite_name: str = ""
+    give_name: str = ""
+    count_name: str = ""
+    rarity_name: str = ""
+    compare_name: str = ""
 
-    garage_command_desc: str = ""
-    exhibit_command_desc: str = ""
-    show_command_desc: str = ""
-    info_command_desc: str = ""
-    last_command_desc: str = ""
-    favorite_command_desc: str = ""
-    give_command_desc: str = ""
-    count_command_desc: str = ""
-    rarity_command_desc: str = ""
-    compare_command_desc: str = ""
+    garage_desc: str = ""
+    exhibit_desc: str = ""
+    show_desc: str = ""
+    info_desc: str = ""
+    last_desc: str = ""
+    favorite_desc: str = ""
+    give_desc: str = ""
+    count_desc: str = ""
+    rarity_desc: str = ""
+    compare_desc: str = ""
 
     # /info status
     repository_link: str = ""
@@ -138,7 +139,8 @@ def read_settings(path: "Path"):
     settings.spawnalert = config["settings"]["spawnalert"]
     settings.default_embed_color = int(config["settings"]["default_embed_color"], 16)
 
-    settings.collectible_name = config["appearance"]["collectible_name"]
+    settings.collectible_singular = config["appearance"]["collectible_singular"]
+    settings.collectible_plural = config["appearance"]["collectible_plural"]
     settings.cartype_replacement = config["appearance"]["cartype"]
     settings.country_replacement = config["appearance"]["country"]
     settings.horsepower_replacement = config["appearance"]["horsepower"]
@@ -146,33 +148,33 @@ def read_settings(path: "Path"):
     settings.hp_replacement = config["appearance"]["hp"]
     settings.kg_replacement = config["appearance"]["kg"]
 
-    settings.cars_group_name = config["commands"]["groups"]["cars"]
-    settings.sudo_group_name = config["commands"]["groups"]["sudo"]
-    settings.info_group_name = config["commands"]["groups"]["info"]
-    settings.my_group_name = config["commands"]["groups"]["my"]
-    settings.trade_group_name = config["commands"]["groups"]["trade"]
+    settings.cars_group = config["commands"]["groups"]["cars"]
+    settings.sudo_group = config["commands"]["groups"]["sudo"]
+    settings.info_group = config["commands"]["groups"]["info"]
+    settings.my_group = config["commands"]["groups"]["my"]
+    settings.trade_group = config["commands"]["groups"]["trade"]
 
-    settings.garage_command_name = config["commands"]["names"]["garage"]
-    settings.exhibit_command_name = config["commands"]["names"]["exhibit"]
-    settings.show_command_name = config["commands"]["names"]["show"]
-    settings.info_command_name = config["commands"]["names"]["info"]
-    settings.last_command_name = config["commands"]["names"]["last"]
-    settings.favorite_command_name = config["commands"]["names"]["favorite"]
-    settings.give_command_name = config["commands"]["names"]["give"]
-    settings.count_command_name = config["commands"]["names"]["count"]
-    settings.rarity_command_name = config["commands"]["names"]["rarity"]
-    settings.compare_command_name = config["commands"]["names"]["compare"]
+    settings.garage_name = config["commands"]["names"]["garage"]
+    settings.exhibit_name = config["commands"]["names"]["exhibit"]
+    settings.show_name = config["commands"]["names"]["show"]
+    settings.info_name = config["commands"]["names"]["info"]
+    settings.last_name = config["commands"]["names"]["last"]
+    settings.favorite_name = config["commands"]["names"]["favorite"]
+    settings.give_name = config["commands"]["names"]["give"]
+    settings.count_name = config["commands"]["names"]["count"]
+    settings.rarity_name = config["commands"]["names"]["rarity"]
+    settings.compare_name = config["commands"]["names"]["compare"]
 
-    settings.garage_command_desc = config["commands"]["descs"]["garage"]
-    settings.exhibit_command_desc = config["commands"]["descs"]["exhibit"]
-    settings.show_command_desc = config["commands"]["descs"]["show"]
-    settings.info_command_desc = config["commands"]["descs"]["info"]
-    settings.last_command_desc = config["commands"]["descs"]["last"]
-    settings.favorite_command_desc = config["commands"]["descs"]["favorite"]
-    settings.give_command_desc = config["commands"]["descs"]["give"]
-    settings.count_command_desc = config["commands"]["descs"]["count"]
-    settings.rarity_command_desc = config["commands"]["descs"]["rarity"]
-    settings.compare_command_desc = config["commands"]["descs"]["compare"]
+    settings.garage_desc = config["commands"]["descs"]["garage"]
+    settings.exhibit_desc = config["commands"]["descs"]["exhibit"]
+    settings.show_desc = config["commands"]["descs"]["show"]
+    settings.info_desc = config["commands"]["descs"]["info"]
+    settings.last_desc = config["commands"]["descs"]["last"]
+    settings.favorite_desc = config["commands"]["descs"]["favorite"]
+    settings.give_desc = config["commands"]["descs"]["give"]
+    settings.count_desc = config["commands"]["descs"]["count"]
+    settings.rarity_desc = config["commands"]["descs"]["rarity"]
+    settings.compare_desc = config["commands"]["descs"]["compare"]
 
     settings.repository_link = config["info"]["links"]["repository_link"]
     settings.discord_invite = config["info"]["links"]["discord_invite"]
