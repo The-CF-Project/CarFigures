@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
+from carfigures.settings import settings
 if TYPE_CHECKING:
     from carfigures.core.models import CarInstance, Event
 
@@ -114,7 +115,7 @@ def draw_card(car_instance: "CarInstance"):
     )
     draw.text(
         (30, 1870),
-        f"Image Credits: {car.image_credits}\nCar Suggester: {car.car_suggester}",
+        f"Image Credits: {car.image_credits}\n{settings.collectible_name.title()} Suggester: {car.car_suggester}",
         font=card_credits_font,
         fill=(255, 255, 255, 255),
         stroke_width=2,

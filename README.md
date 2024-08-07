@@ -115,8 +115,7 @@ hp = "HP"
 cars = "cars"
 sudo = "sudo"
 info = "info"
-player = "player"
-server = "server"
+my = "my"
 trade = "trade"
 
 [commands.names]
