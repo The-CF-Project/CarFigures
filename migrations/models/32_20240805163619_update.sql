@@ -1,10 +1,29 @@
 -- upgrade --
 CREATE TABLE IF NOT EXISTS "library" (
     "id" SERIAL NOT NULL PRIMARY KEY,
-    "topic" VARCHAR(100) NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
     "description" VARCHAR(256) NOT NULL,
     "type" SMALLINT NOT NULL  DEFAULT 1,
     "text" TEXT not NULL
 );
+
+ALTER TABLE "player" ADD "bolts" INT NOT NULL  DEFAULT 0;
+CREATE TABLE "friendship" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "player1" INTEGER NOT NULL REFERENCES "player" ("id") ON DELETE CASCADE,
+    "player2" INTEGER NOT NULL REFERENCES "player" ("id") ON DELETE CASCADE,
+    "bestie" BOOLEAN NOT NULL DEFAULT FALSE,
+    "since" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE "friendshiprequest" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "sender" INTEGER NOT NULL REFERENCES "player" ("id") ON DELETE CASCADE,
+    "receiver" INTEGER NOT NULL REFERENCES "player" ("id") ON DELETE CASCADE,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- downgrade --
 DROP TABLE IF EXISTS "library";
+DROP TABLE IF EXISTS "friendship";
+DROP TABLE IF EXISTS "friendshiprequest"

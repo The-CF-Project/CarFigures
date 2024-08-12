@@ -23,7 +23,7 @@ from carfigures.core.models import (
     countries,
     cartypes,
 )
-from carfigures.settings import settings
+from carfigures.settings import appearance
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -34,6 +34,7 @@ T = TypeVar("T", bound=Model)
 __all__ = (
     "CarTransform",
     "CarInstanceTransform",
+    "ExclusiveTransform",
     "EventTransform",
     "CarTypeTransform",
     "CountryTransform",
@@ -152,7 +153,7 @@ class ModelTransformer(app_commands.Transformer, Generic[T]):
 
 
 class CarInstanceTransformer(ModelTransformer[CarInstance]):
-    name = settings.collectible_name.lower()
+    name = appearance.collectible_singular.lower()
     model = CarInstance  # type: ignore
 
     async def get_from_pk(self, value: int) -> CarInstance:
@@ -164,7 +165,7 @@ class CarInstanceTransformer(ModelTransformer[CarInstance]):
         # checking if the car does belong to user, and a custom ID wasn't forced
         if item.player.discord_id != interaction.user.id:
             raise ValidationError(
-                f"That {settings.collectible_name} doesn't belong to you."
+                f"That {appearance.collectible_singular} doesn't belong to you."
             )
 
     async def get_options(
@@ -268,7 +269,7 @@ class TTLModelTransformer(ModelTransformer[T]):
 
 
 class CarTransformer(TTLModelTransformer[Car]):
-    name = settings.collectible_singular.lower()
+    name = appearance.collectible_singular.lower()
     model = Car()
 
     def key(self, model: Car) -> str:

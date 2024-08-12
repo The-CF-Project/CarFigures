@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
-from carfigures.settings import settings
+from carfigures.settings import appearance
+
 if TYPE_CHECKING:
     from carfigures.core.models import CarInstance, Event
 
@@ -34,23 +35,6 @@ card_credits_font = ImageFont.truetype(
 
 CARD_CORNERS = ((0, 181), (1428, 948))
 artwork_size = [b - a for a, b in zip(*CARD_CORNERS)]
-
-
-EVENT_WIDTH = 1280
-Event_HEIGHT = 720
-
-EVENT_CORNERS = ((0, 0), (1280, 720))
-
-event_title_font = ImageFont.truetype(
-    str(SOURCES_PATH / "LemonMilkMedium-mLZYV.otf"), 40
-)
-event_description_font = ImageFont.truetype(
-    str(SOURCES_PATH / "MomcakeBold-WyonA.otf"), 30
-)
-event_status_font = ImageFont.truetype(str(SOURCES_PATH / "MomcakeBold-WyonA.otf"), 25)
-event_credits_font = ImageFont.truetype(
-    str(SOURCES_PATH / "BinomaTrialBold-1jPDj.ttf"), 20
-)
 
 
 def draw_card(car_instance: "CarInstance"):
@@ -115,7 +99,7 @@ def draw_card(car_instance: "CarInstance"):
     )
     draw.text(
         (30, 1870),
-        f"Image Credits: {car.image_credits}\n{settings.collectible_name.title()} Suggester: {car.car_suggester}",
+        f"Image Credits: {car.image_credits}\n{appearance.collectible_singular.title()} Suggester: {car.car_suggester}",
         font=card_credits_font,
         fill=(255, 255, 255, 255),
         stroke_width=2,
@@ -138,50 +122,82 @@ def draw_banner(event: "Event"):
     image = Image.open("." + event.banner)
     image = image.convert("RGBA")
     draw = ImageDraw.Draw(image)
-    draw.text((15, 5), event.name, font=event_title_font, fill=(0, 0, 0, 255))
-    draw.text((10, 0), event.name, font=event_title_font, fill=(255, 255, 255, 255))
+
+    image_width, image_height = image.size
+
+    title_font_size = int(image_width * 0.03)
+    description_font_size = int(image_width * 0.025)
+    status_font_size = int(image_width * 0.02)
+    credits_font_size = int(image_width * 0.015)
+
+    event_title_font = ImageFont.truetype(
+        str(SOURCES_PATH / "LemonMilkMedium-mLZYV.otf"), title_font_size
+    )
+    event_description_font = ImageFont.truetype(
+        str(SOURCES_PATH / "MomcakeBold-WyonA.otf"), description_font_size
+    )
+    event_status_font = ImageFont.truetype(
+        str(SOURCES_PATH / "MomcakeBold-WyonA.otf"), status_font_size
+    )
+    event_credits_font = ImageFont.truetype(
+        str(SOURCES_PATH / "BinomaTrialBold-1jPDj.ttf"), credits_font_size
+    )
+
+    # Calculate dynamic positions
+    title_position = (int(image_width * 0.015), int(image_height * 0.01))
+    description_position_y = int(image_height * 0.15)
+    status_position = (int(image_width * 0.01), int(image_height * 0.95))
+    credits_position = (int(image_width * 0.99), int(image_height * 0.95))
+
+    # Draw title
+    draw.text(
+        title_position,
+        event.name,
+        font=event_title_font,
+        fill=(255, 255, 255, 255),
+        stroke_fill=(0, 0, 0, 255),
+        stroke_width=2,
+    )
+
+    # Draw description
     for i, line in enumerate(textwrap.wrap(event.description, width=100)):
         draw.text(
-            (60, 100 + 60 * i),
+            (title_position[0], description_position_y + i * description_font_size * 2),
             line,
             font=event_description_font,
-            stroke_width=1,
+            fill=(255, 255, 255, 255),
             stroke_fill=(0, 0, 0, 255),
+            stroke_width=2,
         )
+
+    # Draw event status
     draw.text(
-        (10, 690),
+        status_position,
         "Event Status:",
         font=event_status_font,
         fill=(255, 255, 255, 255),
-        stroke_width=2,
         stroke_fill=(0, 0, 0, 255),
+        stroke_width=1,
     )
-    if event.end_date > datetime.now(timezone.utc):
-        draw.text(
-            (155, 690),
-            "Live!",
-            font=event_status_font,
-            fill=(0, 255, 0, 255),
-            stroke_width=2,
-            stroke_fill=(0, 0, 0, 255),
-        )
-    else:
-        draw.text(
-            (155, 690),
-            "Ended!",
-            font=event_status_font,
-            fill=(255, 0, 0, 255),
-            stroke_width=2,
-            stroke_fill=(0, 0, 0, 255),
-        )
+    status_text = "Live!" if event.end_date > datetime.now(timezone.utc) else "Ended!"
     draw.text(
-        (1265, 692),
+        (status_position[0] + int(image_width * 0.12), status_position[1]),
+        status_text,
+        font=event_status_font,
+        fill=(0, 255, 0, 255) if status_text == "Live!" else (255, 0, 0, 255),
+        stroke_fill=(0, 0, 0, 255),
+        stroke_width=1,
+    )
+
+    # Draw credits
+    draw.text(
+        credits_position,
         "Created by Array_YE",
         font=event_credits_font,
         fill=(255, 255, 255, 255),
-        stroke_width=2,
         stroke_fill=(0, 0, 0, 255),
+        stroke_width=2,
         anchor="ra",
     )
-    image.paste(image, (EVENT_CORNERS[0]))
+
     return image

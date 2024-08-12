@@ -405,7 +405,7 @@ class LibraryResources(Model):
     page_pre_title = "The List of:"
     page_title = "Library Topics"
     fields = [
-        Field(name="topic", label="The Name of the Topic"),
+        Field(name="name", label="The Topic"),
         Field(name="description", label="Small Description about the Topic"),
         "type",
         "text",

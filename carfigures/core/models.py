@@ -10,10 +10,9 @@ import discord
 from discord.utils import format_dt
 from fastapi_admin.models import AbstractAdmin
 from tortoise import exceptions, fields, models, signals, timezone, validators
-from tortoise.fields.data import IntField
 
 from carfigures.core.image_generator.image_gen import draw_card, draw_banner
-from carfigures.settings import settings
+from carfigures.settings import appearance
 
 if TYPE_CHECKING:
     from tortoise.backends.base.client import BaseDBAsyncClient
@@ -174,6 +173,16 @@ class Event(models.Model):
             )
 
         return content, discord.File(buffer, "banner.png")
+
+
+class Albums(models.Model):
+    name = fields.CharField(max_length=64, unique=True)
+    rebirth_required = fields.IntField(default=0)
+    emoji = fields.CharField(
+        max_length=20,
+        description="Either a unicode character or a discord emoji ID",
+        null=True,
+    )
 
 
 class Car(models.Model):
@@ -446,8 +455,8 @@ class CarInstance(models.Model):
             f"ID: `#{self.pk:0X}`\n"
             f"Caught on {format_dt(self.catch_date)} ({format_dt(self.catch_date, style='R')}).\n"
             f"{trade_content}\n"
-            f"{settings.hp_replacement}: {self.horsepower} ({self.horsepower_bonus:+d}%)\n"
-            f"{settings.kg_replacement}: {self.weight} ({self.weight_bonus:+d}%)"
+            f"{appearance.hp}: {self.horsepower} ({self.horsepower_bonus:+d}%)\n"
+            f"{appearance.kg}: {self.weight} ({self.weight_bonus:+d}%)"
         )
 
         # draw image
@@ -502,10 +511,40 @@ class Player(models.Model):
         default=PrivacyPolicy.ALLOW,
     )
     cars: fields.BackwardFKRelation[CarInstance]
-    rebirths = IntField(default=0)
+    rebirths = fields.IntField(default=0)
+    bolts = fields.IntField(default=0)
 
     def __str__(self) -> str:
         return str(self.discord_id)
+
+
+class Friendship(models.Model):
+    id: int
+    player1: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="friend1"
+    )
+    player2: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="friend2"
+    )
+    bestie = fields.BooleanField(default=False)
+    since = fields.DatetimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return str(self.pk)
+
+
+class FriendshipRequest(models.Model):
+    id: int
+    sender: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="sender"
+    )
+    receiver: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="receiver"
+    )
+    date = fields.DatetimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return str(self.pk)
 
 
 class BlacklistedUser(models.Model):
@@ -540,7 +579,7 @@ class TopicType(IntEnum):
 
 
 class Library(models.Model):
-    topic = fields.CharField(
+    name = fields.CharField(
         max_length=100,
         description="What this topic name is",
     )
@@ -553,7 +592,7 @@ class Library(models.Model):
     text = fields.TextField(null=True, default=None)
 
     def __str__(self) -> str:
-        return self.topic
+        return self.name
 
 
 class Trade(models.Model):

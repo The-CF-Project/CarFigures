@@ -45,7 +45,13 @@ from carfigures.core.models import (
     events,
     exclusives,
 )
-from carfigures.settings import settings
+from carfigures.settings import (
+    settings,
+    appearance,
+    superuser,
+    information,
+    commandings,
+)
 
 if TYPE_CHECKING:
     from discord.ext.commands.bot import PrefixType
@@ -69,9 +75,9 @@ class Translator(app_commands.Translator):
             TranslationContextLocation.other,
         ):
             return None
-        return string.message.replace("carfigure", settings.collectible_name).replace(
-            "CarFigures", settings.bot_name
-        )
+        return string.message.replace(
+            "carfigure", appearance.collectible_singular
+        ).replace("CarFigures", settings.bot_name)
 
 
 # observing the duration and status code of HTTP requests through aiohttp TraceConfig
@@ -223,7 +229,7 @@ class CarFiguresBot(commands.AutoShardedBot):
         cars.clear()
         for car in await Car.all():
             cars[car.pk] = car
-        table.add_row(settings.collectible_name.title() + "s", str(len(cars)))
+        table.add_row(appearance.collectible_singular.title(), str(len(cars)))
 
         cartypes.clear()
         for cartype in await CarType.all():
@@ -350,13 +356,13 @@ class CarFiguresBot(commands.AutoShardedBot):
             log.info("No command to sync.")
 
         if "superuser" in PACKAGES:
-            for guild_id in settings.superuser_guild_ids:
+            for guild_id in superuser.supers:
                 guild = self.get_guild(guild_id)
                 if not guild:
                     continue
                 synced_commands = await self.tree.sync(guild=guild)
                 log.info(
-                    f"Synced {len(synced_commands)} {settings.sudo_group_name} commands for guild {guild.id}."
+                    f"Synced {len(synced_commands)} {commandings.sudo_group} commands for guild {guild.id}."
                 )
 
         if settings.prometheus_enabled:
@@ -378,7 +384,7 @@ class CarFiguresBot(commands.AutoShardedBot):
                 await interaction.response.send_message(
                     "You are blacklisted from the bot."
                     "\nYou can appeal this blacklist in our support server: {}".format(
-                        settings.discord_invite
+                        information.discord_invite
                     ),
                     ephemeral=True,
                 )
@@ -388,7 +394,7 @@ class CarFiguresBot(commands.AutoShardedBot):
                 await interaction.response.send_message(
                     "This server is blacklisted from the bot."
                     "\nYou can appeal this blacklist in our support server: {}".format(
-                        settings.discord_invite
+                        information.discord_invite
                     ),
                     ephemeral=True,
                 )

@@ -56,7 +56,7 @@ class LibrarySource(Select):
     def __init__(self, library: List[Library]):
         options = [
             discord.SelectOption(
-                label=topic.topic,
+                label=topic.name,
                 description=topic.description,
                 value=str(topic.pk),
             )
@@ -75,7 +75,7 @@ class LibrarySource(Select):
             color=settings.default_embed_color,
         )
         embed.add_field(
-            name=f"⋄ {selected_topic.topic} | {selected_topic.description}",
+            name=f"⋄ {selected_topic.name} | {selected_topic.description}",
             value=selected_topic.text,
         )
         await interaction.response.edit_message(embed=embed, view=self.view)

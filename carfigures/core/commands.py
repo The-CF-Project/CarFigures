@@ -9,7 +9,7 @@ from tortoise.exceptions import DoesNotExist
 
 from carfigures.packages.carfigures.carfigure import CarFigure
 from carfigures.core.models import Car
-from carfigures.settings import settings
+from carfigures.settings import settings, appearance
 
 log = logging.getLogger("carfigures.core.commands")
 
@@ -90,10 +90,10 @@ class Core(commands.Cog):
     async def spawn(
         self,
         ctx: commands.Context,
-        channel: discord.TextChannel | None = None,
         amount: int | None = 1,
         *,
         car: str | None = None,
+        channel: discord.TextChannel | None = None,
     ):
         """
         Spawn an entity.
@@ -105,7 +105,31 @@ class Core(commands.Cog):
                 try:
                     car_model = await Car.get(full_name__iexact=car.lower())
                 except DoesNotExist:
-                    await ctx.send(f"No such {settings.collectible_name} exists.")
+                    await ctx.send(f"No such {appearance.collectible_singular} exists.")
                     return
                 carfigure = CarFigure(car_model)
             await carfigure.spawn(channel or ctx.channel)
+
+    @commands.command()
+    @commands.is_owner()
+    async def topservers(self, ctx: commands.Context, amount: int | None = 10):
+        """
+        List the top (amount) servers in terms of members.
+        """
+        bot = self.bot
+
+        guilds = [guild for guild in bot.guilds]
+        sorted_guilds = sorted(
+            bot.guilds, key=lambda guild: guild.member_count, reverse=True
+        )
+        top_guilds = sorted_guilds[:amount]
+        embed = discord.Embed(
+            title=f"Top {amount} Servers",
+            description="",
+            color=settings.default_embed_color,
+        )
+
+        for guild in top_guilds:
+            embed.description += f"**{guild.name}** - {guild.member_count} members\n"
+
+        await ctx.send(embed=embed)

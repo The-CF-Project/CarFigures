@@ -23,7 +23,7 @@ from carfigures.packages.my.components import (
 )
 
 
-from carfigures.settings import settings
+from carfigures.settings import settings, appearance, commandings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.my")
 
 
-class My(commands.GroupCog, group_name=settings.my_group):
+class My(commands.GroupCog, group_name=commandings.my_group):
     """
     idk for now
     """
@@ -43,6 +43,7 @@ class My(commands.GroupCog, group_name=settings.my_group):
 
     server = app_commands.Group(name="server", description="Server management")
     own = app_commands.Group(name="own", description="My management")
+    friends = app_commands.Group(name="friends", description="Friends management")
 
     @own.command()
     @app_commands.choices(
@@ -98,7 +99,7 @@ class My(commands.GroupCog, group_name=settings.my_group):
         user.donation_policy = DonationPolicy(policy.value)
         if policy.value == DonationPolicy.ALWAYS_ACCEPT:
             await interaction.response.send_message(
-                f"Setting updated, you will now receive all donated {settings.collectible_plural} "
+                f"Setting updated, you will now receive all donated {appearance.collectible_plural} "
                 "immediately.",
                 ephemeral=True,
             )
@@ -110,7 +111,7 @@ class My(commands.GroupCog, group_name=settings.my_group):
         elif policy.value == DonationPolicy.ALWAYS_DENY:
             await interaction.response.send_message(
                 "Setting updated, it is now impossible to use "
-                f"`/{settings.cars_group} give` with "
+                f"`/{commandings.cars_group} {commandings.gift_name}` with "
                 "you. It is still possible to perform donations using the trade system.",
                 ephemeral=True,
             )
@@ -156,7 +157,7 @@ class My(commands.GroupCog, group_name=settings.my_group):
             f"\u200b **⋄ Privacy Policy:** {privacy}\n"
             f"\u200b **⋄ Donation Policy:** {donation}\n\n"
             f"**Ⅲ Player Info\n**"
-            f"\u200b **⋄ Cars Collected:** {await player.cars.filter().count()}\n"
+            f"\u200b **⋄ {appearance.collectible_plural.title()} Collected:** {await player.cars.filter().count()}\n"
             f"\u200b **⋄ Rebirths Done:** {player.rebirths}\n"
         )
 
@@ -174,7 +175,7 @@ class My(commands.GroupCog, group_name=settings.my_group):
 
         if not bot_carfigures:
             await interaction.response.send_message(
-                f"There are no {settings.collectible_plural} registered on this bot yet.",
+                f"There are no {appearance.collectible_plural} registered on this bot yet.",
                 ephemeral=True,
             )
             return
@@ -198,7 +199,7 @@ class My(commands.GroupCog, group_name=settings.my_group):
 
         view = ConfirmChoiceView(interaction)
         await interaction.response.send_message(
-            f"Are you sure you want to delete all your {settings.collectible_plural} for advantages?",
+            f"Are you sure you want to delete all your {appearance.collectible_plural} for advantages?",
             view=view,
         )
 
@@ -283,7 +284,7 @@ class My(commands.GroupCog, group_name=settings.my_group):
             self.bot.dispatch("carfigures_settings_change", guild, enabled=False)
             await interaction.response.send_message(
                 f"{settings.bot_name} is now disabled in this server. Commands will still be "
-                f"available, but the spawn of new {settings.collectible_plural} is suspended.\n"
+                f"available, but the spawn of new {appearance.collectible_plural} is suspended.\n"
                 "To re-enable the spawn, use the same command."
             )
         else:
@@ -295,7 +296,7 @@ class My(commands.GroupCog, group_name=settings.my_group):
             ):
                 await interaction.response.send_message(
                     f"{settings.bot_name} is now enabled in this server, "
-                    f"{settings.collectible_plural} will start spawning soon in {channel.mention}."
+                    f"{appearance.collectible_plural} will start spawning soon in {channel.mention}."
                 )
             else:
                 await interaction.response.send_message(
@@ -329,14 +330,14 @@ class My(commands.GroupCog, group_name=settings.my_group):
                 await config.save()
                 self.bot.dispatch("carfigures_settings_change", guild, role=None)
                 await interaction.response.send_message(
-                    f"{settings.bot_name} will no longer alert {role.mention} when {settings.collectible_plural} spawn."
+                    f"{settings.bot_name} will no longer alert {role.mention} when {appearance.collectible_plural} spawn."
                 )
             else:
                 config.spawn_ping = role.id  # type: ignore
                 await config.save()
                 self.bot.dispatch("carfigures_settings_change", guild, role=role)
                 await interaction.response.send_message(
-                    f"{settings.bot_name} will now alert {role.mention} when {settings.collectible_plural} spawn."
+                    f"{settings.bot_name} will now alert {role.mention} when {appearance.collectible_plural} spawn."
                 )
                 return
 
@@ -355,8 +356,8 @@ class My(commands.GroupCog, group_name=settings.my_group):
         if not settings.minimal_profile:
             cars = await _get_10_cars_emojis(self)
             emojis = " ".join(str(x) for x in cars)
-            spawn_channel = f"<#{guild.get_channel(config.spawn_channel).id}>"
-            spawn_role = f"<@&{guild.get_role(config.spawn_ping).id}>"
+            spawn_channel = f"<#{config.spawn_channel}>"
+            spawn_role = f"<@&{config.spawn_ping}>"
 
         embed = discord.Embed(
             title=f"❖ {guild.name} Server Info",

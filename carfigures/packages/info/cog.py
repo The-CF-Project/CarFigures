@@ -8,8 +8,8 @@ from discord import app_commands
 from discord.ext import commands
 
 from carfigures import bot_version
-from carfigures.settings import settings
-from carfigures.core.models import Library, TopicType, cars as carfigures
+from carfigures.settings import settings, commandings, information, appearance
+from carfigures.core.models import Library, TopicType, cars
 from carfigures.core.utils.transformers import EventTransform
 from carfigures.core.utils.paginator import FieldPageSource, Pages
 from carfigures.core.utils.tortoise import row_count_estimate
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.info")
 
 
-class Info(commands.GroupCog, group_name=settings.info_group):
+class Info(commands.GroupCog, group_name=commandings.info_group):
     """
     info commands.
     """
@@ -44,17 +44,23 @@ class Info(commands.GroupCog, group_name=settings.info_group):
             color=settings.default_embed_color,
         )
 
-        cars_count = len([x for x in carfigures.values() if x.enabled])
+        cars_count = len([x for x in cars.values() if x.enabled])
         players_count = await row_count_estimate("player")
         cars_instances_count = await row_count_estimate("carinstance")
         developers = "\n".join(
-            [f"\u200b **⋄** {developer}" for developer in settings.developers]
+            [f"\u200b **⋄** {developer}" for developer in information.developers]
         )
         first_contributors = "\n".join(
-            [f"\u200b **⋄** {contributor}" for contributor in settings.contributors[:4]]
+            [
+                f"\u200b **⋄** {contributor}"
+                for contributor in information.contributors[:4]
+            ]
         )
         remaining_contributors = "\n".join(
-            [f"\u200b **⋄** {contributor}" for contributor in settings.contributors[4:]]
+            [
+                f"\u200b **⋄** {contributor}"
+                for contributor in information.contributors[4:]
+            ]
         )
         (
             cpu_usage,
@@ -91,10 +97,10 @@ class Info(commands.GroupCog, group_name=settings.info_group):
 
         embed.add_field(
             name="∆ Bot Info\n",
-            value=f"\u200b **⋄ {settings.collectible_plural.title()}s Count: ** {cars_count:,} • {cars_instances_count:,} **Caught**\n"
+            value=f"\u200b **⋄ {appearance.collectible_plural.title()}s Count: ** {cars_count:,} • {cars_instances_count:,} **Caught**\n"
             f"\u200b **⋄ Player Count: ** {players_count:,}\n"
             f"\u200b **⋄ Server Count: ** {len(self.bot.guilds):,}\n"
-            f"\u200b **⋄  Operating Version: [{bot_version}]({settings.repository_link})**\n\n",
+            f"\u200b **⋄  Operating Version: [{bot_version}]({information.repository_link})**\n\n",
             inline=False,
         )
         embed.add_field(
@@ -111,11 +117,11 @@ class Info(commands.GroupCog, group_name=settings.info_group):
 
         embed.add_field(
             name="⋇ Links",
-            value=f"[Discord server]({settings.discord_invite}) • [Invite me]({invite_link}) • "
-            f"[Source code and issues]({settings.repository_link})\n"
-            f"[Terms of Service]({settings.terms_of_service}) • "
-            f"[Privacy policy]({settings.privacy_policy}) • "
-            f"[Top.gg Link]({settings.top_gg})",
+            value=f"[Discord server]({information.discord_invite}) • [Invite me]({invite_link}) • "
+            f"[Source code and issues]({information.repository_link})\n"
+            f"[Terms of Service]({information.terms_of_service}) • "
+            f"[Privacy policy]({information.privacy_policy}) • "
+            f"[Top.gg Link]({information.top_gg})",
             inline=False,
         )
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
@@ -204,6 +210,41 @@ class Info(commands.GroupCog, group_name=settings.info_group):
         )
         view = LibrarySelector(topics)
         await interaction.response.send_message(embed=embed, view=view)
+
+    @app_commands.command()
+    async def credits(self, interaction: discord.Interaction):
+        """
+        The bot credits
+        """
+        embed = discord.Embed(
+            title=f"{settings.bot_name} Credits", color=settings.default_embed_color
+        )
+        developers = "\n".join(
+            [f"\u200b **⋄** {developer}" for developer in information.developers]
+        )
+        first_contributors = "\n".join(
+            [
+                f"\u200b **⋄** {contributor}"
+                for contributor in information.contributors[:4]
+            ]
+        )
+        remaining_contributors = "\n".join(
+            [
+                f"\u200b **⋄** {contributor}"
+                for contributor in information.contributors[4:]
+            ]
+        )
+
+        embed.add_field(name="⋈ Developers", value=developers, inline=True)
+        embed.add_field(name="∀ Artists", value="Seggs", inline=True)
+        embed.add_field(name="⋊ Contributors", value=first_contributors, inline=False)
+        if remaining_contributors:
+            embed.add_field(name="\u200b", value=remaining_contributors, inline=True)
+
+        if self.bot.user:
+            embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)

@@ -11,7 +11,7 @@ from prometheus_client import Counter
 from tortoise.timezone import now as datetime_now
 
 from carfigures.core.models import CarInstance, Player, events, exclusives
-from carfigures.settings import settings
+from carfigures.settings import appearance, commandings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -44,11 +44,11 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
         log.exception("An error occurred in carfigure catching prompt", exc_info=error)
         if interaction.response.is_done():
             await interaction.followup.send(
-                f"An error occurred with this {settings.collectible_name}."
+                f"An error occurred with this {appearance.collectible_singular}."
             )
         else:
             await interaction.response.send_message(
-                f"An error occurred with this {settings.collectible_name}."
+                f"An error occurred with this {appearance.collectible_singular}."
             )
 
     async def on_submit(self, interaction: discord.Interaction["CarFiguresBot"]):
@@ -79,8 +79,8 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
                 event += f"*{car.eventcard.catch_phrase}*\n"
             if has_caught_before:
                 event += (
-                    f"This is a **new {settings.collectible_name}** "
-                    f"that has been added to your {settings.garage_command_name}!"
+                    f"This is a **new {appearance.collectible_singular}** "
+                    f"that has been added to your {commandings.garage_name}!"
                 )
 
             await interaction.followup.send(
@@ -161,13 +161,11 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
         )
         if user.id in bot.catch_log:
             log.info(
-                f"{user} caught {settings.collectible_name}"
-                f" {self.car.model}, {limited=} {exclusive=} {event=}",
+                f"{user} caught a {self.car.model}, {limited=} {exclusive=} {event=}",
             )
         else:
             log.debug(
-                f"{user} caught {settings.collectible_name}"
-                f" {self.car.model}, {limited=} {exclusive=} {event=}",
+                f"{user} caught a {self.car.model}, {limited=} {exclusive=} {event=}",
             )
         if user.guild.member_count:
             caught_cars.labels(

@@ -16,7 +16,7 @@ from carfigures.core.models import (
 from carfigures.core.utils import menus
 from carfigures.core.utils.paginator import Pages
 
-from carfigures.settings import settings
+from carfigures.settings import appearance
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -140,12 +140,12 @@ class CarFiguresSelector(Pages):
         for car in cars:
             emoji = self.bot.get_emoji(int(car.carfigure.emoji_id))
             favorite = "❤️ " if car.favorite else ""
-            limited = "💠 " if car.limited else ""
+            exclusive = car.exclusive_emoji(self.bot, True)
             event = car.event_emoji(self.bot, True)
             options.append(
                 discord.SelectOption(
-                    label=f"{favorite}{limited}{event}#{car.pk:0X} {car.carfigure.full_name}",
-                    description=f"{settings.hp_replacement}: {car.horsepower_bonus:+d}% • {settings.kg_replacement}: {car.weight_bonus:+d}% • "
+                    label=f"{favorite}{exclusive}{event}#{car.pk:0X} {car.carfigure.full_name}",
+                    description=f"{appearance.hp}: {car.horsepower_bonus:+d}% • {appearance.kg}: {car.weight_bonus:+d}% • "
                     f"Caught on {car.catch_date.strftime('%d/%m/%y %H:%M')}",
                     emoji=emoji,
                     value=f"{car.pk}",
@@ -185,10 +185,6 @@ async def inventory_privacy(
     player_obj: Union[discord.User, discord.Member],
 ):
     privacy_policy = player.privacy_policy
-    if interaction.guild and interaction.guild.id in settings.superuser_guild_ids:
-        roles = settings.superuser_role_ids + settings.root_role_ids
-        if any(role.id in roles for role in interaction.user.roles):  # type: ignore
-            return True
     if privacy_policy == PrivacyPolicy.DENY:
         if interaction.user.id != player_obj.id:
             await interaction.followup.send(

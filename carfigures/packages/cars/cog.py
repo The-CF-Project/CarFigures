@@ -27,7 +27,7 @@ from carfigures.packages.cars.components import (
     CarFiguresViewer,
     inventory_privacy,
 )
-from carfigures.settings import settings
+from carfigures.settings import appearance, commandings, settings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.carfigures")
 
 
-class Cars(commands.GroupCog, group_name=settings.cars_group):
+class Cars(commands.GroupCog, group_name=commandings.cars_group):
     """
     View and manage your carfigures collection.
     """
@@ -43,7 +43,9 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
     def __init__(self, bot: "CarFiguresBot"):
         self.bot = bot
 
-    @app_commands.command(name=settings.garage_name, description=settings.garage_desc)
+    @app_commands.command(
+        name=commandings.garage_name, description=commandings.garage_desc
+    )
     @app_commands.checks.cooldown(1, 10, key=lambda i: i.user.id)
     async def garage(
         self,
@@ -76,11 +78,11 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
         except DoesNotExist:
             if player_obj == interaction.user:
                 await interaction.followup.send(
-                    f"You don't have any {settings.collectible_plural} yet."
+                    f"You don't have any {appearance.collectible_plural} yet."
                 )
             else:
                 await interaction.followup.send(
-                    f"{player_obj.name} doesn't have any {settings.collectible_plural} yet."
+                    f"{player_obj.name} doesn't have any {appearance.collectible_plural} yet."
                 )
             return
 
@@ -131,11 +133,11 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
             car_txt = carfigure.full_name if carfigure else ""
             if player_obj == interaction.user:
                 await interaction.followup.send(
-                    f"You don't have any {car_txt} {settings.collectible_plural} yet."
+                    f"You don't have any {car_txt} {appearance.collectible_plural} yet."
                 )
             else:
                 await interaction.followup.send(
-                    f"{player_obj.name} doesn't have any {car_txt} {settings.collectible_plural} yet."
+                    f"{player_obj.name} doesn't have any {car_txt} {appearance.collectible_plural} yet."
                 )
             return
         if reverse:
@@ -147,7 +149,9 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
         else:
             await paginator.start(content=f"Viewing {player_obj.name}'s garage!")
 
-    @app_commands.command(name=settings.exhibit_name, description=settings.exhibit_desc)
+    @app_commands.command(
+        name=commandings.exhibit_name, description=commandings.exhibit_desc
+    )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def exhibit(
         self,
@@ -176,7 +180,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
                 player = await Player.get(discord_id=player_obj.id)
             except DoesNotExist:
                 await interaction.response.send_message(
-                    f"{player_obj.name} doesn't have any {settings.collectible_plural} yet."
+                    f"{player_obj.name} doesn't have any {appearance.collectible_plural} yet."
                 )
                 return
             if (
@@ -199,7 +203,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
             }
         if not bot_carfigures:
             await interaction.response.send_message(
-                f"There are no {settings.collectible_plural} registered on this bot yet.",
+                f"There are no {appearance.collectible_plural} registered on this bot yet.",
                 ephemeral=True,
             )
             return
@@ -246,13 +250,13 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
         if owned_carfigures:
             # Getting the list of emoji IDs from the IDs of the owned carfigures
             fill_fields(
-                f"⋄ Owned {settings.collectible_plural} | {len(owned_carfigures) if len(owned_carfigures) > 0 else '0'} total",
+                f"⋄ Owned {appearance.collectible_plural} | {len(owned_carfigures) if len(owned_carfigures) > 0 else '0'} total",
                 set(bot_carfigures[x] for x in owned_carfigures),
             )
         else:
             entries.append(
                 (
-                    f"__**Owned {settings.collectible_plural.title()}s**__",
+                    f"__**Owned {appearance.collectible_plural.title()}s**__",
                     "Nothing yet.",
                 )
             )
@@ -261,13 +265,13 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
             y for x, y in bot_carfigures.items() if x not in owned_carfigures
         ):
             fill_fields(
-                f"⋄ Missing {settings.collectible_plural.title()}s | {len(missing) if len(missing) > 0 else '0'} total",
+                f"⋄ Missing {appearance.collectible_plural.title()}s | {len(missing) if len(missing) > 0 else '0'} total",
                 missing,
             )
         else:
             entries.append(
                 (
-                    f"__**:partying_face: No missing {settings.collectible_plural}, "
+                    f"__**:partying_face: No missing {appearance.collectible_plural}, "
                     "congratulations! :partying_face:**__",
                     "\u200b",
                 )
@@ -290,7 +294,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
         pages = Pages(source=source, interaction=interaction, compact=True)
         await pages.start()
 
-    @app_commands.command(name=settings.show_name, description=settings.show_desc)
+    @app_commands.command(name=commandings.show_name, description=commandings.show_desc)
     @app_commands.checks.cooldown(1, 5, key=lambda i: i.user.id)
     async def show(
         self,
@@ -314,7 +318,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
         await interaction.followup.send(content=content, file=file)
         file.close()
 
-    @app_commands.command(name=settings.info_name, description=settings.info_desc)
+    @app_commands.command(name=commandings.info_name, description=commandings.info_desc)
     @app_commands.checks.cooldown(1, 5, key=lambda i: i.user.id)
     async def info(
         self, interaction: discord.Interaction, carfigure: CarEnabledTransform
@@ -335,15 +339,15 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
             description=(
                 f"**⋄ Short Name:** {carfigure.short_name}\n"
                 f"**⋄ Catch Names:** {''.join(carfigure.catch_names)}\n"
-                f"**⋄ {settings.cartype_replacement}:** {carfigure.cached_cartype.name}\n"
-                f"**⋄ {settings.country_replacement}:** {carfigure.cached_country.name if carfigure.cached_country else 'None'}\n"
+                f"**⋄ {appearance.cartype}:** {carfigure.cached_cartype.name}\n"
+                f"**⋄ {appearance.country}:** {carfigure.cached_country.name if carfigure.cached_country else 'None'}\n"
                 f"**⋄ Rarity:** {carfigure.rarity}\n"
-                f"**⋄ {settings.horsepower_replacement}:** {carfigure.horsepower}\n"
-                f"**⋄ {settings.weight_replacement}:** {carfigure.weight}\n"
+                f"**⋄ {appearance.horsepower}:** {carfigure.horsepower}\n"
+                f"**⋄ {appearance.weight}:** {carfigure.weight}\n"
                 f"**⋄ Capacity Name:** {carfigure.capacity_name}\n"
                 f"**⋄ Capacity Description:** {carfigure.capacity_description}\n"
                 f"**⋄ Image Credits:** {carfigure.image_credits}\n"
-                f"**⋄ {settings.collectible_singular.title()} Suggester:** {carfigure.car_suggester}"
+                f"**⋄ {appearance.collectible_singular.title()} Suggester:** {carfigure.car_suggester}"
             ),
             color=settings.default_embed_color,
         )
@@ -351,7 +355,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
             embed=car_info_embed
         )  # Send the car information embed as a response
 
-    @app_commands.command(name=settings.last_name, description=settings.last_desc)
+    @app_commands.command(name=commandings.last_name, description=commandings.last_desc)
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def last(
         self, interaction: discord.Interaction, user: discord.User | None = None
@@ -372,7 +376,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
         except DoesNotExist:
             msg = f"{'You do' if user is None else f'{player_obj.display_name} does'}"
             await interaction.followup.send(
-                f"{msg} not have any {settings.collectible_plural} yet.",
+                f"{msg} not have any {appearance.collectible_plural} yet.",
                 ephemeral=True,
             )
             return
@@ -391,7 +395,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
         if not carfigure:
             msg = f"{'You do' if player is None else f'{player_obj.display_name} does'}"
             await interaction.followup.send(
-                f"{msg} not have any {settings.collectible_plural} yet.",
+                f"{msg} not have any {appearance.collectible_plural} yet.",
                 ephemeral=True,
             )
             return
@@ -401,7 +405,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
         file.close()
 
     @app_commands.command(
-        name=settings.favorite_name, description=settings.favorite_desc
+        name=commandings.favorite_name, description=commandings.favorite_desc
     )
     async def favorite(
         self,
@@ -432,7 +436,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
             ):
                 await interaction.response.send_message(
                     f"You cannot set more than {settings.max_favorites} "
-                    f"favorite {settings.collectible_plural}.",
+                    f"favorite {appearance.collectible_plural}.",
                     ephemeral=True,
                 )
                 return
@@ -442,7 +446,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
             emoji = self.bot.get_emoji(carfigure.carfigure.emoji_id) or ""
             await interaction.response.send_message(
                 f"{emoji} `#{carfigure.pk:0X}` {carfigure.carfigure.full_name} "
-                f"is now a favorite {settings.collectible_singular}!",
+                f"is now a favorite {appearance.collectible_singular}!",
                 ephemeral=True,
             )
         # Unfavorite the carfigure
@@ -452,45 +456,41 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
             emoji = self.bot.get_emoji(carfigure.carfigure.emoji_id) or ""
             await interaction.response.send_message(
                 f"{emoji} `#{carfigure.pk:0X}` {carfigure.carfigure.full_name} "
-                f"isn't a favorite {settings.collectible_singular} anymore.",
+                f"isn't a favorite {appearance.collectible_singular} anymore.",
                 ephemeral=True,
             )
 
-    @app_commands.command(name=settings.give_name, description=settings.give_desc)
-    async def give(
+    @app_commands.command(name=commandings.gift_name, description=commandings.gift_desc)
+    async def gift(
         self,
         interaction: discord.Interaction,
         user: discord.User,
         carfigure: CarInstanceTransform,
     ):
         """
-        Give a carfigure to a user.
+        Gift a carfigure to a user.
 
         Parameters
         ----------
         user: discord.User
-            The user you want to give a carfigure to
+            The user you want to gift the carfigure to
         carfigure: CarInstance
-            The carfigure you're giving away
-        event: Event
-            Filter the results of autocompletion to an event. Ignored afterwards.
-        limited: bool
-            Filter the results of autocompletion to limiteds. Ignored afterwards.
+            The carfigure you're gifting
         """
         if not carfigure.is_tradeable:
             await interaction.response.send_message(
-                f"You cannot donate this {settings.collectible_singular}.",
+                f"You cannot gift this {appearance.collectible_singular}.",
                 ephemeral=True,
             )
             return
         if user.bot:
             await interaction.response.send_message(
-                "You cannot donate to bots.", ephemeral=True
+                "You cannot gift to bots.", ephemeral=True
             )
             return
         if await carfigure.is_locked():
             await interaction.response.send_message(
-                f"This {settings.collectible_singular} is currently locked for a trade. "
+                f"This {appearance.collectible_singular} is currently locked for a trade. "
                 "Please try again later."
             )
             return
@@ -500,29 +500,29 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
 
         if new_player == old_player:
             await interaction.response.send_message(
-                f"You cannot give a {settings.collectible_singular} to yourself.",
+                f"You cannot gift a {appearance.collectible_singular} to yourself.",
                 ephemeral=True,
             )
             await carfigure.unlock()
             return
         if new_player.donation_policy == DonationPolicy.ALWAYS_DENY:
             await interaction.response.send_message(
-                "This user does not accept donations. You can use trades instead.",
+                "This user does not accept gifts. You can use trades instead.",
                 ephemeral=True,
             )
             await carfigure.unlock()
             return
         if new_player.discord_id in self.bot.blacklist_user:
             await interaction.response.send_message(
-                "You cannot donate to a blacklisted user", ephemeral=True
+                "You cannot gift to a blacklisted user", ephemeral=True
             )
             await carfigure.unlock()
             return
         elif new_player.donation_policy == DonationPolicy.REQUEST_APPROVAL:
             await interaction.response.send_message(
-                f"Hey {user.mention}, {interaction.user.name} wants to give you "
+                f"Hey {user.mention}, {interaction.user.name} wants to gift you "
                 f"{carfigure.description(include_emoji=True, bot=self.bot, is_trade=True)}!\n"
-                "Do you accept this donation?",
+                "Do you accept this gift?",
                 view=DonationRequest(self.bot, interaction, carfigure, new_player),
             )
             return
@@ -537,11 +537,13 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
         )
 
         await interaction.response.send_message(
-            f"You just gave the {settings.collectible_singular} {cf_txt} to {user.mention}!"
+            f"You just gifted the {cf_txt} to {user.mention}!"
         )
         await carfigure.unlock()
 
-    @app_commands.command(name=settings.count_name, description=settings.count_desc)
+    @app_commands.command(
+        name=commandings.count_name, description=commandings.count_desc
+    )
     async def count(
         self,
         interaction: discord.Interaction,
@@ -586,9 +588,9 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
         cars = await CarInstance.filter(**filters).count()
         full_name = f"{carfigure.full_name} " if carfigure else ""
         collectible = (
-            f"{settings.collectible_plural}"
+            f"{appearance.collectible_plural}"
             if cars > 1 or cars == 0
-            else f"{settings.collectible_singular}"
+            else f"{appearance.collectible_singular}"
         )
         limited_str = "limited " if limited else ""
         event_str = f"{event.name} " if event else ""
@@ -598,7 +600,9 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
             f"{full_name}{collectible}{guild}."
         )
 
-    @app_commands.command(name=settings.rarity_name, description=settings.rarity_desc)
+    @app_commands.command(
+        name=commandings.rarity_name, description=commandings.rarity_desc
+    )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def rarity(
         self,
@@ -657,7 +661,9 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
         pages = Pages(source=source, interaction=interaction, compact=False)
         await pages.start()
 
-    @app_commands.command(name=settings.compare_name, description=settings.compare_desc)
+    @app_commands.command(
+        name=commandings.compare_name, description=commandings.compare_desc
+    )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def compare(
         self,
@@ -685,10 +691,15 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
         player = await Player.get(discord_id=player_obj.id)
         if not player:
             await interaction.response.send_message(
-                f"You do not have any {settings.collectible_plural} yet.",
+                f"You do not have any {appearance.collectible_plural} yet.",
                 ephemeral=True,
             )
             return
+
+        if first == second:
+            await interaction.response.send_message(
+                f"You can't compare identical {appearance.collectible_plural}."
+            )
 
         # Creating an Embed to hold all these
         embed = discord.Embed(
@@ -701,13 +712,13 @@ class Cars(commands.GroupCog, group_name=settings.cars_group):
             name="◊ Name",
             value=f""
             f"• ID\n"
-            f"• {settings.cartype_replacement}\n"
-            f"• {settings.country_replacement}\n"
+            f"• {appearance.cartype}\n"
+            f"• {appearance.country}\n"
             f"• Rarity\n"
-            f"• {settings.horsepower_replacement}\n"
-            f"• {settings.horsepower_replacement} Bonus\n"
-            f"• {settings.weight_replacement}\n"
-            f"• {settings.weight_replacement} Bonus\n"
+            f"• {appearance.horsepower}\n"
+            f"• {appearance.horsepower} Bonus\n"
+            f"• {appearance.weight}\n"
+            f"• {appearance.weight} Bonus\n"
             f"• Catch Date",
             inline=True,
         )

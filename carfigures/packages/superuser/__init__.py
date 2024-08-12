@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from discord import app_commands
 
 from carfigures.packages.superuser.cog import SuperUser
-from carfigures.settings import settings
+from carfigures.settings import commandings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -42,6 +42,7 @@ async def setup(bot: "CarFiguresBot"):
     n = SuperUser(bot)
     if command_count(n) > 3900:
         strip_descriptions(n)
-        group_name = settings.sudo_group
-        log.warning(f"/{group_name} command too long, stripping descriptions")
+        log.warning(
+            f"/{commandings.sudo_group} command too long, stripping descriptions"
+        )
     await bot.add_cog(n)

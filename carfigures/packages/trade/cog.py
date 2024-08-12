@@ -19,13 +19,13 @@ from carfigures.core.utils.transformers import (
 from carfigures.packages.trade.display import TradeViewFormat
 from carfigures.packages.trade.menu import TradeMenu
 from carfigures.packages.trade.trade_user import TradingUser
-from carfigures.settings import settings
+from carfigures.settings import appearance, commandings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
 
 
-class Trade(commands.GroupCog, group_name=settings.trade_group):
+class Trade(commands.GroupCog, group_name=commandings.trade_group):
     """
     Trade carfigures with other players
     """
@@ -196,7 +196,7 @@ class Trade(commands.GroupCog, group_name=settings.trade_group):
             return
         if carfigure in trader.proposal:
             await interaction.followup.send(
-                f"You already have this {settings.collectible_singular} in your proposal.",
+                f"You already have this {appearance.collectible_singular} in your proposal.",
                 ephemeral=True,
             )
             return
@@ -244,7 +244,7 @@ class Trade(commands.GroupCog, group_name=settings.trade_group):
             return
         if carfigure not in trader.proposal:
             await interaction.response.send_message(
-                f"That {settings.collectible_singular} is not in your proposal.",
+                f"That {appearance.collectible_singular} is not in your proposal.",
                 ephemeral=True,
             )
             return
