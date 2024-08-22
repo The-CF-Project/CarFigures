@@ -9,6 +9,7 @@ from fastapi_admin.widgets import displays, filters, inputs
 from starlette.requests import Request
 
 from carfigures.core.models import (
+    Album,
     Car,
     CarInstance,
     BlacklistedGuild,
@@ -192,6 +193,16 @@ class ExclusiveResource(Model):
 
 
 @app.register
+class AlbumResource(Model):
+    label = "Albums"
+    model = Album
+    icon = "fas fa-books"
+    page_pre_title = "The List of:"
+    page_title = "Albums"
+    fields = ["name", "rebirth_required", "emoji"]
+
+
+@app.register
 class CardResource(Model):
     label = "Cards"
     model = CarType
@@ -264,6 +275,7 @@ class EntityResource(Model):
         "created_at",
         "cartype",
         "country",
+        "album",
         "weight",
         "horsepower",
         "rarity",

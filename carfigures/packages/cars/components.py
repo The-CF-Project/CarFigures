@@ -185,7 +185,7 @@ async def inventory_privacy(
     player_obj: Union[discord.User, discord.Member],
 ):
     privacy_policy = player.privacy_policy
-    if privacy_policy == PrivacyPolicy.DENY:
+    if privacy_policy == PrivacyPolicy.PRIVATE:
         if interaction.user.id != player_obj.id:
             await interaction.followup.send(
                 "This user has set their inventory to private.", ephemeral=True
@@ -193,7 +193,7 @@ async def inventory_privacy(
             return False
         else:
             return True
-    elif privacy_policy == PrivacyPolicy.SAME_SERVER:
+    elif privacy_policy == PrivacyPolicy.FRIENDS:
         if not bot.intents.members:
             await interaction.followup.send(
                 "This user has their policy set to `Same Server`, "

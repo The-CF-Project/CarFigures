@@ -108,11 +108,9 @@ class SpawnManager:
             self.cooldowns[guild.id] = cooldown
 
         delta = (message.created_at - cooldown.time).total_seconds()
-        # change how the threshold varies according to the member count, while nuking farm servers
+        # change how the threshold varies according to the member count
         if not guild.member_count:
             return
-        elif guild.member_count < 5:
-            multiplier = 0.1
         elif guild.member_count < 100:
             multiplier = 0.8
         elif guild.member_count < 1000:

@@ -125,6 +125,7 @@ def draw_banner(event: "Event"):
 
     image_width, image_height = image.size
 
+    # Dynamically Resize the text based on the banner size
     title_font_size = int(image_width * 0.03)
     description_font_size = int(image_width * 0.025)
     status_font_size = int(image_width * 0.02)
@@ -143,13 +144,12 @@ def draw_banner(event: "Event"):
         str(SOURCES_PATH / "BinomaTrialBold-1jPDj.ttf"), credits_font_size
     )
 
-    # Calculate dynamic positions
+    # Dynamically position the text
     title_position = (int(image_width * 0.015), int(image_height * 0.01))
     description_position_y = int(image_height * 0.15)
     status_position = (int(image_width * 0.01), int(image_height * 0.95))
     credits_position = (int(image_width * 0.99), int(image_height * 0.95))
 
-    # Draw title
     draw.text(
         title_position,
         event.name,
@@ -159,7 +159,6 @@ def draw_banner(event: "Event"):
         stroke_width=2,
     )
 
-    # Draw description
     for i, line in enumerate(textwrap.wrap(event.description, width=100)):
         draw.text(
             (title_position[0], description_position_y + i * description_font_size * 2),
@@ -170,7 +169,6 @@ def draw_banner(event: "Event"):
             stroke_width=2,
         )
 
-    # Draw event status
     draw.text(
         status_position,
         "Event Status:",
@@ -189,7 +187,6 @@ def draw_banner(event: "Event"):
         stroke_width=1,
     )
 
-    # Draw credits
     draw.text(
         credits_position,
         "Created by Array_YE",

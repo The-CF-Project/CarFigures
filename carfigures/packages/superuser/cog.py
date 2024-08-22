@@ -26,9 +26,10 @@ from carfigures.core.models import (
     PrivacyPolicy,
     DonationPolicy,
     Player as PlayerModel,
+    DONATION_POLICY_MAP,
+    PRIVATE_POLICY_MAP,
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
-from carfigures.core.utils.enums import DONATION_POLICY_MAP, PRIVATE_POLICY_MAP
 from carfigures.core.utils.logging import log_action
 from carfigures.core.utils.paginator import FieldPageSource, Pages, TextPageSource
 from carfigures.core.utils.transformers import (
@@ -505,7 +506,7 @@ class SuperUser(commands.GroupCog, group_name=commandings.sudo_group):
             return
         await interaction.response.defer(ephemeral=True, thinking=True)
 
-        player, created = await Player.get_or_create(discord_id=user.id)
+        player, _ = await Player.get_or_create(discord_id=user.id)
         instance = await CarInstance.create(
             car=car,
             player=player,
@@ -1188,8 +1189,8 @@ class SuperUser(commands.GroupCog, group_name=commandings.sudo_group):
                 enabled=enabled,
                 tradeable=tradeable,
                 emoji_id=emoji_id,
-                spawn_image="/" + str(spawn_image_path),
-                collection_image="/" + str(collection_image_path),
+                spawn_picture="/" + str(spawn_image_path),
+                collection_picture="/" + str(collection_image_path),
                 image_credits=image_credits,
                 capacity_name=capacity_name,
                 capacity_description=capacity_description,
@@ -1574,9 +1575,9 @@ class SuperUser(commands.GroupCog, group_name=commandings.sudo_group):
     @app_commands.checks.has_any_role(*superuser.roots)
     @app_commands.choices(
         policy=[
-            app_commands.Choice(name="Open Inventory", value=PrivacyPolicy.ALLOW),
-            app_commands.Choice(name="Private Inventory", value=PrivacyPolicy.DENY),
-            app_commands.Choice(name="Same Server", value=PrivacyPolicy.SAME_SERVER),
+            app_commands.Choice(name="Open Inventory", value=PrivacyPolicy.PUBLIC),
+            app_commands.Choice(name="Friends Only", value=PrivacyPolicy.FRIENDS),
+            app_commands.Choice(name="Private Inventory", value=PrivacyPolicy.PRIVATE),
         ]
     )
     async def privacy_policy(

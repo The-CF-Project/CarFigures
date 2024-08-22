@@ -44,7 +44,9 @@ class Info(commands.GroupCog, group_name=commandings.info_group):
             color=settings.default_embed_color,
         )
 
-        cars_count = len([x for x in cars.values() if x.enabled])
+        cars_count = len(
+            [carfigure for carfigure in cars.values() if carfigure.enabled]
+        )
         players_count = await row_count_estimate("player")
         cars_instances_count = await row_count_estimate("carinstance")
         developers = "\n".join(
@@ -210,41 +212,6 @@ class Info(commands.GroupCog, group_name=commandings.info_group):
         )
         view = LibrarySelector(topics)
         await interaction.response.send_message(embed=embed, view=view)
-
-    @app_commands.command()
-    async def credits(self, interaction: discord.Interaction):
-        """
-        The bot credits
-        """
-        embed = discord.Embed(
-            title=f"{settings.bot_name} Credits", color=settings.default_embed_color
-        )
-        developers = "\n".join(
-            [f"\u200b **⋄** {developer}" for developer in information.developers]
-        )
-        first_contributors = "\n".join(
-            [
-                f"\u200b **⋄** {contributor}"
-                for contributor in information.contributors[:4]
-            ]
-        )
-        remaining_contributors = "\n".join(
-            [
-                f"\u200b **⋄** {contributor}"
-                for contributor in information.contributors[4:]
-            ]
-        )
-
-        embed.add_field(name="⋈ Developers", value=developers, inline=True)
-        embed.add_field(name="∀ Artists", value="Seggs", inline=True)
-        embed.add_field(name="⋊ Contributors", value=first_contributors, inline=False)
-        if remaining_contributors:
-            embed.add_field(name="\u200b", value=remaining_contributors, inline=True)
-
-        if self.bot.user:
-            embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-
-        await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)

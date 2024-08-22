@@ -1,10 +1,11 @@
 from __future__ import annotations
+from typing import List
 
 import random
 import discord
-from discord.ui import Button, View, button
+from discord.ui import Button, View, Select, button
 
-from carfigures.core.models import GuildConfig, Car, cars as carfigures
+from carfigures.core.models import Friendship, GuildConfig, Car, cars as carfigures
 from carfigures.settings import settings, information, appearance
 
 
@@ -52,7 +53,7 @@ class AcceptTOSView(View):
     async def accept_button(
         self, interaction: discord.Interaction, item: discord.ui.Button
     ):
-        config, created = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
+        config, _ = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
         config.spawn_channel = self.channel.id  # type: ignore
         await config.save()
         interaction.client.dispatch(
@@ -86,6 +87,41 @@ class AcceptTOSView(View):
                 )
             except discord.HTTPException:
                 pass
+
+
+class FriendSelector(View):
+    def __init__(self, friends: List[Friendship]):
+        super().__init__()
+        self.add_item(LibrarySource(friends))
+
+
+class LibrarySource(Select):
+    def __init__(self, friends: List[Friendship]):
+        options = [
+            discord.SelectOption(
+                label=friend.player1,
+                description=topic.description,
+                value=str(topic.pk),
+            )
+            for friend in friends
+        ]
+        super().__init__(
+            placeholder="Choose a topic...", min_values=1, max_values=1, options=options
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        topic_id = int(self.values[0])
+        selected_topic = await Library.get(id=topic_id)
+        embed = discord.Embed(
+            title=f"☳ {settings.bot_name} Documentations",
+            description=f"∴ {selected_topic.description}",
+            color=settings.default_embed_color,
+        )
+        embed.add_field(
+            name=f"⋄ {selected_topic.name} | {selected_topic.description}",
+            value=selected_topic.text,
+        )
+        await interaction.response.edit_message(embed=embed, view=self.view)
 
 
 async def _get_10_cars_emojis(self) -> list[discord.Emoji]:

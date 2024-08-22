@@ -17,6 +17,7 @@ from rich import print
 from tortoise import Tortoise
 
 from carfigures.core.bot import CarFiguresBot
+from carfigures.languages import readlangs
 from carfigures.logging import init_logger
 from carfigures.settings import read_settings, settings
 from carfigures import bot_version
@@ -38,6 +39,7 @@ TORTOISE_ORM = {
 class CLIFlags(argparse.Namespace):
     version: bool
     config_file: Path
+    lang_file: Path
     reset_settings: bool
     disable_rich: bool
     debug: bool
@@ -53,6 +55,12 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
         type=Path,
         help="Set the path to configuration.toml",
         default=Path("./configuration.toml"),
+    )
+    parser.add_argument(
+        "--lang-file",
+        type=Path,
+        help="Set the path to language.toml",
+        default=("./carfigures/languages.py"),
     )
     parser.add_argument(
         "--disable-rich", action="store_true", help="Disable rich log format"
@@ -248,6 +256,7 @@ def main():
         )
         sys.exit(1)
 
+    readlangs(cli_flags.lang_file)
     print_welcome()
     queue_listener: logging.handlers.QueueListener | None = None
 

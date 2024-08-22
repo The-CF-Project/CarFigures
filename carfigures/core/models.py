@@ -33,9 +33,9 @@ async def lower_catch_names(
     update_fields: Iterable[str] | None = None,
 ):
     if instance.catch_names:
-        instance.catch_names = ";".join(
-            [x.strip() for x in instance.catch_names.split(";")]
-        ).lower()
+        instance.catch_names = ";".join([
+            x.strip() for x in instance.catch_names.split(";")
+        ]).lower()
 
 
 class DiscordSnowflakeValidator(validators.Validator):
@@ -44,6 +44,15 @@ class DiscordSnowflakeValidator(validators.Validator):
             raise exceptions.ValidationError(
                 "Discord IDs are between 17 and 19 characters long"
             )
+
+
+class Languages(IntEnum):
+    ENGLISH = 1
+    FRENCH = 2
+    ARABIC = 3
+    TURKISH = 4
+    GREEK = 5
+    RUSSIAN = 6
 
 
 class Admin(AbstractAdmin):
@@ -71,6 +80,11 @@ class GuildConfig(models.Model):
     )
     enabled = fields.BooleanField(
         description="Whether the bot will spawn carfigures in this guild", default=True
+    )
+    language = fields.IntEnumField(
+        Languages,
+        description="The language spoken inside the server",
+        default=Languages.ENGLISH,
     )
 
 
@@ -175,7 +189,7 @@ class Event(models.Model):
         return content, discord.File(buffer, "banner.png")
 
 
-class Albums(models.Model):
+class Album(models.Model):
     name = fields.CharField(max_length=64, unique=True)
     rebirth_required = fields.IntField(default=0)
     emoji = fields.CharField(
@@ -188,6 +202,7 @@ class Albums(models.Model):
 class Car(models.Model):
     cartype_id: int
     country_id: int
+    album_id: int
 
     full_name = fields.CharField(max_length=48, unique=True)
     short_name = fields.CharField(max_length=20, null=True, default=None)
@@ -204,6 +219,12 @@ class Car(models.Model):
     country: fields.ForeignKeyRelation[Country] | None = fields.ForeignKeyField(
         "models.Country",
         description="The Country of this car",
+        on_delete=fields.SET_NULL,
+        null=True,
+    )
+    album: fields.ForeignKeyRelation[Album] | None = fields.ForeignKeyField(
+        "models.Album",
+        description="The Album this entity Belongs to",
         on_delete=fields.SET_NULL,
         null=True,
     )
@@ -489,9 +510,22 @@ class DonationPolicy(IntEnum):
 
 
 class PrivacyPolicy(IntEnum):
-    ALLOW = 1
-    DENY = 2
-    SAME_SERVER = 3
+    PUBLIC = 1
+    FRIENDS = 2
+    PRIVATE = 3
+
+
+DONATION_POLICY_MAP = {
+    1: "Accept all",
+    2: "Approval Required",
+    3: "Deny all",
+}
+
+PRIVATE_POLICY_MAP = {
+    1: "Public Inventory",
+    2: "Friends only Inventory",
+    3: "Private Inventory",
+}
 
 
 class Player(models.Model):
@@ -508,11 +542,16 @@ class Player(models.Model):
     privacy_policy = fields.IntEnumField(
         PrivacyPolicy,
         description="How you want to handle privacy",
-        default=PrivacyPolicy.ALLOW,
+        default=PrivacyPolicy.PUBLIC,
     )
     cars: fields.BackwardFKRelation[CarInstance]
     rebirths = fields.IntField(default=0)
     bolts = fields.IntField(default=0)
+    language = fields.IntEnumField(
+        Languages,
+        description="The Language spoken by the player",
+        default=Languages.ENGLISH,
+    )
 
     def __str__(self) -> str:
         return str(self.discord_id)

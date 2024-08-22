@@ -14,6 +14,8 @@ from carfigures.core.models import (
     Player as PlayerModel,
     CarInstance,
     cars,
+    DONATION_POLICY_MAP,
+    PRIVATE_POLICY_MAP,
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.packages.my.components import (
@@ -48,20 +50,18 @@ class My(commands.GroupCog, group_name=commandings.my_group):
     @own.command()
     @app_commands.choices(
         policy=[
-            app_commands.Choice(name="Open Inventory", value=PrivacyPolicy.ALLOW),
-            app_commands.Choice(name="Private Inventory", value=PrivacyPolicy.DENY),
-            app_commands.Choice(name="Same Server", value=PrivacyPolicy.SAME_SERVER),
+            app_commands.Choice(name="Public Inventory", value=PrivacyPolicy.PUBLIC),
+            app_commands.Choice(
+                name="Friends Only Inventory", value=PrivacyPolicy.FRIENDS
+            ),
+            app_commands.Choice(name="Private Inventory", value=PrivacyPolicy.PRIVATE),
         ]
     )
     async def privacy(self, interaction: discord.Interaction, policy: PrivacyPolicy):
         """
         Set your privacy policy.
         """
-        if policy == PrivacyPolicy.SAME_SERVER and not self.bot.intents.members:
-            await interaction.response.send_message(
-                "I need the `members` intent to use this policy.", ephemeral=True
-            )
-            return
+
         user, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         user.privacy_policy = policy
         await user.save()
@@ -139,26 +139,16 @@ class My(commands.GroupCog, group_name=commandings.my_group):
             title=f" ❖ {interaction.user.display_name}'s Profile",
             color=settings.default_embed_color,
         )
-        if player.privacy_policy == PrivacyPolicy.ALLOW:
-            privacy = "Open Inventory"
-        else:
-            privacy = "Private Inventory"
-
-        if player.donation_policy == DonationPolicy.ALWAYS_ACCEPT:
-            donation = "All Accepted"
-        elif player.donation_policy == DonationPolicy.REQUEST_APPROVAL:
-            donation = "Approval Required"
-        else:
-            donation = "All Denied"
 
         embed.description = (
             f"{emojis}\n"
             f"**Ⅲ Player Settings**\n"
-            f"\u200b **⋄ Privacy Policy:** {privacy}\n"
-            f"\u200b **⋄ Donation Policy:** {donation}\n\n"
+            f"\u200b **⋄ Privacy Policy:** {PRIVATE_POLICY_MAP[player.privacy_policy]}\n"
+            f"\u200b **⋄ Donation Policy:** {DONATION_POLICY_MAP[player.donation_policy]}\n\n"
             f"**Ⅲ Player Info\n**"
             f"\u200b **⋄ {appearance.collectible_plural.title()} Collected:** {await player.cars.filter().count()}\n"
             f"\u200b **⋄ Rebirths Done:** {player.rebirths}\n"
+            f"\u200b **⋄ Bolts Acquired:** {player.bolts}\n"
         )
 
         embed.set_thumbnail(url=interaction.user.display_avatar.url)
@@ -170,7 +160,9 @@ class My(commands.GroupCog, group_name=commandings.my_group):
         Delete all your cars if you have full completion, to get advantages back
         """
 
-        bot_carfigures = {x: y.pk for x, y in cars.items() if y.enabled}
+        bot_carfigures = {
+            id: carfigure.pk for id, carfigure in cars.items() if carfigure.enabled
+        }
         filters = {"player__discord_id": interaction.user.id, "car__enabled": True}
 
         if not bot_carfigures:
@@ -181,18 +173,18 @@ class My(commands.GroupCog, group_name=commandings.my_group):
             return
 
         owned_carfigures = set(
-            x[0]
-            for x in await CarInstance.filter(**filters)
+            carfigures[0]
+            for carfigures in await CarInstance.filter(**filters)
             .distinct()  # Do not query everything
             .values_list("car_id")
         )
 
         if missing := set(
-            y for x, y in bot_carfigures.items() if x not in owned_carfigures
+            cars for cars in bot_carfigures.items() if cars not in owned_carfigures
         ):
             await interaction.response.send_message(
                 "You haven't reached 100% of the bot collection yet."
-                f"there is still {missing}",
+                f"there is still {len(missing)}",
                 ephemeral=True,
             )
             return
@@ -277,7 +269,7 @@ class My(commands.GroupCog, group_name=commandings.my_group):
                 ephemeral=True,
             )
             return
-        config = await GuildConfig.get(guild_id=interaction.guild_id)
+        config, _ = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
         if config.enabled:
             config.enabled = False  # type: ignore
             await config.save()
@@ -323,7 +315,7 @@ class My(commands.GroupCog, group_name=commandings.my_group):
                 "The bot owner has disabled this feature from the bot.", ephemeral=True
             )
             return
-        config = await GuildConfig.get(guild_id=interaction.guild_id)
+        config, _ = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
         if role:
             if config.spawn_ping == role.id:
                 config.spawn_ping = None  # type: ignore
@@ -349,7 +341,7 @@ class My(commands.GroupCog, group_name=commandings.my_group):
         """
 
         guild = cast(discord.Guild, interaction.guild)
-        config = await GuildConfig.get(guild_id=guild.id)
+        config, _ = await GuildConfig.get_or_create(guild_id=guild.id)
         spawn_channel = guild.get_channel(config.spawn_channel)
         spawn_role = guild.get_role(config.spawn_ping)
         emojis = ""

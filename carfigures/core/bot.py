@@ -33,6 +33,7 @@ from carfigures.core.models import (
     Car,
     BlacklistedGuild,
     BlacklistedUser,
+    Album,
     Country,
     CarType,
     Event,
@@ -131,7 +132,7 @@ class CommandTree(app_commands.CommandTree):
             if interaction.type != discord.InteractionType.autocomplete:
                 await interaction.response.send_message(
                     "The bot is currently starting, please wait for a few minutes... "
-                    f"({round((len(bot.shards)/bot.shard_count)*100)}%)",
+                    f"({round((len(bot.shards) / bot.shard_count) * 100)}%)",
                     ephemeral=True,
                 )
             return False  # wait for all shards to be connected
@@ -231,6 +232,7 @@ class CarFiguresBot(commands.AutoShardedBot):
             cars[car.pk] = car
         table.add_row(appearance.collectible_singular.title(), str(len(cars)))
 
+        table.add_row("Albums", str(await Album.all().count()))
         cartypes.clear()
         for cartype in await CarType.all():
             cartypes[cartype.pk] = cartype

@@ -1,4 +1,12 @@
 -- upgrade --
+ALTER TABLE "car" ADD "album_id" INT;
+CREATE TABLE IF NOT EXISTS "album" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "name" VARCHAR(64) NOT NULL,
+    "emoji" VARCHAR(20) NOT NULL,
+    "rebirth_required" INT NOT NULL  DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS "library" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "name" VARCHAR(100) NOT NULL,
@@ -8,6 +16,7 @@ CREATE TABLE IF NOT EXISTS "library" (
 );
 
 ALTER TABLE "player" ADD "bolts" INT NOT NULL  DEFAULT 0;
+ALTER TABLE "car" ADD CONSTRAINT "fk_car_album_x7f4rlqk" FOREIGN KEY ("album_id") REFERENCES "album" (id) ON DELETE CASCADE;
 CREATE TABLE "friendship" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "player1" INTEGER NOT NULL REFERENCES "player" ("id") ON DELETE CASCADE,
@@ -24,6 +33,8 @@ CREATE TABLE "friendshiprequest" (
 );
 
 -- downgrade --
+ALTER TABLE "player" DROP COLUMN "bolts";
+DROP TABLE IF EXISTS "album";
 DROP TABLE IF EXISTS "library";
 DROP TABLE IF EXISTS "friendship";
 DROP TABLE IF EXISTS "friendshiprequest"
