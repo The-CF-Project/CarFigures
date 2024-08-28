@@ -17,9 +17,9 @@ from rich import print
 from tortoise import Tortoise
 
 from carfigures.core.bot import CarFiguresBot
-from carfigures.languages import readlangs
+from carfigures.langs import readlangs
 from carfigures.logging import init_logger
-from carfigures.settings import read_settings, settings
+from carfigures.configs import read_settings, settings
 from carfigures import bot_version
 
 discord.voice_client.VoiceClient.warn_nacl = False  # disable PyNACL warning
@@ -54,13 +54,13 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
         "--config-file",
         type=Path,
         help="Set the path to configuration.toml",
-        default=Path("./configuration.toml"),
+        default=Path("./config.toml"),
     )
     parser.add_argument(
         "--lang-file",
         type=Path,
-        help="Set the path to language.toml",
-        default=("./carfigures/languages.py"),
+        help="Set the path to language.yaml",
+        default=("./langs.yaml"),
     )
     parser.add_argument(
         "--disable-rich", action="store_true", help="Disable rich log format"
@@ -249,14 +249,18 @@ def main():
         read_settings(cli_flags.config_file)
     except FileNotFoundError:
         print(
-            "[red]The config file [blue]{cli_flags.config_file}[/blue] could not be found.[/red]"
+            f"[red]The config file [blue]{cli_flags.config_file}[/blue] couldn't be found.[/red]"
         )
         print(
             "[yellow]Make sure to follow the configuration guide in the wiki.[/yellow]"
         )
         sys.exit(1)
-
-    readlangs(cli_flags.lang_file)
+    try:
+        readlangs(cli_flags.lang_file)
+    except FileNotFoundError:
+        print(
+            f"[red]The language file [blue]{cli_flags.lang_file}[/blue] couldn't be found.[/red]"
+        )
     print_welcome()
     queue_listener: logging.handlers.QueueListener | None = None
 

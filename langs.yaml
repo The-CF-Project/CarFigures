@@ -1,0 +1,771 @@
+# CarFigures' Language File
+#
+# How to contribute:
+# 1. To add a new language, copy the entire 'english' section and replace 'english' with your language name in lowercase.
+# 2. Translate each value (right side of the colon) into your language. Do not change the keys (left side of the colon).
+# 3. Ensure to maintain the same indentation and structure.
+# 4. You can use Unicode characters for non-Latin scripts.
+# 5. Use {placeholders} exactly as they appear in the English version.
+# 6. If you're unsure about a translation, you can leave it in English temporarily.
+
+english:
+  # Profile Command
+  profile_title: "❖ {username}'s Profile"
+  player_settings: "Player Settings"
+  privacy_policy: "Privacy Policy"
+  donation_policy: "Donation Policy"
+  language_selected: "Language Selected"
+  player_info: "Player Info"
+  cars_collected: "Cars Collected"
+  rebirths_done: "Rebirths Done"
+  bolts_acquired: "Bolts Acquired"
+
+  # Privacy Policy
+  public: "Public Inventory"
+  friends_only: "Friends Only Inventory"
+  private: "Private Inventory"
+  privacy_updated: "Your privacy policy has been set to **{policy}**."
+
+  # Donation Policy
+  always_accept: "Accept all donations"
+  request_approval: "Request your approval first"
+  always_deny: "Deny all donations"
+  policy_updated_accept: "Setting updated, you will now receive all donated {collectibles} immediately."
+  policy_updated_approval: "Setting updated, you will now have to approve donation requests manually."
+  policy_updated_deny: "Setting updated, it is now impossible to use `/{cars_group} {gift_name}` with you. It is still possible to perform donations using the trade system."
+  invalid_input: "Invalid input!"
+
+  # Rebirth Command
+  no_cars_registered: "There are no {collectibles} registered on this bot yet."
+  incomplete_collection: "You haven't reached 100% of the bot collection yet. There are still {missing} cars missing."
+  confirm_rebirth: "Are you sure you want to delete all your {collectibles} for advantages?"
+  rebirth_completed: "Congratulations! This is your {ordinal} Rebirth, hopefully you get even more!"
+
+  # Server Commands
+  spawn_channel_set: "{bot_name} will now spawn cars in {channel}."
+  no_permission: "You need the permission to manage the server to use this."
+  bot_needs_permission: "I need the permission to {permission} in {channel}."
+  spawn_disabled: "{bot_name} is now disabled in this server. Commands will still be available, but the spawn of new {collectibles} is suspended. To re-enable the spawn, use the same command."
+  spawn_enabled: "{bot_name} is now enabled in this server, {collectibles} will start spawning soon in {channel}."
+  spawn_enabled_no_channel: "{bot_name} is now enabled in this server, however there is no spawning channel set. Please configure one with `/my server spawnchannel`."
+  spawn_alert_disabled: "The bot owner has disabled this feature from the bot."
+  spawn_alert_removed: "{bot_name} will no longer alert {role} when {collectibles} spawn."
+  spawn_alert_set: "{bot_name} will now alert {role} when {collectibles} spawn."
+
+  # Server Info Command
+  server_info_title: "❖ {server_name} Server Info"
+  server_settings: "Server Settings"
+  spawn_state: "Spawn State"
+  spawn_channel: "Spawn Channel"
+  spawn_alert_role: "Spawn Alert Role"
+  server_info: "Server Info"
+  server_id: "Server ID"
+  server_owner: "Server Owner"
+  member_count: "Member Count"
+  created_since: "Created Since"
+  cars_caught_here: "Cars Caught Here"
+  enabled: "Enabled"
+  disabled: "Disabled"
+  not_set: "Not set"
+
+french:
+  # Profile Command
+  profile_title: "❖ Profil de {username}"
+  player_settings: "Paramètres du Joueur"
+  privacy_policy: "Politique de Confidentialité"
+  donation_policy: "Politique de Don"
+  language_selected: "Langue Sélectionnée"
+  player_info: "Informations du Joueur"
+  cars_collected: "Voitures Collectionnées"
+  rebirths_done: "Renaissances Faites"
+  bolts_acquired: "Boulons Acquis"
+
+  # Privacy Policy
+  public: "Inventaire Public"
+  friends_only: "Inventaire Seulement pour les Amis"
+  private: "Inventaire Privé"
+  privacy_updated: "Votre politique de confidentialité a été réglée sur **{policy}**."
+
+  # Donation Policy
+  always_accept: "Accepter tous les dons"
+  request_approval: "Demander l'approbation avant"
+  always_deny: "Refuser tous les dons"
+  policy_updated_accept: "Paramètre mis à jour, vous allez maintenant recevoir tous les {collectibles} donnés immédiatement."
+  policy_updated_approval: "Paramètre mis à jour, vous allez maintenant devoir approuver les demandes de dons manuellement."
+  policy_updated_deny: "Paramètre mis à jour, il est maintenant impossible d'utiliser `/{cars_group} {gift_name}` avec vous. Il est toujours possible de performer des dons en utilisant le système d'échange."
+  invalid_input: "Entrée Invalide !"
+
+  # Rebirth Command
+  no_cars_registered: "Il n'y a pas de {collectibles} enregistré dans ce bot pour l'instant."
+  incomplete_collection: "Vous n'avez pas encore atteint 100% de la collection du bot. Il manque {missing} voitures."
+  confirm_rebirth: "Êtes vous sûr que vous voulez supprimer tous vos {collectibles} pour des avantages ?"
+  rebirth_completed: "Félicitations ! Ceci est votre {ordinal} Renaissance, avec un peu de chance, vous allez en avoir encore plus !"
+
+  # Server Commands
+  spawn_channel_set: "{bot_name} va maintenant faire apparaître des voitures dans {channel}."
+  no_permission: "Vous avez besoin de la permission de gérer le serveur pour utiliser ceci."
+  bot_needs_permission: "J'ai besoin de la permission pour {permission} dans {channel}."
+  spawn_disabled: "{bot_name} est maintenant désactivé dans ce serveur. Les Commandes seront toujours disponibles, mains l'apparition de nouveaux {collectibles} est suspendue. Pour Réactiver l'apparition, utilisez la même commande."
+  spawn_enabled: "{bot_name} est maintenant actif dans ce serveur, les {collectibles} vont bientôt commencer à apparaître dans {channel}."
+  spawn_enabled_no_channel: "{bot_name} est maintenant actif dans ce serveur, cependant il n'y a pas de canal d'apparition de réglé. Veuillez en configurer un avec `/my server spawnchannel`."
+  spawn_alert_disabled: "Le Propriétaire du bot a désactivé cette fonctionnalité du bot."
+  spawn_alert_removed: "{bot_name} ne va plus alerter {role} quand des {collectibles} vont apparaître."
+  spawn_alert_set: "{bot_name} va maintenant alerter {role} quand des {collectibles} vont apparaître."
+
+  # Server Info Command
+  server_info_title: "❖ {server_name} Informations du Serveur"
+  server_settings: "Paramètres du Serveur"
+  spawn_state: "État de l'Apparition"
+  spawn_channel: "Canal d'Apparition"
+  spawn_alert_role: "Rôle d'Alerte d'Apparition"
+  server_info: "Informations du serveur"
+  server_id: "ID du Serveur"
+  server_owner: "Propriétaire du Serveur"
+  member_count: "Nombre de Membres"
+  created_since: "Créé Depuis"
+  cars_caught_here: "Voitures Attrapées Ici"
+  enabled: "Activé"
+  disabled: "Désactivé"
+  not_set: "Pas Réglé"
+
+arabic:
+
+  # Profile Command
+  profile_title: "❖ {username}'حساب"
+  player_settings: "إعدادات اللاعب"
+  privacy_policy: "سياسة الخصوصية"
+  donation_policy: "سياسة التبرع"
+  language_selected: "اللغة المختارة"
+  player_info: "معلومات اللاعب"
+  cars_collected: "السيارات الي تم جمعها"
+  rebirths_done: "تمrebirths"
+  bolts_acquired: "المسامير المكتسبة"
+
+  # Privacy Policy
+  public: "المخزون العام"
+  friends_only: "مخزون الاصحاب بس"
+  private: "المخزون الخاص بتاعك"
+  privacy_updated: "تم ضبط سياسة خصوصيتك على  **{policy}**."
+
+  # Donation Policy
+  always_accept: "اقبل كل التبرعات"
+  request_approval: "اطلب موافقتك الأول"
+  always_deny: "رفض كل التبرعات"
+  policy_updated_accept: "تم تحديث الإعداد هيوصلك كل التبرعات دلوقتي {collectibles} على حالا."
+  policy_updated_approval: "تم تحديث الإعداد, لازم دلوقتي توافق على طلبات التبرع يدويًا."
+  policy_updated_deny: "تم تحديث الإعداد, دلوقتي مستحيل تستخدام `/{cars_group} {gift_name}` معاك. لسة ممكن عمل التبرعات باستخدام النظام التجاري."
+  invalid_input: "إدخال مش نافع!"
+
+  # Rebirth Command
+  no_cars_registered: "مفيش {collectibles} متسجلة على  الروبوت ده لحد دلوقتي."
+  incomplete_collection: "موصلتش 100% من مجموعة الروبوتات لحد الآن. لسة في {missing} سيارات مفقودة."
+  confirm_rebirth: "انت متأكد انك عايز تحذف كل{collectibles} علشان تحصل علي مزايا?"
+  rebirth_completed: "مبروك! هو ده {ordinal} Rebirth, نتمني إنك تربح اكتر!"
+
+  # Server Commands
+  spawn_channel_set: "{bot_name} هيتم عمل السيارات في {channel}."
+  no_permission: "انت محتاج اذن الادارة علشان تستخدم الامر ده."
+  bot_needs_permission: "أنا محتاج الإذن ل {permission} في {channel}."
+  spawn_disabled: "{bot_name} تم تعطيله في السيرفر ده.  هتفضل الأوامر متاحة, بس التخليق ل{collectibles} جديدة معلق. علشان تفعيل التخليق , استعمل نفس الأمر."
+  spawn_enabled: "{bot_name} دلوقتي متفعل  في السيرفر ده , {collectibles}  هيتم عمله قريب في  {channel}."
+
+german:
+  # Profile Command
+  profile_title: "❖ {username}'s Profil"
+  player_settings: "Spieler Einstellungen"
+  privacy_policy: "Privacy Policy"
+  donation_policy: "Spendenrechtslage"
+  language_selected: "ausgewählte Sprache"
+  player_info: "Spieler infos"
+  cars_collected: "Gesammelte Fahrzeuge"
+  rebirths_done: "Gemachte Wiedergeburt en"
+  bolts_acquired: "Bolts Acquired"
+
+  # Privacy Policy
+  public: "öffentliches Inventar"
+  friends_only: "Inventar nur für Freunde geöffnet "
+  private: "Privates Inventar"
+  privacy_updated: "deine Inventareinstellung wurde zu **{policy}** gesetzt."
+
+  # Donation Policy
+  accept_all_donations: "Alle Spenden akzeptiert"
+  request_approval: "Spenden erst Anfragen"
+  deny_all_donations: "keine spenden akzeptiert"
+  policy_updated_accept: "Einstellung überarbeitet nun bekommst du alle {collectibles} spenden ohne Nachfrage."
+  policy_updated_approval: "Einstellung überarbeitet nun musst du alle spenden manuell annehmen."
+  policy_updated_deny: "Einstellung überarbeitet nun kann dir niemand etwas mit dem Donation Feature senden trotzdem kannst du spenden über Trades annehmen ."
+  invalid_input: "Ungültige Eingabe!"
+
+  # Rebirth Command
+  no_cars_registered: "du hast bisher {collectibles} in diesem bot gesammelt ."
+  incomplete_collection: "du hast noch nicht alle {missing}. Fahrzeuge gesammelt"
+  confirm_rebirth: "bist du sicher das du alle {collectibles} löschen willst für eine Wiedergeburt?"
+  rebirth_completed: "Glückwunsch! das ist ihre {ordinal} Wiedergeburt, hoffentlich bekommst du noch mehr!"
+
+  # Server Commands
+  spawn_channel_set: "{bot_name} wird nun fahrzeuge in {channel} spawnen."
+  no_permission: "Du brauchst rechte um in diesem Server etwas am bot zu kachen."
+  bot_needs_permission: "ich brauche rechte {permission} um etwas zu Spawnen im {channel}."
+  spawn_disabled: "{bot_name} ist nun deaktiviert trotzdem kann man die commands weiterhin nutzen doch das Spawnen von {collectibles} wird nicht erfolgen. Um es wieder einzuschalten nutz den gleichen Command."
+  spawn_enabled: "{bot_name} ist nun im Server aktiviert {collectibles} werden bald starten zu Spawnen in {channel}."
+  spawn_enabled_no_channel: "{bot_name} ist nun aktiviert in diesem server, bitte setzte noch einen spawn kanal mit dem unten genannten command.`/my server spawnchannel`"
+  spawn_alert_disabled: "der bot Besitzer hat dieses Feature auf diesem server deaktiviert."
+  spawn_alert_removed: "{bot_name} wird nicht mehr erinnert {role} wenn {collectibles} spawnen."
+  spawn_alert_set: "{bot_name} wird ab jetzt erinnert {role} wenn {collectibles} spawnen."
+
+  # Server Info Command
+  server_info_title: "❖ {server_name} Server Info"
+  server_settings: "Server Einstellungen"
+  spawn_state: "Spawn Einstellungen"
+  spawn_channel: "Spawn Kanal"
+  spawn_alert_role: "Spawn Erinnerungs rolle"
+  server_info: "Server Info"
+  server_id: "Server ID"
+  server_owner: "Server besitzer"
+  member_count: "Mitglieder zahl"
+  created_since: "erstellt seit"
+  cars_caught_here: "Autos gefangen hier"
+  enabled: "Eingeschaltet"
+  disabled: "Ausgeschaltet"
+  not_set: "Nicht gesendet"
+
+russian:
+  # Profile Command
+  profile_title: "❖ Профиль {username}"
+  player_settings: "Настройки Игрока"
+  privacy_policy: "Политика Конфиденциальности"
+  donation_policy: "Политика Доната"
+  language_selected: "Язык Выбран"
+  player_info: "Информация Об Игроке"
+  cars_collected: "Машины Собраны"
+  rebirths_done: "Сделаны Перерождения"
+  bolts_acquired: "Болты Приобретены"
+
+  # Privacy Policy
+  public: "Публичный Инвентарь"
+  friends_only: "Инвентарь Только Для Друзей"
+  private: "Приватный Инвентарь"
+  privacy_updated: "Ваша Политика Конфиденциальности Была Установлена На **{policy}**."
+
+  # Donation Policy
+  always_accept: "Принять Все Пожертвования"
+  request_approval: "Сначала Запросите Ваше Одобрение"
+  always_deny: "Отклонить Все Пожертвования"
+  policy_updated_accept: "Настройка Обновлена, Теперь Вы Будете Получать Все Пожертвованные {collectibles} Быстро"
+  policy_updated_approval: "Настройка обновлена, Теперь Вам Придется Вручную Одобрять Запросы На Донат."
+  policy_updated_deny: "Настройка Обновлена, Теперь Невозможно Использовать `/{cars_group} {gift_name}` С Вами. По-прежнему Возможно Делать Пожертвования С Помощью Торговой Системы."
+  invalid_input: "Неверный ввод!"
+
+  # Rebirth Command
+  no_cars_registered: "На этом боте пока не зарегистрировано ни одного {collectibles}."
+  incomplete_collection: "Вы еще не достигли 100% коллекции ботов. Все еще не хватает {missing} машин."
+  confirm_rebirth: "Вы уверены, что хотите удалить все свои {collectibles} ради преимуществ?"
+  rebirth_completed: "Поздравляю! Это ваше {ordinal} перерождение, надеюсь, вы получите еще больше!"
+
+  # Server Commands
+  spawn_channel_set: "{bot_name} теперь будут появляться машины в {channel}."
+  no_permission: "Для использования этого вам необходимо разрешение на управление сервером."
+  bot_needs_permission: "Мне нужно разрешение на {permission} в {channel}."
+  spawn_disabled: "{bot_name} теперь отключен на этом сервере. Команды будут по-прежнему доступны, но спавн новых {collectibles} приостановлен. Чтобы снова включить спавн, используйте ту же команду."
+  spawn_enabled: "{bot_name} теперь включен на этом сервере, {collectibles} скоро начнут появляться в {channel}."
+  spawn_enabled_no_channel: "{bot_name} теперь включен на этом сервере, однако не установлен канал появления. Пожалуйста, настройте его с помощью `/my server spawnchannel`."
+  spawn_alert_disabled: "Владелец бота отключил эту функцию в боте."
+  spawn_alert_removed: "{bot_name} больше не будет оповещать пользователя {role} при появлении машин."
+  spawn_alert_set: "{bot_name} теперь будет оповещать {role} о появлении {collectibles}."
+
+  # Server Info Command
+  server_info_title: "❖ {server_name} Информация о сервере"
+  server_settings: "Настройки сервера"
+  spawn_state: "Состояние появления"
+  spawn_channel: "Канал Спавна"
+  spawn_alert_role: "Роль оповещения о появлении"
+  server_info: "Информация о сервере"
+  server_id: "Идентификатор сервера"
+  server_owner: "Владелец сервера"
+  member_count: "Количество участников"
+  created_since: "Создано с"
+  cars_caught_here: "Машины, пойманные здесь"
+  enabled: "Включено"
+  disabled: "Не Включено"
+  not_set: "Не установлено"
+
+ukrainian:
+  # Profile Command
+  profile_title: "❖ Профіль {username}"
+  player_settings: "Налаштування гравця"
+  privacy_policy: "Політика конфіденційності"
+  donation_policy: "Політика донатів"
+  language_selected: "Обрана мова"
+  player_info: "Інформація про гравця"
+  cars_collected: "Зібрані автівки"
+  rebirths_done: "Перезавантаження прогресу виконано"
+  bolts_acquired: "Отримані болти"
+
+  # Privacy Policy
+  public: "Інвентар доступний для всіх"
+  friends_only: "Інвентар доступний для друзів"
+  private: "Інвентар доступний тільки для вас"
+  privacy_updated: "Вашу політику конфіденційності встановлено на **{policy}**."
+
+  # Donation Policy
+  always_accept: "Приймати всі донати"
+  request_approval: "Затверджувати запити вручну"
+  always_deny: "Заперечувати всі донати"
+  policy_updated_accept: "Налаштування оновлено, тепер ви будете отримувати всі донати {collectibles}."
+  policy_updated_approval: "Налаштування оновлено, тепер вам доведеться затверджувати запити на донати вручну."
+  policy_updated_deny: "Налаштування оновлено, тепер з вами неможливо використати `/{cars_group} {gift_name}`. Як і раніше, можна здійснювати донати за допомогою торгової системи."
+  invalid_input: "Неправильне введення!"
+
+  # Rebirth Command
+  no_cars_registered: "На цьому боті ще не зареєстровано жодних {collectibles}."
+  incomplete_collection: "Ви ще не досягли 100% колекції в боті. Вам не вистачає відсутніх автомобілів: {missing}."
+  confirm_rebirth: "Ви впевнені, що хочете видалити всі свої {collectibles}?"
+  rebirth_completed: "Вітаю! Це ваше {ordinal} перезавантаження прогресу, сподіваємось що ви отримаєте набагато більше!"
+
+  # Server Commands
+  spawn_channel_set: "Тепер {bot_name} буде генерувати автівки в каналі {channel}."
+  no_permission: "У вас повинен бути дозвіл на управління сервером, щоб використати це."
+  bot_needs_permission: "Мені треба дозвіл {permission} в каналі {channel}."
+  spawn_disabled: "{bot_name} тепер вимкнений на сервері. Команди все ще доступні для використання, але генерація {collectibles} припинена. Щоб увімкнути генерацію, використайте цю команду знову."
+  spawn_enabled: "{bot_name} тепер увімкнений на сервері, {collectibles} скоро будуть генеруватися в каналі {channel}."
+  spawn_enabled_no_channel: "{bot_name} увімкнено на цьому сервері, проте не налаштовано каналу генерації. Будь ласка, налаштуйте його за допомогою `/my server spawnchannel`."
+  spawn_alert_disabled: "Власник вимкнув цю функцію в боті."
+  spawn_alert_removed: "{bot_name} більше не буде сповіщати {role} коли {collectibles} генеруються."
+  spawn_alert_set: "{bot_name} буде сповіщати {role} коли {collectibles} генеруються."
+
+  # Server Info Command
+  server_info_title: "❖ Інформація про сервер {server_name}"
+  server_settings: "Налаштування серверу"
+  spawn_state: "Стан генерацій"
+  spawn_channel: "Канал генерацій"
+  spawn_alert_role: "Роль сповіщень про генерації"
+  server_info: "Інформація про сервер"
+  server_id: "ID серверу"
+  server_owner: "Власник серверу"
+  member_count: "Кількість учасників"
+  created_since: "Створений"
+  cars_caught_here: "Автівки, спіймані тут"
+  enabled: "Увімкнено"
+  disabled: "Ввимкнено"
+  not_set: "Не встановлено"
+
+lithuanian:
+# Profile Command
+  profile_title: "❖ {username}'s Profilis"
+  player_settings: "Žaidėjo Nustatymai"
+  privacy_policy: "Privatumo Politika"
+  donation_policy: "Donoro Politika"
+  language_selected: "Pasirinkta Kalba"
+  player_info: "Žaidėjo Informacija"
+  cars_collected: "Surinktos Mašinos"
+  rebirths_done: "Atgimimų skaičius"
+  bolts_acquired: "Įsigyti Varžtai"
+
+  # Privacy Policy
+  public: "Viešas turinys"
+  friends_only: "Draugams matomas turinys"
+  private: "Privatus turinys"
+  privacy_updated: "Tavo privati politika nustatyta į **{policy}**."
+
+  # Donation Policy
+  always_accept: "Atsiimti visus donarus"
+  request_approval: "Reikia pareikalauti pirma tavo patvirtinimo"
+  always_deny: "Atšaukti visus donorus"
+  policy_updated_accept: "Nustatymai atnaujinti, dabar gausite visus savo {collectibles} iškart."
+  policy_updated_approval: "Nustatymai atnaujinti, dabar jūs turėsite patvirtinti donorų prašymus patys."
+  policy_updated_deny: "Nustatymai atnaujinti, dabar yra neįmanoma naudoti `/{cars_group} {gift_name}` Bet vistiek yra įmanoma atlikti donarus naudodamiesi iškeitimo sistema."
+  invalid_input: "Įvestis negaliojama!"
+
+  # Rebirth Command
+  no_cars_registered: "Nėra jokio {collectibles} užregistruoto ant šito roboto kolkas."
+  incomplete_collection: "Jūs neturite 100% roboto kolekcijos kolkas. Dar yra {missing} nerastų mašinų."
+  confirm_rebirth: "Ar jūs tikrai norite ištrinti savo visus {collectibles} dėl pranašumo?"
+  rebirth_completed: "Sveikiname! Čia yra tavo {ordinal} atgimimas, tikiuosi gausi daug daugiau!"
+
+  # Server Commands
+  spawn_channel_set: "{bot_name} dabar atsiras šičia {channel}."
+  no_permission: "Jum reikia leidimo pertvarkyti serverį kad galėtumėte naudotis šita komanda."
+  bot_needs_permission: "Man reikia leidimo {permission} šitame {channel}."
+  spawn_disabled: "{bot_name} yra išjungtas dabar šitame serveryje. Komandos vistiek bus galiojančios, tiktai atsiradimas {collectibles} yra išjungtas. Kad galėtumėte įjungti atsiradimą, įjunkite naudodamiesi komanda.."
+  spawn_enabled: "{bot_name} yra įjungtas šitame serveryje, {collectibles} tuoj pradės atsirasti į {channel}."
+  spawn_enabled_no_channel: "{bot_name} yra dabar įjungtas šitame serveryje, tiktai nėra jokio mašinų atsiradimo kanalo nustatyto. Prašom nustatyti kanalą naudodamiesi `/my server spawnchannel`."
+  spawn_alert_disabled: "Roboto įkūrėjas yra įsijungęs šitą funkciją nuo roboto."
+  spawn_alert_removed: "{bot_name} daugiau nebe informuos {role} kak {collectibles} atsiras."
+  spawn_alert_set: "{bot_name} dabar informuos {role} kai {collectibles} atsiras."
+
+  # Server Info Command
+  server_info_title: "❖ {server_name} Serverio Informacija"
+  server_settings: "Serverio Nustatymai"
+  spawn_state: "Atsiradimo Statusas"
+  spawn_channel: "Atsiradimo Kanalas"
+  spawn_alert_role: "Atsiradimo informuota rolė"
+  server_info: "Serverio Informacija"
+  server_id: "Serverio Identifikacija"
+  server_owner: "Serverio Įkūrėjas"
+  member_count: "Narių skaičius"
+  created_since: "Įkurta nuo"
+  cars_caught_here: "Mašinos pagautos čia"
+  enabled: "Įjungta"
+  disabled: "Išjungta"
+  not_set: "Nenustatyta"
+
+bosnian:
+  # Profile Command
+  profile_title: "❖ {username}ov profil"
+  player_settings: "Igračev Profil"
+  privacy_policy: "Polica Privatnosti"
+  donation_policy: "Polica Donacija"
+  language_selected: "Jezik Selektiran"
+  player_info: "Informacije Igrača"
+  cars_collected: "Auta Skupljeno"
+  rebirths_done: "Novo rođenje gotovo"
+  bolts_acquired: "Vijci Uzeti"
+
+  # Privacy Policy
+  public: "Javni Inventori"
+  friends_only: "Samo Prijatelji inventori"
+  private: "Privatni Inventori"
+  privacy_updated: "Tvoja Polica privatnosti je stavljena na **{policy}**."
+
+  # Donation Policy
+  always_accept: "Prihvati sve donacije"
+  request_approval: "Prvo zatražite svoje odobrenje"
+  always_deny: "Odbij sve donacije"
+  policy_updated_accept: "Postavka ažurirana, ti ćeš sada primiti sve donacije {collectibles} odmah."
+  policy_updated_approval: "Postavka ažurirana, ti ćeš sada morati prihvatiti zahtjeve donacija ručno."
+  policy_updated_deny: Postavka ažurirana, sada je nemoguće koristiti `/{cars_group} {gift_name}` sa tobom. I dalje je moguće raditi donacije pomoću Trade Sistema."
+  invalid_input: "Invalidan unos!"
+
+  # Rebirth Command
+  no_cars_registered: "Nema registriranih {collectibles} na ovome botu za sada."
+  incomplete_collection: "Nisi dospio do 100% kolekcije bota.I dalje ima {missing} nedostajućih Auta."
+  confirm_rebirth: "Jesi li siguran da hoces obrisati sve {collectibles} za prednosti?"
+  rebirth_completed: "Svaka Čast! Ovo je tvoje {ordinal} Novo Rođenje, nadamo se da ćeš dobiti još više!"
+
+  # Server Commands
+  spawn_channel_set: "{bot_name} će sada spawnati aute u {channel}."
+  no_permission: "Potrebna vam je dozvola za upravljanje serverom da biste ovo koristili."
+  bot_needs_permission: "Treba mi dozvola da {permission} u {channel}."
+  spawn_disabled: "{bot_name} je sada onemogućen na ovom serveru. Komande će i dalje biti dostupne, ali će se pojava novih {collectibles} biti suspendirana. Da ponovo omogućite spawn, koristite istu komandu."
+  spawn_enabled: "{bot_name} je sada omogućen na ovom serveru, {collectibles} će se početi stvarati u {channel}."
+  spawn_enabled_no_channel: "{bot_name} je sada omogućen na ovom serveru, međutim, nema postavljenih kanala za stvaranje. Molimo konfigurirajte jedan sa `/my server spawnchannel`."
+  spawn_alert_disabled: "Vlasnik bota je onemogućio ovu funkciju kod bota."
+  spawn_alert_removed: "{bot_name} više neće upozoravati {role} kada se {collectibles} stvori."
+  spawn_alert_set: "{bot_name} će sada upozoriti {role} kada se {collectibles} stvori."
+
+  # Server Info Command
+  server_info_title: "❖ {server_name} Informacije Servera"
+  server_settings: "Postavke servera"
+  spawn_state: "Stanje stvaranja"
+  spawn_channel: "Kanal stvaranja"
+  spawn_alert_role: "Uloga upozoravanja za stvaranje"
+  server_info: "Informacije servera"
+  server_id: "ID servera"
+  server_owner: "vlasnik servera"
+  member_count: "Broj članova"
+  created_since: "Stvoreno od"
+  cars_caught_here: "Auti uhvaćeno ovdje"
+  enabled: "Omogućeno"
+  disabled: "onemogućeno"
+  not_set: "Nije postavljeno"
+
+vietnamese:
+  # Profile Command
+  profile_title: "❖ {username}'s hồ sơ"
+  player_settings: "Cài đặt của người chơi"
+  privacy_policy: "Chính sách quyền riêng tư"
+  donation_policy: "Chính sách quyên góp "
+  language_selected: "Ngôn ngữ  đã lựa chọn"
+  player_info: "Thông tin của người chơi"
+  cars_collected: "Số lượng xe đã thu thập"
+  rebirths_done: "Số lần đã tái sinh"
+  bolts_acquired: "Số lượng bu lông đã đạt được "
+
+  # Privacy Policy
+  public: "Bảng kiểm kê công cộng"
+  friends_only: "Bảng kiểm kê chỉ dành cho bạn của bạn"
+  private: "Bản kiểm kê riêng tư"
+  privacy_updated: " Chính sách riêng tư của bạn đã được đặt là **{policy}**."
+
+  # Donation Policy
+  always_accept: "Chấp nhận tất cả sự quyên góp"
+  request_approval: "Yêu cầu sự đồng ý của bạn đầu tiên"
+  always_deny: "Từ chối tất cả sự quyên góp"
+  policy_updated_accept: "Cài đặt đã được cập nhật , giờ bạn có thể nhận tất cả đồ quyên góp {collectibles} ngay lập tức."
+  policy_updated_approval: "Cài  đặt đã được cập nhật, giờ bạn phải đồng ý những đơn quyên góp một cách thủ công"
+  policy_updated_deny: "Cài đặt đã được cập nhật , giờ nó bất khả thi để sử dụng `/{cars_group} {gift_name}` với bạn. Nó vẫn khả thi để thực hiện quyên góp qua việc sử dụng hệ thống trao đổi."
+  invalid_input: "Câu lệnh không hợp lệ!"
+
+  # Rebirth Command
+  no_cars_registered: "Chưa có đồ sưu tầm nào {collectibles} đã được đăng ký trên con bot này."
+  incomplete_collection: "Bạn vẫn chưa đạt đến 100% bộ sưu tập của con bot này.  Vẫn còn {missing} thiếu xe ô tô."
+  confirm_rebirth: "Bạn có chắc chắn bạn muốn xóa hết đống đồ sưu tầm của bạn {collectibles} cho lợi ích?"
+  rebirth_completed: "Chúc mừng! Đây là sự tái sinh thứ {ordinal} của bạn, chúc bạn lấy được thêm nhiều hơn!"
+
+  # Server Commands
+  spawn_channel_set: "{bot_name} bây giờ sẽ triệu hồi các xe ô tô ở kênh {channel}."
+  no_permission: "Bạn cần quyền quản lý máy chủ để sử dụng cái này."
+  bot_needs_permission: "Tôi cần quyền {permission} ở kênh {channel}."
+  spawn_disabled: "{bot_name} đã bị vô hiệu hóa . Các câu lệnh vẫn có thể hoạt động, nhưng sự xuất hiện của đồ sưu tầm mới {collectibles} đã bị cấm. Để bật lại tính năng triệu hồi, sử dụng lại chính lệnh này."
+  spawn_enabled: "{bot_name} giờ đã được bật trong máy chủ này, {collectibles} đồ sưu tầm sẽ  bắt đầu xuất hiện trong kênh {channel}."
+  spawn_enabled_no_channel: "{bot_name} đã được bật trong máy chủ này, tuy vậy vẫn chưa có kênh nào được đặt để triệu hồi. Làm ơn hãy chỉnh sửa một kênh với câu lệnh `/my server spawnchannel`."
+  spawn_alert_disabled: "Người sở hữu con bot này đã vô hiệu hóa chức năng này của con bot."
+  spawn_alert_removed: "{bot_name} sẽ không thông báo {role} khi mà đồ sưu tầm {collectibles} xuất hiện."
+  spawn_alert_set: "{bot_name} bây giờ sẽ thông báo cho {role} khi mà đồ sưu tầm {collectibles} xuất hiện."
+
+  # Server Info Command
+  server_info_title: "❖ {server_name} Thông tin về máy chủ"
+  server_settings: "Cái đặt về máy chủ"
+  spawn_state: "tính trạng triệu hồi"
+  spawn_channel: "kênh triệu hồi"
+  spawn_alert_role: "Vai trò được thông báo về sự xuất hiện"
+  server_info: "Thông tin về máy chủ"
+  server_id: "ID của máy chủ"
+  server_owner: "Chủ sở hữu của máy chủ"
+  member_count: "Số lượng thành viên"
+  created_since: "Được tạo từ"
+  cars_caught_here: "Số xe ô tô đã bắt được"
+  enabled: "Có hiệu/Đã được bật"
+  disabled: "Vô hiệu hóa/Đã bị tắt"
+  not_set: "Chưa đặt"
+
+turkish:
+  # Profile Command
+  profile_title: "❖ {username}'in Profili"
+  player_settings: "Oyuncu Ayarları"
+  privacy_policy: "Gizlilik Politikası"
+  donation_policy: "Bağış Politikası"
+  language_selected: "Seçilen Dil"
+  player_info: "Oyuncu Bilgisi"
+  cars_collected: "Toplanan Arabalar"
+  rebirths_done: "Tamamlanan Yeniden Doğuşlar"
+  bolts_acquired: "Elde Edilen Cıvatalar"
+
+  # Privacy Policy
+  public: "Herkese Açık Envanter"
+  friends_only: "Arkadaşlara Özel Envanter"
+  private: "Özel Envanter"
+  privacy_updated: "Gizlilik politikanız **{policy}** olarak ayarlandı."
+
+  # Donation Policy
+  always_accept: "Tüm bağışları kabul et"
+  request_approval: "İlk önce doğrulama iste"
+  always_deny: "Tüm bağışları reddet"
+  policy_updated_accept: "Ayar güncellendi, artık tüm bağışlanan {collectibles}'ları anında alacaksınız."
+  policy_updated_approval: "Ayar güncellendi, artık tüm bağış isteklerini onaylamalısınız."
+  policy_updated_deny: "Ayar güncellendi. artık `/{cars_group} {gift_name}` kullanmanız imkansızdır. Hâla takas sistemini kullanarak bağış yapabilirsiniz."
+  invalid_input: "Geçersiz giriş!"
+
+  # Rebirth Command
+  no_cars_registered: "Henüz bu botta kayıtlı {collectables} yok."
+  incomplete_collection: "Henüz bot koleksiyonunun %100'üne ulaşmadınız. Hala {missing} arabalar eksik."
+  confirm_rebirth: "Avantajlar için tüm {collectibles}'larınızı silmek istediğinize emin misiniz?"
+  rebirth_completed: "Tebrikler! Bu sizin {ordinal} 'inci Yeniden Doğuşunuz, umarız daha fazla da yapabilirsiniz!"
+  # Server Commands
+  spawn_channel_set: "{bot_name} artık {channel}'da ortaya çıkacaktır."
+  no_permission: "Bunu kullanmak için sunucu'yu düzenleme izniniz olmalıdır."
+  bot_needs_permission: "{channel}'da {permission} iznine ihtiyacım var."
+  spawn_disabled: "{bot_name} artık bu sunucuda devre dışı bırakıldı. Komutlar hâlâ mevcut olacak, ancak yeni {collectibles} ortaya çıkması askıya alındı. Yeniden doğuşu yeniden etkinleştirmek için aynı komutu kullanın."
+  spawn_enabled: "{bot_name} artık bu sunucuda etkin, {collectibles} yakında {channel}'da ortaya çıkmaya başlayacak."
+  spawn_enabled_no_channel: "{bot_name} artık bu sunucuda etkin, ancak belirlenmiş bir oluşturma kanalı yok. Lütfen `/my server spawnchannel` ile bir tane yapılandırın. "
+  spawn_alert_disabled: "Bot'un sahibi bu özelliği etki dışı bırakmıştır."
+  spawn_alert_removed: "{bot_name} artık {collectibles} ortaya çıktığında {role}'ı uyarmayacak."
+  spawn_alert_set: "{bot_name} artık {collectibles} ortaya çıktığında {role}'ı uyaracak."
+
+  # Server Info Command
+  server_info_title: "❖ {server_name} Sunucu bilgileri"
+  server_settings: "Sunucu Ayarları"
+  spawn_state: "Spawn State"
+  spawn_channel: "Ortaya Çıkma Kanalı"
+  spawn_alert_role: "Ortaya Çıkma Uyarma Rolü"
+  server_info: "Sunucu Bilgileri"
+  server_id: "Sunucu ID'si"
+  server_owner: "Sunucu Sahibi"
+  member_count: "Üye Sayısı"
+  created_since: "Created Since"
+  cars_caught_here: "Burada Yakalanan Arabalar"
+  enabled: "Etkinleştirilmiş"
+  disabled: "Etkinleştirilmemiş"
+  not_set: "Ayarlanmamış"
+
+greek:
+  # Profile Command
+  profile_title: "❖ Το προφίλ του/της {username}"
+  player_settings: "Ρυθμίσεις Παίκτη"
+  privacy_policy: "Πολιτική Απορρήτου"
+  donation_policy: "Πολιτική Δωρεών"
+  language_selected: "Επιλέγμένη Γλώσσα"
+  player_info: "Πληροφορίες Παίκτη"
+  cars_collected: "Συλλεγμένα Αμάξια"
+  rebirths_done: "Επανεκκίνησεις που εγίναν"
+  bolts_acquired: "Απόκτήθηκαν Βίδες "
+
+  # Privacy Policy
+  public: "Δημόσια Αποθήκη"
+  friends_only: "Αποθήκη Ορατή Μόνο Σε Φίλους"
+  private: "Ιδιωτική Αποθήκη"
+  privacy_updated: "Η Πολιτική Απορρήτου έχει αλλαξεί σε **{policy}**."
+
+  # Donation Policy
+  always_accept: "Αποδοχή όλων των δωρεών"
+  request_approval: "Χειροκίνητη αποδοχή των δωρεών"
+  always_deny: "Απόρριψη όλων των δωρεών"
+  policy_updated_accept: "Η ρύθμιση ενημερώθηκε, θα λαμβάνεις ολα τα {collectibles} που δωρίστηκαν απευθείας."
+  policy_updated_approval: "Η ρύθμιση ενημερώθηκε, θα πρέπει να απόδεχτεις τις δωρεές πριν τις λάβεις."
+  policy_updated_deny: "Η ρύθμιση ενημερώθηκε, οι εντολές `/{cars_group} {gift_name}` δεν θα μπορούν να χρησιμοποιηθούν σε εσένα. Θα μπορείς ακάμα να κάνεις δωρεές χρησιμοποιόντας ανταλλαγές."
+  invalid_input: "Μη εγκύρη εισαγώγη"
+
+  # Rebirth Command
+  no_cars_registered: "Δεν υπάρχουν ακόμα καταχωρημένα {collectibles} σε αυτό το bot."
+  incomplete_collection: "Δεν έχεις ακόμα φτάσει το 100% της συλλογης. Υπολοίπονται {missing} αμάξια."
+  confirm_rebirth: "Είσαι σίγουρος οτι θες να διαγράψεις όλα τα {collectibles} σου για πλεονεκτήματα?"
+  rebirth_completed: "Συγχαρητήρια! Αυτή είναι η {ordinal} σου Επανεκκίνηση, ελπίζουμε να κάνεις και άλλες!"
+
+  # Server Commands
+  spawn_channel_set: "Το {bot_name} θα εμφανίζει αμάξια στο {channel}."
+  no_permission: "Δεν έχεις την άδεια να το εκτελέσεις αυτό."
+  bot_needs_permission: "Χρειάζομαι άδεια για να {permission} στο {channel}."
+  spawn_disabled: "Το {bot_name} έχει απενεργοποιηθεί σε αυτόν τον διακομιστή. Οι εντολές είναι ακόμα διαθέσιμες, αλλά δεν θα εμφανίζονται νέα {collectibles}. για να επανενεργοποίησετε την εμφάνιση αμαξιών, εκτελέστε ξανά αυτή την εντολή"
+  spawn_enabled: "Το {bot_name} έχει ενεργοποιηθεί σε αυτόν τον διακομιστή, τα {collectibles} θα εμφανίζονται σύντομα στο {channel}."
+  spawn_enabled_no_channel: "Το {bot_name} έχει ενεργοποιηθεί σε αυτόν τον διακομιστή, όμως δεν έχει οριστεί κανάλι εμφάνισης αμαξιών. Ορίστε ένα κανάλι χρησιμοποιόντας `/my server spawnchannel`."
+  spawn_alert_disabled: "Ο ιδιοκτήτης του bot έχει απενεργοποιήσει αυτή την λειτουργία."
+  spawn_alert_removed: "Το {bot_name} δεν θα ειδοποιεί τον ρόλο {role} όταν τα {collectibles} εμφανίζονται."
+  spawn_alert_set: "Το {bot_name} θα ειδοποιεί τον ρόλο {role} όταν τα {collectibles} εμφανίζονται."
+
+  # Server Info Command
+  server_info_title: "❖ Πληροφορίες Για Τον Διακομιστή {server_name}"
+  server_settings: "Ρυθμίσεις Διακομιστή"
+  spawn_state: "Κατάσταση Εμφάνισης"
+  spawn_channel: "Κανάλι Εμφάνισης"
+  spawn_alert_role: "Ρόλος Ειδοποίησης Εμφάνισης"
+  server_info: "Πληροφορίες Διακομιστή"
+  server_id: "Αναγνωριστικό Διακομιστή"
+  server_owner: "Ιδιοκτήτης Διακομιστή"
+  member_count: "Αριθμός Μελών"
+  created_since: "Δημιουργήθικε το"
+  cars_caught_here: "Αμάξια που έχουν συλλεχθεί εδώ"
+  enabled: "Ενεργοποιημένο"
+  disabled: "Απενεργοποιημένο"
+  not_set: "Δεν έχει οριστεί"
+
+polish:
+  # Profile Command
+  profile_title: "❖ Profil gracza {username}"
+  player_settings: "Ustawienia gracza"
+  privacy_policy: "Polityka prywatności"
+  donation_policy: "Polityka darowizn"
+  language_selected: "Wybrany język"
+  player_info: "Informacje o graczu"
+  cars_collected: "Zebrane samochody"
+  rebirths_done: "Ilość odrodzeń"
+  bolts_acquired: "Zdobyte Bolty"
+
+  # Privacy Policy
+  public: "Publiczny ekwipunek"
+  friends_only: "Ekwipunek widoczny tylko dla znajomych"
+  private: "Prywatny ekwipunek"
+  privacy_updated: "Twoja polityka prywatności została zmieniona na **{policy}**."
+
+  # Donation Policy
+  always_accept: "Akceptuj wszystkie darowizny"
+  approval_required: "Najpierw poproś o zgodę"
+  always_deny: "Odrzuć wszystkie darowizny"
+  policy_updated_accept: "Ustawienie zaktualizowane, teraz będziesz dostawał wszystkie {collectibles} od razu."
+  policy_updated_approval: "Ustawienie zaktualizowane, teraz będziesz musiał potwierdzić/odrzucić każdy datek ręcznie."
+  policy_updated_deny: "Ustawienie zaktualizowane, teraz używanie `/{cars_group} {gift_name}` z tobą nie będzie możliwe. Przekazywanie darowizn będzie jednak możliwe przy użyciu systemu wymiany."
+  invalid_input: "Niepoprawna komenda!"
+
+  # Rebirth Command
+  no_cars_registered: "Nie ma żadnych zarejestrowanych {collectibles} na tym bocie."
+  incomplete_collection: "Nie zdobyłeś/zdobyłaś wszystkich samochodów. Brakuje ci {missing}."
+  confirm_rebirth: "Czy na pewno chcesz usunąć wszystkie twoje {collectibles} dla korzyści?"
+  rebirth_completed: "Gratulacje! To jest twoje {ordinal} odrodzenie, mamy nadzieję że dokonasz ich więcej!"
+
+  # Server Commands
+  spawn_channel_set: "{bot_name} będzie teraz spawnował samochody w kanale {channel}."
+  no_permission: "Potrzebujesz zgody na zarządzanie serwerem aby użyć tej komendy."
+  bot_needs_permission: "Potrzebuję komendy aby {permission} w kanale {channel}."
+  spawn_disabled: "{bot_name} został dezaktywowany na tym serwerze. Komendy nadal będą dostępne, ale spawnowanie nowych {collectibles} jest zablokowane. Aby ponownie aktywować spawnowane, użyj tej samej komendy."
+  spawn_enabled: "{bot_name} został aktywowany/ponownie aktywowany na tym serwerze, {collectibles} wkrótce zaczną się spawnować na kanale {channel}."
+  spawn_enabled_no_channel: "{bot_name} został aktywowany na tym serwerze, jednak nie ma kanału do spawnowania. Please configure one with `/my server spawnchannel`."
+  spawn_alert_disabled: "Właściciel bota dezaktywował tę funkcję."
+  spawn_alert_removed: "{bot_name} nie będzie już powiadamiał {role} gdy {collectibles} będą spawnować się."
+  spawn_alert_set: "{bot_name} będzie powiadamiał {role} gdy {collectibles} będą spawnować się."
+
+  # Server Info Command
+  server_info_title: "❖ Informacje o serwerze {server_name}"
+  server_settings: "Ustawienia serwera"
+  spawn_state: "Status spawnów"
+  spawn_channel: "Kanał spawnów"
+  spawn_alert_role: "Powiadamiaj daną rolę o spawnie"
+  server_info: "Informacje o serwerze"
+  server_id: "ID serwera"
+  server_owner: "Właściciel serwera"
+  member_count: "Ilość członków"
+  created_since: "Utworzono"
+  cars_caught_here: "Samochody złapane tutaj"
+  enabled: "Aktywowano"
+  disabled: "Dezaktywowano"
+  not_set: "Nie ustawiono"
+
+chinese:
+  # Profile Command
+  profile_title: "❖ {username} 的信息"
+  player_settings: "玩家设置"
+  privacy_policy: "隐私选项"
+  donation_policy: "捐赠选项"
+  language_selected: "已设定语言"
+  player_info: "玩家信息"
+  cars_collected: "已收集车辆"
+  rebirths_done: "重生次数"
+  bolts_acquired: "螺丝数量"
+
+  # Privacy Policy
+  public: "公共背包"
+  friends_only: "仅限好友"
+  private: "私密背包"
+  privacy_updated: "您的隐私选项已设为 **{policy}**。"
+
+  # Donation Policy
+  always_accept: "接受所有捐赠"
+  request_approval: "询问接受"
+  always_deny: "拒绝所有捐赠"
+  policy_updated_accept: "设置更新成功，您现在会立即收到所有捐赠 {collectibles}。"
+  policy_updated_approval: "设置更新成功，您将需要同意捐赠。"
+  policy_updated_deny: "设置更新成功,他人将不可以对你使用 `/{cars_group} {gift_name}`但您依旧可以使用交换系统来完成捐赠。"
+  invalid_input: "输入无效。"
+
+  # Rebirth Command
+  no_cars_registered: "您还没有在该机器人上注册的 {collectibles}。"
+  incomplete_collection: "未收集所有车辆，您还缺少 {missing} 辆车。"
+  confirm_rebirth: "您确定要删除所有 {collectibles} 来获取特权吗？"
+  rebirth_completed: "恭喜！ 这是你的第 {ordinal} 次重生， 加油获取更多吧!"
+
+  # Server Commands
+  spawn_channel_set: "{bot_name} 将会在 {channel} 产生车辆。"
+  no_permission: "您需要管理私服权限。"
+  bot_needs_permission: "我在 {channel} 里面需要 {permission}。"
+  spawn_disabled: "{bot_name} 在此处已停用.指令会保持可用, 但 {collectibles} 产生已停止. 再次使用该指令来启用。"
+  spawn_enabled: "{bot_name} 在此处已启用，即将在 {channel} 产生 {collectibles}。"
+  spawn_enabled_no_channel: "{bot_name} 在此处已启用, 但生产频道未设置. 请使用`/my server spawnchannel`来设置。"
+  spawn_alert_disabled: "机器人所有者已停用该功能。"
+  spawn_alert_removed: "{bot_name} 在 {collectibles} 产生时将不会提醒 {role}。"
+  spawn_alert_set: "{bot_name} 将在 {collectibles} 产生时提醒 {role}。"
+
+  # Server Info Command
+  server_info_title: "❖ {server_name} 伺服器信息"
+  server_settings: "伺服器设置"
+  spawn_state: "产生状态"
+  spawn_channel: "产生频道"
+  spawn_alert_role: "产生提醒"
+  server_info: "伺服器信息"
+  server_id: "伺服器ID"
+  server_owner: "伺服器所有者"
+  member_count: "人数"
+  created_since: "创建时间"
+  cars_caught_here: "已获得车辆"
+  enabled: "启用"
+  disabled: "停用"
+  not_set: "未设定"
+
+# Add more languages here following the same structure

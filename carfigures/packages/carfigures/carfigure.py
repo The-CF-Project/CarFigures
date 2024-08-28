@@ -7,7 +7,7 @@ import discord
 
 from carfigures.core.models import GuildConfig, Car, cars
 from carfigures.packages.carfigures.components import CatchView
-from carfigures.settings import appearance
+from carfigures.configs import appearance
 
 log = logging.getLogger("carfigures.packages.carfigures")
 

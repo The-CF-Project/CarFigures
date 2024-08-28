@@ -16,7 +16,7 @@ from carfigures.core.models import (
 from carfigures.core.utils import menus
 from carfigures.core.utils.paginator import Pages
 
-from carfigures.settings import appearance
+from carfigures.configs import appearance
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -104,7 +104,7 @@ class SortingChoices(enum.Enum):
     rarity = "car__rarity"
     event = "event__id"
     favorite = "-favorite"
-    limited = "limited"
+    exclusive = "exclusive__id"
     weight = "weight"
     horsepower = "horsepower"
     weight_bonus = "-weight_bonus"

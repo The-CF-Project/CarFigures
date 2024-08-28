@@ -12,7 +12,7 @@ from discord.ui import Button, View, button
 from carfigures.core.models import CarInstance, Trade, TradeObject
 from carfigures.packages.trade.display import fill_trade_embed_fields
 from carfigures.packages.trade.trade_user import TradingUser
-from carfigures.settings import settings, appearance
+from carfigures.configs import settings, appearance
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot

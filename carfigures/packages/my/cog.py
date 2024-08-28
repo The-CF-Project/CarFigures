@@ -10,12 +10,11 @@ from discord.utils import format_dt
 from carfigures.core.models import (
     GuildConfig,
     DonationPolicy,
+    Languages,
     PrivacyPolicy,
     Player as PlayerModel,
     CarInstance,
     cars,
-    DONATION_POLICY_MAP,
-    PRIVATE_POLICY_MAP,
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.packages.my.components import (
@@ -25,7 +24,8 @@ from carfigures.packages.my.components import (
 )
 
 
-from carfigures.settings import settings, appearance, commandings
+from carfigures.configs import settings, appearance, commandconfig
+from carfigures.langs import LANGUAGE_MAP, translate
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -33,9 +33,9 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.my")
 
 
-class My(commands.GroupCog, group_name=commandings.my_group):
+class My(commands.GroupCog, group_name=commandconfig.my_group):
     """
-    idk for now
+    The My Command Collection
     """
 
     def __init__(self, bot: "CarFiguresBot"):
@@ -51,9 +51,7 @@ class My(commands.GroupCog, group_name=commandings.my_group):
     @app_commands.choices(
         policy=[
             app_commands.Choice(name="Public Inventory", value=PrivacyPolicy.PUBLIC),
-            app_commands.Choice(
-                name="Friends Only Inventory", value=PrivacyPolicy.FRIENDS
-            ),
+            app_commands.Choice(name="Friends Only", value=PrivacyPolicy.FRIENDS),
             app_commands.Choice(name="Private Inventory", value=PrivacyPolicy.PRIVATE),
         ]
     )
@@ -66,7 +64,23 @@ class My(commands.GroupCog, group_name=commandings.my_group):
         user.privacy_policy = policy
         await user.save()
         await interaction.response.send_message(
-            f"Your privacy policy has been set to **{policy.name}**.", ephemeral=True
+            translate("privacy_updated", user.language, policy=policy.name),
+            ephemeral=True,
+        )
+
+    @own.command(name="language")
+    async def playerlanguage(
+        self, interaction: discord.Interaction, language: Languages
+    ):
+        """
+        Set your preferred Language
+        """
+
+        user, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+        user.language = language
+        await user.save()
+        await interaction.response.send_message(
+            f"you have successfully changed your language to **{language.name}**"
         )
 
     @app_commands.choices(
@@ -76,7 +90,7 @@ class My(commands.GroupCog, group_name=commandings.my_group):
             ),
             app_commands.Choice(
                 name="Request your approval first",
-                value=DonationPolicy.REQUEST_APPROVAL,
+                value=DonationPolicy.APPROVAL_REQUIRED,
             ),
             app_commands.Choice(
                 name="Deny all donations", value=DonationPolicy.ALWAYS_DENY
@@ -97,28 +111,28 @@ class My(commands.GroupCog, group_name=commandings.my_group):
         """
         user, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         user.donation_policy = DonationPolicy(policy.value)
-        if policy.value == DonationPolicy.ALWAYS_ACCEPT:
-            await interaction.response.send_message(
-                f"Setting updated, you will now receive all donated {appearance.collectible_plural} "
-                "immediately.",
-                ephemeral=True,
-            )
-        elif policy.value == DonationPolicy.REQUEST_APPROVAL:
-            await interaction.response.send_message(
-                "Setting updated, you will now have to approve donation requests manually.",
-                ephemeral=True,
-            )
-        elif policy.value == DonationPolicy.ALWAYS_DENY:
-            await interaction.response.send_message(
-                "Setting updated, it is now impossible to use "
-                f"`/{commandings.cars_group} {commandings.gift_name}` with "
-                "you. It is still possible to perform donations using the trade system.",
-                ephemeral=True,
-            )
-        else:
-            await interaction.response.send_message("Invalid input!", ephemeral=True)
-            return
         await user.save()  # do not save if the input is invalid
+
+        match policy.value:
+            case DonationPolicy.ALWAYS_ACCEPT:
+                message = translate(
+                    "policy_updated_accept",
+                    user.language,
+                    collectibles=appearance.collectible_plural,
+                )
+            case DonationPolicy.APPROVAL_REQUIRED:
+                message = translate("policy_updated_approval", user.language)
+            case DonationPolicy.ALWAYS_DENY:
+                message = translate(
+                    "policy_updated_deny",
+                    user.language,
+                    cars_group=commandconfig.cars_group,
+                    gift_name=commandconfig.gift_name,
+                )
+            case _:
+                message = translate("invalid_input", user.language)
+
+        await interaction.response.send_message(message, ephemeral=True)
 
     @own.command()
     async def profile(self, interaction: discord.Interaction):
@@ -136,19 +150,24 @@ class My(commands.GroupCog, group_name=commandings.my_group):
 
         # Creating the Embed and Storting the variables in it
         embed = discord.Embed(
-            title=f" ❖ {interaction.user.display_name}'s Profile",
+            title=translate(
+                "profile_title", player.language, username=interaction.user.display_name
+            ),
             color=settings.default_embed_color,
         )
 
         embed.description = (
             f"{emojis}\n"
-            f"**Ⅲ Player Settings**\n"
-            f"\u200b **⋄ Privacy Policy:** {PRIVATE_POLICY_MAP[player.privacy_policy]}\n"
-            f"\u200b **⋄ Donation Policy:** {DONATION_POLICY_MAP[player.donation_policy]}\n\n"
-            f"**Ⅲ Player Info\n**"
-            f"\u200b **⋄ {appearance.collectible_plural.title()} Collected:** {await player.cars.filter().count()}\n"
-            f"\u200b **⋄ Rebirths Done:** {player.rebirths}\n"
-            f"\u200b **⋄ Bolts Acquired:** {player.bolts}\n"
+            f"**Ⅲ {translate('player_settings', player.language)}**\n"
+            f"\u200b **⋄ {translate('privacy_policy', player.language)}:** "
+            f"{translate(player.privacy_policy.name.lower(), player.language)}\n"
+            f"\u200b **⋄ {translate('donation_policy', player.language)}:** "
+            f"{translate(player.donation_policy.name.lower(), player.language)}\n"
+            f"\u200b **⋄ {translate('language_selected', player.language)}:** {LANGUAGE_MAP[player.language]}\n\n"
+            f"**Ⅲ {translate('player_info', player.language)}**\n"
+            f"\u200b **⋄ {translate('cars_collected', player.language)}:** {await player.cars.filter().count()}\n"
+            f"\u200b **⋄ {translate('rebirths_done', player.language)}:** {player.rebirths}\n"
+            f"\u200b **⋄ {translate('bolts_acquired', player.language)}:** {player.bolts}\n"
         )
 
         embed.set_thumbnail(url=interaction.user.display_avatar.url)
@@ -160,6 +179,7 @@ class My(commands.GroupCog, group_name=commandings.my_group):
         Delete all your cars if you have full completion, to get advantages back
         """
 
+        player = await PlayerModel.get(discord_id=interaction.user.id)
         bot_carfigures = {
             id: carfigure.pk for id, carfigure in cars.items() if carfigure.enabled
         }
@@ -167,7 +187,11 @@ class My(commands.GroupCog, group_name=commandings.my_group):
 
         if not bot_carfigures:
             await interaction.response.send_message(
-                f"There are no {appearance.collectible_plural} registered on this bot yet.",
+                translate(
+                    "no_cars_registered",
+                    player.language,
+                    collectibles=appearance.collectible_plural,
+                ),
                 ephemeral=True,
             )
             return
@@ -183,15 +207,20 @@ class My(commands.GroupCog, group_name=commandings.my_group):
             cars for cars in bot_carfigures.items() if cars not in owned_carfigures
         ):
             await interaction.response.send_message(
-                "You haven't reached 100% of the bot collection yet."
-                f"there is still {len(missing)}",
+                translate(
+                    "incomplete_collection", player.language, missing=len(missing)
+                ),
                 ephemeral=True,
             )
             return
 
         view = ConfirmChoiceView(interaction)
         await interaction.response.send_message(
-            f"Are you sure you want to delete all your {appearance.collectible_plural} for advantages?",
+            translate(
+                "confirm_rebirth",
+                player.language,
+                collectibles=appearance.collectible_plural,
+            ),
             view=view,
         )
 
@@ -203,18 +232,14 @@ class My(commands.GroupCog, group_name=commandings.my_group):
         await player.save()
         await CarInstance.filter(player=player).delete()
 
-        ordinal_rebirth = (
-            "1st"
-            if player.rebirths == 1
-            else "2nd"
-            if player.rebirths == 2
-            else "3rd"
-            if player.rebirths == 3
-            else f"{player.rebirths}th"
+        ordinal = lambda n: "%d%s" % (
+            n,
+            "tsnrhtdd"[(n // 10 % 10 != 1) * (n % 10 < 4) * n % 10 :: 4],
         )
-
         await interaction.followup.send(
-            f"Congratulations! this is your {ordinal_rebirth} Rebirth, hopefully u get even more!"
+            translate(
+                "rebirth_completed", player.language, ordinal=ordinal(player.rebirths)
+            )
         )
 
     @server.command()
@@ -228,27 +253,42 @@ class My(commands.GroupCog, group_name=commandings.my_group):
         """
         guild = cast(discord.Guild, interaction.guild)  # guild-only command
         user = cast(discord.Member, interaction.user)
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         if not user.guild_permissions.manage_guild:
             await interaction.response.send_message(
-                "You need the permission to manage the server to use this.",
-                ephemeral=True,
+                translate("no_permission", player.language), ephemeral=True
             )
             return
         if not channel.permissions_for(guild.me).read_messages:
             await interaction.response.send_message(
-                f"I need the permission to read messages in {channel.mention}.",
+                translate(
+                    "bot_needs_permission",
+                    player.language,
+                    permission="read messages",
+                    channel=channel.mention,
+                ),
                 ephemeral=True,
             )
             return
         if not channel.permissions_for(guild.me).send_messages:
             await interaction.response.send_message(
-                f"I need the permission to send messages in {channel.mention}.",
+                translate(
+                    "bot_needs_permission",
+                    player.language,
+                    permission="send messages",
+                    channel=channel.mention,
+                ),
                 ephemeral=True,
             )
             return
         if not channel.permissions_for(guild.me).embed_links:
             await interaction.response.send_message(
-                f"I need the permission to send embed links in {channel.mention}.",
+                translate(
+                    "bot_needs_permission",
+                    player.language,
+                    permission="embed links",
+                    channel=channel.mention,
+                ),
                 ephemeral=True,
             )
             return
@@ -263,37 +303,49 @@ class My(commands.GroupCog, group_name=commandings.my_group):
         """
         guild = cast(discord.Guild, interaction.guild)  # guild-only command
         user = cast(discord.Member, interaction.user)
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+
         if not user.guild_permissions.manage_guild:
             await interaction.response.send_message(
-                "You need the permission to manage the server to use this.",
-                ephemeral=True,
+                translate("no_permission", player.language), ephemeral=True
             )
             return
         config, _ = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
         if config.enabled:
-            config.enabled = False  # type: ignore
+            config.enabled = False
             await config.save()
             self.bot.dispatch("carfigures_settings_change", guild, enabled=False)
             await interaction.response.send_message(
-                f"{settings.bot_name} is now disabled in this server. Commands will still be "
-                f"available, but the spawn of new {appearance.collectible_plural} is suspended.\n"
-                "To re-enable the spawn, use the same command."
+                translate(
+                    "spawn_disabled",
+                    player.language,
+                    bot_name=settings.bot_name,
+                    collectibles=appearance.collectible_plural,
+                )
             )
         else:
-            config.enabled = True  # type: ignore
+            config.enabled = True
             await config.save()
             self.bot.dispatch("carfigures_settings_change", guild, enabled=True)
             if config.spawn_channel and (
                 channel := guild.get_channel(config.spawn_channel)
             ):
                 await interaction.response.send_message(
-                    f"{settings.bot_name} is now enabled in this server, "
-                    f"{appearance.collectible_plural} will start spawning soon in {channel.mention}."
+                    translate(
+                        "spawn_enabled",
+                        player.language,
+                        bot_name=settings.bot_name,
+                        collectibles=appearance.collectible_plural,
+                        channel=channel.mention,
+                    )
                 )
             else:
                 await interaction.response.send_message(
-                    f"{settings.bot_name} is now enabled in this server, however there is no "
-                    "spawning channel set. Please configure one with `/server channel`."
+                    translate(
+                        "spawn_enabled_no_channel",
+                        player.language,
+                        bot_name=settings.bot_name,
+                    )
                 )
 
     @server.command()
@@ -304,15 +356,15 @@ class My(commands.GroupCog, group_name=commandings.my_group):
 
         guild = cast(discord.Guild, interaction.guild)
         user = cast(discord.Member, interaction.user)
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         if not user.guild_permissions.manage_guild:
             await interaction.response.send_message(
-                "You need the permission to manage the server to use this.",
-                ephemeral=True,
+                translate("no_permission", player.language), ephemeral=True
             )
             return
         if not settings.spawnalert:
             await interaction.response.send_message(
-                "The bot owner has disabled this feature from the bot.", ephemeral=True
+                translate("spawn_alert_disabled", player.language), ephemeral=True
             )
             return
         config, _ = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
@@ -322,16 +374,42 @@ class My(commands.GroupCog, group_name=commandings.my_group):
                 await config.save()
                 self.bot.dispatch("carfigures_settings_change", guild, role=None)
                 await interaction.response.send_message(
-                    f"{settings.bot_name} will no longer alert {role.mention} when {appearance.collectible_plural} spawn."
+                    translate(
+                        "spawn_alert_removed",
+                        player.language,
+                        bot_name=settings.bot_name,
+                        role=role.mention,
+                        collectibles=appearance.collectible_plural,
+                    )
                 )
             else:
-                config.spawn_ping = role.id  # type: ignore
+                config.spawn_ping = role.id
                 await config.save()
                 self.bot.dispatch("carfigures_settings_change", guild, role=role)
                 await interaction.response.send_message(
-                    f"{settings.bot_name} will now alert {role.mention} when {appearance.collectible_plural} spawn."
+                    translate(
+                        "spawn_alert_set",
+                        player.language,
+                        bot_name=settings.bot_name,
+                        role=role.mention,
+                        collectibles=appearance.collectible_plural,
+                    )
                 )
-                return
+
+    @server.command(name="language")
+    async def serverlanguage(
+        self, interaction: discord.Interaction, language: Languages
+    ):
+        """
+        Set your preferred Language
+        """
+
+        server, _ = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
+        server.language = language
+        await server.save()
+        await interaction.response.send_message(
+            f"you have successfully changed your server language to **{language.name}**"
+        )
 
     @server.command()
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
@@ -352,21 +430,28 @@ class My(commands.GroupCog, group_name=commandings.my_group):
             spawn_role = f"<@&{config.spawn_ping}>"
 
         embed = discord.Embed(
-            title=f"❖ {guild.name} Server Info",
+            title=translate(
+                "server_info_title", config.language, server_name=guild.name
+            ),
             color=settings.default_embed_color,
         )
         embed.description = (
             f"{emojis}\n"
-            f"**Ⅲ Server Settings**\n"
-            f"\u200b **⋄ Spawn State:** {'Enabled' if config.enabled else 'Disabled'}\n"
-            f"\u200b **⋄ Spawn Channel:** {spawn_channel or 'Not set'}\n"
-            f"\u200b **⋄ Spawn Alert Role:** {spawn_role or 'Not set'}\n\n"
-            f"**Ⅲ Server Info**\n"
-            f"\u200b **⋄ Server ID:** {guild.id}\n"
-            f"\u200b **⋄ Server Owner:** <@{guild.owner_id}>\n"
-            f"\u200b **⋄ Member Count:** {guild.member_count}\n"
-            f"\u200b **⋄ Created Since:** {format_dt(guild.created_at, style='R')}\n\n"
-            f"\u200b **⋄ Cars Caught Here:** {await CarInstance.filter(server_id=guild.id).count()}"
+            f"**Ⅲ {translate('server_settings', config.language)}**\n"
+            f"\u200b **⋄ {translate('language_selected', config.language)}:** {LANGUAGE_MAP[config.language]}\n"
+            f"\u200b **⋄ {translate('spawn_state', config.language)}:** "
+            f"{translate('enabled' if config.enabled else 'disabled', config.language)}\n"
+            f"\u200b **⋄ {translate('spawn_channel', config.language)}:** "
+            f"{spawn_channel or translate('not_set', config.language)}\n"
+            f"\u200b **⋄ {translate('spawn_alert_role', config.language)}:** "
+            f"{spawn_role or translate('not_set', config.language)}\n\n"
+            f"**Ⅲ {translate('server_info', config.language)}**\n"
+            f"\u200b **⋄ {translate('server_id', config.language)}:** {guild.id}\n"
+            f"\u200b **⋄ {translate('server_owner', config.language)}:** <@{guild.owner_id}>\n"
+            f"\u200b **⋄ {translate('member_count', config.language)}:** {guild.member_count}\n"
+            f"\u200b **⋄ {translate('created_since', config.language)}:** {format_dt(guild.created_at, style='R')}\n\n"
+            f"\u200b **⋄ {translate('cars_caught_here', config.language)}:** {await CarInstance.filter(server_id=guild.id).count()}"
         )
+
         embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
         await interaction.response.send_message(embed=embed)

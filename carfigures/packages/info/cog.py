@@ -8,8 +8,8 @@ from discord import app_commands
 from discord.ext import commands
 
 from carfigures import bot_version
-from carfigures.settings import settings, commandings, information, appearance
-from carfigures.core.models import Library, TopicType, cars
+from carfigures.configs import settings, commandings, information, appearance
+from carfigures.core.models import cars
 from carfigures.core.utils.transformers import EventTransform
 from carfigures.core.utils.paginator import FieldPageSource, Pages
 from carfigures.core.utils.tortoise import row_count_estimate
@@ -44,26 +44,15 @@ class Info(commands.GroupCog, group_name=commandings.info_group):
             color=settings.default_embed_color,
         )
 
-        cars_count = len(
-            [carfigure for carfigure in cars.values() if carfigure.enabled]
-        )
+        cars_count = len([
+            carfigure for carfigure in cars.values() if carfigure.enabled
+        ])
+        team = information.team_members
         players_count = await row_count_estimate("player")
         cars_instances_count = await row_count_estimate("carinstance")
-        developers = "\n".join(
-            [f"\u200b **⋄** {developer}" for developer in information.developers]
-        )
-        first_contributors = "\n".join(
-            [
-                f"\u200b **⋄** {contributor}"
-                for contributor in information.contributors[:4]
-            ]
-        )
-        remaining_contributors = "\n".join(
-            [
-                f"\u200b **⋄** {contributor}"
-                for contributor in information.contributors[4:]
-            ]
-        )
+        team1 = "\n".join([f"\u200b **⋄** {member}" for member in team[:5]])
+        team2 = "\n".join([f"\u200b **⋄** {member}" for member in team[6:10]])
+        team3 = "\n".join([f"\u200b **⋄** {member}" for member in team[10:]])
         (
             cpu_usage,
             memory_usage,
@@ -112,10 +101,11 @@ class Info(commands.GroupCog, group_name=commandings.info_group):
             f"\u200b **⋄ Disk:** {disk_usage}/{disk_total}GB • {disk_percentage}%\n\n",
             inline=False,
         )
-        embed.add_field(name="⋈ Developers", value=developers, inline=True)
-        embed.add_field(name="⋊ Contributors", value=first_contributors, inline=True)
-        if remaining_contributors:
-            embed.add_field(name="\u200b", value=remaining_contributors, inline=True)
+        embed.add_field(name="⋈ Credits", value=team1, inline=True)
+        if team2:
+            embed.add_field(name="\u200b", value=team2, inline=True)
+        if team3:
+            embed.add_field(name="\u200b", value=team3, inline=True)
 
         embed.add_field(
             name="⋇ Links",
@@ -162,11 +152,9 @@ class Info(commands.GroupCog, group_name=commandings.info_group):
             command_list = ""
             for command in sorted_commands:
                 # Combine formatted command names with newlines
-                command_list = "\n".join(
-                    [
-                        f"\u200b ⋄ {mention_app_command(command)}: {command_descriptions[command.name]}"
-                    ]
-                )
+                command_list = "\n".join([
+                    f"\u200b ⋄ {mention_app_command(command)}: {command_descriptions[command.name]}"
+                ])
 
             # Create an entry tuple (category name as title, list of commands)
             entry = (f"**Group: {group_name}**", f"{command_list}")
@@ -177,41 +165,6 @@ class Info(commands.GroupCog, group_name=commandings.info_group):
         source.embed.colour = settings.default_embed_color
         pages = Pages(source=source, interaction=interaction, compact=True)
         await pages.start()
-
-    @app_commands.command()
-    @app_commands.choices(
-        docstype=[
-            app_commands.Choice(name="Player Documentation", value=TopicType.PLAYER),
-            app_commands.Choice(
-                name="Developer Documentation", value=TopicType.DEVERLOPER
-            ),
-        ]
-    )
-    async def library(self, interaction: discord.Interaction, docstype: TopicType):
-        """
-        CarFigure's Official Documentation
-
-        Parameters
-        ----------
-        docstype: TopicType
-            The Type of Documentation
-        """
-        # Filter the Library entries based on the selected docstype
-        topics = await Library.filter(type=docstype)
-
-        if not topics:
-            await interaction.response.send_message(
-                "No topics available for this type."
-            )
-            return
-
-        embed = discord.Embed(
-            title="Select a Topic",
-            description="Please select a topic from the dropdown menu below.",
-            color=settings.default_embed_color,
-        )
-        view = LibrarySelector(topics)
-        await interaction.response.send_message(embed=embed, view=view)
 
     @app_commands.command()
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)

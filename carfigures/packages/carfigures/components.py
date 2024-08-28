@@ -11,7 +11,7 @@ from prometheus_client import Counter
 from tortoise.timezone import now as datetime_now
 
 from carfigures.core.models import CarInstance, Player, events, exclusives
-from carfigures.settings import appearance, commandings
+from carfigures.configs import appearance, commandings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -22,7 +22,7 @@ log = logging.getLogger("carfigures.packages.carfigures.components")
 caught_cars = Counter(
     "caught_cf",
     "Caught carfigures",
-    ["full_name", "limited", "exclusive", "event", "guild_size"],
+    ["full_name", "exclusive", "event", "guild_size"],
 )
 
 
@@ -105,7 +105,6 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
         # stat may vary by +/- 50% of base stat
         bonus_horsepower = random.randint(-50, 50)
         bonus_weight = random.randint(-50, 50)
-        limited = random.randint(1, 2048) == 1
 
         # check if we can spawn cards with the event card
         event: "Event | None" = None
@@ -117,7 +116,7 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
             x for x in events.values() if x.start_date <= datetime_now() <= x.end_date
         ]
 
-        if not limited and population:
+        if not exclusivity and population:
             # Here we try to determine what should be the chance of having a common card
             # since the rarity field is a value between 0 and 1, 1 being no common
             # and 0 only common, we get the remaining value by doing (1-rarity)
@@ -131,12 +130,7 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
                 population=population + [None], weights=weights, k=1
             )[0]
 
-        elif limited and exclusivity:
-            # Here we try to determine what should be the chance of having a common card
-            # since the rarity field is a value between 0 and 1, 1 being no
-            # and 0 only common, we get the remaining value by doing (1-rarity)
-            # We then sum each value for each current event, and we should get an algorithm
-            # that kinda makes sense.
+        elif exclusivity:
             common_weight = sum(1 - x.rarity for x in exclusivity)
 
             weights = [x.rarity for x in exclusivity] + [common_weight]
@@ -151,7 +145,6 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
         car = await CarInstance.create(
             car=self.car.model,
             player=player,
-            limited=limited,
             exclusive=exclusive,
             event=event,
             horsepower_bonus=bonus_horsepower,
@@ -161,16 +154,15 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
         )
         if user.id in bot.catch_log:
             log.info(
-                f"{user} caught a {self.car.model}, {limited=} {exclusive=} {event=}",
+                f"{user} caught a {self.car.model}, {exclusive=} {event=}",
             )
         else:
             log.debug(
-                f"{user} caught a {self.car.model}, {limited=} {exclusive=} {event=}",
+                f"{user} caught a {self.car.model}, {exclusive=} {event=}",
             )
         if user.guild.member_count:
             caught_cars.labels(
                 full_name=self.car.model.full_name,
-                limited=limited,
                 exclusive=exclusive,
                 event=event,
                 # observe the size of the server, rounded to the nearest power of 10

@@ -9,7 +9,7 @@ from tortoise.exceptions import DoesNotExist
 
 from carfigures.packages.carfigures.carfigure import CarFigure
 from carfigures.core.models import Car
-from carfigures.settings import settings, appearance
+from carfigures.configs import settings, appearance
 
 log = logging.getLogger("carfigures.core.commands")
 
@@ -116,11 +116,9 @@ class Core(commands.Cog):
         """
         List the top (amount) servers in terms of members.
         """
-        bot = self.bot
 
-        guilds = [guild for guild in bot.guilds]
         sorted_guilds = sorted(
-            bot.guilds, key=lambda guild: guild.member_count, reverse=True
+            self.bot.guilds, key=lambda guild: guild.member_count, reverse=True
         )
         top_guilds = sorted_guilds[:amount]
         embed = discord.Embed(

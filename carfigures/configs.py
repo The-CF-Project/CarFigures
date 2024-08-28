@@ -21,6 +21,7 @@ class Settings:
     minimal_profile: bool = False
     max_favorites: int = 50
     default_embed_color: int = 0
+    team_members: list[str] = field(default_factory=list)
     team_owners: bool = False
     co_owners: list[int] = field(default_factory=list)
     prometheus_enabled: bool = False
@@ -41,7 +42,7 @@ class Appearance:
 
 
 @dataclass
-class Commands:
+class CommandConf:
     cars_group: str = ""
     sudo_group: str = ""
     info_group: str = ""
@@ -78,8 +79,6 @@ class Information:
     terms_of_service: str = ""
     privacy_policy: str = ""
     top_gg: str = ""
-    developers: list[str] = field(default_factory=list)
-    contributors: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -92,7 +91,7 @@ class SuperUser:
 
 settings = Settings()
 appearance = Appearance()
-commandings = Commands()
+commandconfig = CommandConf()
 information = Information()
 superuser = SuperUser()
 
@@ -107,7 +106,8 @@ def read_settings(path: "Path"):
     settings.minimal_profile = config["settings"]["minimal_profile"]
     settings.spawnalert = config["settings"]["spawnalert"]
     settings.default_embed_color = int(config["settings"]["default_embed_color"], 16)
-
+    settings.team_members = config["team"]["members"]
+    
     appearance.collectible_singular = config["appearance"]["collectible_singular"]
     appearance.collectible_plural = config["appearance"]["collectible_plural"]
     appearance.cartype = config["appearance"]["cartype"]
@@ -117,41 +117,39 @@ def read_settings(path: "Path"):
     appearance.hp = config["appearance"]["hp"]
     appearance.kg = config["appearance"]["kg"]
 
-    commandings.cars_group = config["commands"]["groups"]["cars"]
-    commandings.sudo_group = config["commands"]["groups"]["sudo"]
-    commandings.info_group = config["commands"]["groups"]["info"]
-    commandings.my_group = config["commands"]["groups"]["my"]
-    commandings.trade_group = config["commands"]["groups"]["trade"]
+    commandconfig.cars_group = config["commands"]["groups"]["cars"]
+    commandconfig.sudo_group = config["commands"]["groups"]["sudo"]
+    commandconfig.info_group = config["commands"]["groups"]["info"]
+    commandconfig.my_group = config["commands"]["groups"]["my"]
+    commandconfig.trade_group = config["commands"]["groups"]["trade"]
 
-    commandings.garage_name = config["commands"]["names"]["garage"]
-    commandings.exhibit_name = config["commands"]["names"]["exhibit"]
-    commandings.show_name = config["commands"]["names"]["show"]
-    commandings.info_name = config["commands"]["names"]["info"]
-    commandings.last_name = config["commands"]["names"]["last"]
-    commandings.favorite_name = config["commands"]["names"]["favorite"]
-    commandings.gift_name = config["commands"]["names"]["gift"]
-    commandings.count_name = config["commands"]["names"]["count"]
-    commandings.rarity_name = config["commands"]["names"]["rarity"]
-    commandings.compare_name = config["commands"]["names"]["compare"]
+    commandconfig.garage_name = config["commands"]["names"]["garage"]
+    commandconfig.exhibit_name = config["commands"]["names"]["exhibit"]
+    commandconfig.show_name = config["commands"]["names"]["show"]
+    commandconfig.info_name = config["commands"]["names"]["info"]
+    commandconfig.last_name = config["commands"]["names"]["last"]
+    commandconfig.favorite_name = config["commands"]["names"]["favorite"]
+    commandconfig.gift_name = config["commands"]["names"]["gift"]
+    commandconfig.count_name = config["commands"]["names"]["count"]
+    commandconfig.rarity_name = config["commands"]["names"]["rarity"]
+    commandconfig.compare_name = config["commands"]["names"]["compare"]
 
-    commandings.garage_desc = config["commands"]["descs"]["garage"]
-    commandings.exhibit_desc = config["commands"]["descs"]["exhibit"]
-    commandings.show_desc = config["commands"]["descs"]["show"]
-    commandings.info_desc = config["commands"]["descs"]["info"]
-    commandings.last_desc = config["commands"]["descs"]["last"]
-    commandings.favorite_desc = config["commands"]["descs"]["favorite"]
-    commandings.gift_desc = config["commands"]["descs"]["gift"]
-    commandings.count_desc = config["commands"]["descs"]["count"]
-    commandings.rarity_desc = config["commands"]["descs"]["rarity"]
-    commandings.compare_desc = config["commands"]["descs"]["compare"]
+    commandconfig.garage_desc = config["commands"]["descs"]["garage"]
+    commandconfig.exhibit_desc = config["commands"]["descs"]["exhibit"]
+    commandconfig.show_desc = config["commands"]["descs"]["show"]
+    commandconfig.info_desc = config["commands"]["descs"]["info"]
+    commandconfig.last_desc = config["commands"]["descs"]["last"]
+    commandconfig.favorite_desc = config["commands"]["descs"]["favorite"]
+    commandconfig.gift_desc = config["commands"]["descs"]["gift"]
+    commandconfig.count_desc = config["commands"]["descs"]["count"]
+    commandconfig.rarity_desc = config["commands"]["descs"]["rarity"]
+    commandconfig.compare_desc = config["commands"]["descs"]["compare"]
 
     information.repository_link = config["links"]["repository_link"]
     information.discord_invite = config["links"]["discord_invite"]
     information.terms_of_service = config["links"]["terms_of_service"]
     information.privacy_policy = config["links"]["privacy_policy"]
     information.top_gg = config["links"]["top_gg"]
-    information.developers = config["team"]["developers"]
-    information.contributors = config["team"]["contributors"]
 
     superuser.guilds = config["superuser"]["guild_ids"]
     superuser.roots = config["superuser"]["root_role_ids"]

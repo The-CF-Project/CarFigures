@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
-from carfigures.settings import appearance
+from carfigures.configs import appearance
 
 if TYPE_CHECKING:
     from carfigures.core.models import CarInstance, Event

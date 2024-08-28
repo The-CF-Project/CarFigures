@@ -12,7 +12,7 @@ from fastapi_admin.models import AbstractAdmin
 from tortoise import exceptions, fields, models, signals, timezone, validators
 
 from carfigures.core.image_generator.image_gen import draw_card, draw_banner
-from carfigures.settings import appearance
+from carfigures.configs import appearance
 
 if TYPE_CHECKING:
     from tortoise.backends.base.client import BaseDBAsyncClient
@@ -50,9 +50,17 @@ class Languages(IntEnum):
     ENGLISH = 1
     FRENCH = 2
     ARABIC = 3
-    TURKISH = 4
-    GREEK = 5
+    CHINESE = 4
+    GERMAN = 5
     RUSSIAN = 6
+    TURKISH = 7
+    GREEK = 8
+    BULGARIAN = 9
+    POLISH = 10
+    LITHUANIAN = 11
+    UKRAINIAN = 12
+    BOSNIAN = 13
+    VIETNAMESE = 14
 
 
 class Admin(AbstractAdmin):
@@ -287,7 +295,6 @@ class CarInstance(models.Model):
     server_id = fields.BigIntField(
         description="Discord server ID where this car was caught", null=True
     )
-    limited = fields.BooleanField(default=False)
     exclusive: fields.ForeignKeyRelation[Exclusive] | None = fields.ForeignKeyField(
         "models.Exclusive", null=True, default=None, on_delete=fields.SET_NULL
     )
@@ -362,10 +369,10 @@ class CarInstance(models.Model):
             emotes += "🔒"
         if self.favorite:
             emotes += "❤️"
-        if self.limited:
-            emotes += self.exclusive_emoji(bot)
         if emotes:
             emotes += " "
+        if self.exclusivecard:
+            emotes += self.exclusive_emoji(bot)
         if self.eventcard:
             emotes += self.event_emoji(bot)
         full_name = (
@@ -505,7 +512,7 @@ class CarInstance(models.Model):
 
 class DonationPolicy(IntEnum):
     ALWAYS_ACCEPT = 1
-    REQUEST_APPROVAL = 2
+    APPROVAL_REQUIRED = 2
     ALWAYS_DENY = 3
 
 
@@ -513,19 +520,6 @@ class PrivacyPolicy(IntEnum):
     PUBLIC = 1
     FRIENDS = 2
     PRIVATE = 3
-
-
-DONATION_POLICY_MAP = {
-    1: "Accept all",
-    2: "Approval Required",
-    3: "Deny all",
-}
-
-PRIVATE_POLICY_MAP = {
-    1: "Public Inventory",
-    2: "Friends only Inventory",
-    3: "Private Inventory",
-}
 
 
 class Player(models.Model):
@@ -547,6 +541,7 @@ class Player(models.Model):
     cars: fields.BackwardFKRelation[CarInstance]
     rebirths = fields.IntField(default=0)
     bolts = fields.IntField(default=0)
+    goals: fields.BackwardFKRelation[Goal]
     language = fields.IntEnumField(
         Languages,
         description="The Language spoken by the player",
@@ -555,6 +550,21 @@ class Player(models.Model):
 
     def __str__(self) -> str:
         return str(self.discord_id)
+
+class Goal(models.Model):
+    name = fields.CharField(
+        max_length=64,
+        description="The name of the goal"
+    )
+    player: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="goals"
+    )
+    car: fields.ForeignKeyRelation[Car] = fields.ForeignKeyField(
+        "models.Car"
+    )
+    current = fields.IntField(description="the current number of the car in the garage")
+    target = fields.IntField(description="the target number")
+    completed = fields.BooleanField(default=False)
 
 
 class Friendship(models.Model):
@@ -610,28 +620,6 @@ class BlacklistedGuild(models.Model):
 
     def __str__(self) -> str:
         return str(self.discord_id)
-
-
-class TopicType(IntEnum):
-    PLAYER = 1
-    DEVERLOPER = 2
-
-
-class Library(models.Model):
-    name = fields.CharField(
-        max_length=100,
-        description="What this topic name is",
-    )
-    description = fields.CharField(
-        max_length=256, description="The Desc about this Topic"
-    )
-    type = fields.IntEnumField(
-        TopicType, description="The type of the Topic", default=TopicType.PLAYER
-    )
-    text = fields.TextField(null=True, default=None)
-
-    def __str__(self) -> str:
-        return self.name
 
 
 class Trade(models.Model):

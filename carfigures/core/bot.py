@@ -39,14 +39,13 @@ from carfigures.core.models import (
     Event,
     Exclusive,
     GuildConfig,
-    Library,
     cars,
     countries,
     cartypes,
     events,
     exclusives,
 )
-from carfigures.settings import (
+from carfigures.configs import (
     settings,
     appearance,
     superuser,
@@ -254,7 +253,6 @@ class CarFiguresBot(commands.AutoShardedBot):
         table.add_row("Exclusives", str(len(exclusives)))
 
         table.add_row("Servers", str(await GuildConfig.all().count()))
-        table.add_row("Library Topics", str(await Library.all().count()))
 
         self.blacklist_user = set()
         for blacklisted_id in await BlacklistedUser.all().only("discord_id"):

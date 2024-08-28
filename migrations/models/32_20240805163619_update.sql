@@ -6,16 +6,19 @@ CREATE TABLE IF NOT EXISTS "album" (
     "emoji" VARCHAR(20) NOT NULL,
     "rebirth_required" INT NOT NULL  DEFAULT 0
 );
-
-CREATE TABLE IF NOT EXISTS "library" (
-    "id" SERIAL NOT NULL PRIMARY KEY,
-    "name" VARCHAR(100) NOT NULL,
-    "description" VARCHAR(256) NOT NULL,
-    "type" SMALLINT NOT NULL  DEFAULT 1,
-    "text" TEXT not NULL
+CREATE TABLE IF NOT EXISTS "goal" (
+  "id" SERIAL NOT NULL PRIMARY KEY,
+  "name" VARCHAR(64) NOT NULL,
+  "player" INTEGER NOT NULL REFERENCES "player" ("id") ON DELETE CASCADE,
+  "car" INTEGER NOT NULL REFERENCES "car" ("id") ON DELETE CASCADE,
+  "current" INT NOT NULL  DEFAULT 0,
+  "target" INT NOT NULL,
+  "completed" BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 ALTER TABLE "player" ADD "bolts" INT NOT NULL  DEFAULT 0;
+ALTER TABLE "player" ADD "language" SMALLINT NOT NULL  DEFAULT 1;
+ALTER TABLE "guildconfig" ADD "language" SMALLINT NOT NULL  DEFAULT 1;
 ALTER TABLE "car" ADD CONSTRAINT "fk_car_album_x7f4rlqk" FOREIGN KEY ("album_id") REFERENCES "album" (id) ON DELETE CASCADE;
 CREATE TABLE "friendship" (
     "id" SERIAL NOT NULL PRIMARY KEY,
@@ -31,10 +34,11 @@ CREATE TABLE "friendshiprequest" (
     "receiver" INTEGER NOT NULL REFERENCES "player" ("id") ON DELETE CASCADE,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+ALTER TABLE "carinstance" DROP "limited"
 
 -- downgrade --
 ALTER TABLE "player" DROP COLUMN "bolts";
+DROP TABLE IF EXISTS "goal"
 DROP TABLE IF EXISTS "album";
-DROP TABLE IF EXISTS "library";
 DROP TABLE IF EXISTS "friendship";
 DROP TABLE IF EXISTS "friendshiprequest"

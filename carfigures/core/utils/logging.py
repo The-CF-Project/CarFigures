@@ -3,7 +3,7 @@ import logging
 import discord
 
 from carfigures.core.bot import CarFiguresBot
-from carfigures.settings import superuser
+from carfigures.configs import superuser
 
 log = logging.getLogger("carfigures.packages.admin.cog")
 

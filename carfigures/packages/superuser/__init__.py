@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from discord import app_commands
 
 from carfigures.packages.superuser.cog import SuperUser
-from carfigures.settings import commandings
+from carfigures.configs import commandings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot

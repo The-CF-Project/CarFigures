@@ -17,7 +17,6 @@ from carfigures.core.models import (
     Country,
     Exclusive,
     GuildConfig,
-    Library,
     Player,
     CarType,
     Event,
@@ -406,21 +405,6 @@ class PlayerResource(Model):
         "rebirths",
         "donation_policy",
         "privacy_policy",
-    ]
-
-
-@app.register
-class LibraryResources(Model):
-    label = "Library"
-    model = Library
-    icon = "fas fa-bookmark"
-    page_pre_title = "The List of:"
-    page_title = "Library Topics"
-    fields = [
-        Field(name="name", label="The Topic"),
-        Field(name="description", label="Small Description about the Topic"),
-        "type",
-        "text",
     ]
 
 

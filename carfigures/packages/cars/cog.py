@@ -19,7 +19,8 @@ from carfigures.core.utils.transformers import (
     CarEnabledTransform,
     CarInstanceTransform,
     EventEnabledTransform,
-    ExclusiveTransformer,
+    EventTransform,
+    ExclusiveTransform,
 )
 from carfigures.packages.cars.components import (
     SortingChoices,
@@ -27,7 +28,7 @@ from carfigures.packages.cars.components import (
     CarFiguresViewer,
     inventory_privacy,
 )
-from carfigures.settings import appearance, commandings, settings
+from carfigures.configs import appearance, commandconfig, settings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -35,7 +36,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.carfigures")
 
 
-class Cars(commands.GroupCog, group_name=commandings.cars_group):
+class Cars(commands.GroupCog, group_name=commandconfig.cars_group):
     """
     View and manage your carfigures collection.
     """
@@ -44,7 +45,8 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
         self.bot = bot
 
     @app_commands.command(
-        name=commandings.garage_name, description=commandings.garage_desc
+        name=commandconfig.garage_name,
+        description=commandconfig.garage_desc
     )
     @app_commands.checks.cooldown(1, 10, key=lambda i: i.user.id)
     async def garage(
@@ -54,6 +56,9 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
         sort: SortingChoices | None = None,
         reverse: bool = False,
         carfigure: CarEnabledTransform | None = None,
+        event: EventTransform | None = None,
+        exclusive: ExclusiveTransform | None = None
+        
     ):
         """
         Show your garage!
@@ -68,6 +73,10 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
             Reverse the output of the list.
         carfigure: Car
             Filter the list by a specific carfigure.
+        event: Event
+            Filter the list for a specific event
+        exclusive: Exclusive
+            Filter the list for an exclusive card
         """
         # simple variables
         player_obj = user or interaction.user
@@ -93,58 +102,54 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
 
         await player.fetch_related("cars")
         filters = {"car__id": carfigure.pk} if carfigure else {}
-        # Having Ifs to filter the garage based on the player selection
-        if sort:
-            if sort == SortingChoices.duplicates:
+        if event:
+            filters["event"] = event
+        if exclusive:
+            filters["exclusive"] = exclusive
+        
+        # Having match statement to filter the garage
+        # based on the player sorting selection
+        match sort:
+            case SortingChoices.duplicates:
                 carfigures = await player.cars.filter(**filters)
                 count = defaultdict(int)
                 for car in carfigures:
                     count[car.carfigure.pk] += 1
                 carfigures.sort(key=lambda m: (-count[m.carfigure.pk], m.carfigure.pk))
-            elif sort == SortingChoices.favorite:
+            case SortingChoices.favorite:
                 carfigures = await player.cars.filter(**filters).order_by("-favorite")
-            elif sort == SortingChoices.limited:
-                carfigures = await player.cars.filter(**filters).order_by("-limited")
-            elif sort == SortingChoices.stats_bonus:
+            case SortingChoices.stats_bonus:
                 carfigures = await player.cars.filter(**filters)
                 carfigures.sort(
-                    key=lambda carfigure: carfigure.weight_bonus
-                    + carfigure.horsepower_bonus,
+                    key=lambda carfigure: carfigure.weight_bonus + carfigure.horsepower_bonus,
                     reverse=True,
                 )
-            elif sort == SortingChoices.weight:
+            case SortingChoices.weight:
                 carfigures = await player.cars.filter(**filters)
                 carfigures.sort(key=lambda carfigure: carfigure.weight, reverse=True)
-            elif sort == SortingChoices.horsepower:
+            case SortingChoices.horsepower:
                 carfigures = await player.cars.filter(**filters)
-                carfigures.sort(
-                    key=lambda carfigure: carfigure.horsepower, reverse=True
-                )
-            elif sort == SortingChoices.total_stats:
+                carfigures.sort(key=lambda carfigure: carfigure.horsepower, reverse=True)
+            case SortingChoices.total_stats:
                 carfigures = await player.cars.filter(**filters)
                 carfigures.sort(
                     key=lambda carfigure: carfigure.weight + carfigure.horsepower,
                     reverse=True,
                 )
-            else:
-                carfigures = await player.cars.filter(**filters).order_by(sort.value)
-        else:
-            carfigures = await player.cars.filter(**filters).order_by(
-                "-favorite", "-limited"
-            )
+            case _:
+                if sort:
+                    carfigures = await player.cars.filter(**filters).order_by(sort.value)
+                else:
+                    carfigures = await player.cars.filter(**filters).order_by("-favorite")
 
-        # Error Handling where the player chooses a car he doesn't have or has no cars in general
+        # Error Handling where the player chooses a car 
+        # he doesn't have or has no cars in general
         if not carfigures:
             car = carfigure.full_name if carfigure else ""
-            if player_obj == interaction.user:
-                await interaction.followup.send(
-                    f"You don't have any {car} {appearance.collectible_plural} yet."
-                )
-            else:
-                await interaction.followup.send(
-                    f"{player_obj.name} doesn't have any {car} {appearance.collectible_plural} yet."
-                )
-            return
+            pov = "You don't" if player_obj == interaction.user else f"{player_obj.display_name} doesn't"
+            await interaction.followup.send(
+                f"{pov} have any {car} {appearance.collectible_plural} yet."
+            )
         if reverse:
             carfigures.reverse()
 
@@ -156,7 +161,8 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
             await paginator.start(content=f"Viewing {player_obj.name}'s garage!")
 
     @app_commands.command(
-        name=commandings.exhibit_name, description=commandings.exhibit_desc
+        name=commandconfig.exhibit_name,
+        description=commandconfig.exhibit_desc
     )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def exhibit(
@@ -164,7 +170,7 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
         interaction: discord.Interaction["CarFiguresBot"],
         user: discord.User | None = None,
         event: EventEnabledTransform | None = None,
-        exclusive: ExclusiveTransformer | None = None,
+        exclusive: ExclusiveTransform | None = None,
     ):
         """
         Show your showroom in the bot.
@@ -306,7 +312,7 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
         pages = Pages(source=source, interaction=interaction, compact=True)
         await pages.start()
 
-    @app_commands.command(name=commandings.show_name, description=commandings.show_desc)
+    @app_commands.command(name=commandconfig.show_name, description=commandconfig.show_desc)
     @app_commands.checks.cooldown(1, 5, key=lambda i: i.user.id)
     async def show(
         self,
@@ -330,7 +336,7 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
         await interaction.followup.send(content=content, file=file)
         file.close()
 
-    @app_commands.command(name=commandings.info_name, description=commandings.info_desc)
+    @app_commands.command(name=commandconfig.info_name, description=commandconfig.info_desc)
     @app_commands.checks.cooldown(1, 5, key=lambda i: i.user.id)
     async def info(
         self, interaction: discord.Interaction, carfigure: CarEnabledTransform
@@ -364,7 +370,7 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
         )
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name=commandings.last_name, description=commandings.last_desc)
+    @app_commands.command(name=commandconfig.last_name, description=commandconfig.last_desc)
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def last(
         self, interaction: discord.Interaction, user: discord.User | None = None
@@ -416,7 +422,8 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
         file.close()
 
     @app_commands.command(
-        name=commandings.favorite_name, description=commandings.favorite_desc
+        name=commandconfig.favorite_name,
+        description=commandconfig.favorite_desc
     )
     async def favorite(
         self,
@@ -430,10 +437,6 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
         ----------
         carfigure: CarInstance
             The carfigure you want to set/unset as favorite
-        event: Event
-            Filter the results of autocompletion to an event. Ignored afterwards.
-        limited: bool
-            Filter the results of autocompletion to limiteds. Ignored afterwards.
         """
         # Checks if the car is not favorited
         user = interaction.user
@@ -471,7 +474,9 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
                 ephemeral=True,
             )
 
-    @app_commands.command(name=commandings.gift_name, description=commandings.gift_desc)
+    @app_commands.command(
+        name=commandconfig.gift_name, description=commandconfig.gift_desc
+    )
     async def gift(
         self,
         interaction: discord.Interaction,
@@ -529,7 +534,7 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
             )
             await carfigure.unlock()
             return
-        elif new_player.donation_policy == DonationPolicy.REQUEST_APPROVAL:
+        elif new_player.donation_policy == DonationPolicy.APPROVAL_REQUIRED:
             await interaction.response.send_message(
                 f"Hey {user.mention}, {interaction.user.name} wants to gift you "
                 f"{carfigure.description(include_emoji=True, bot=self.bot, is_trade=True)}!\n"
@@ -544,7 +549,7 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
         await carfigure.save()
 
         car = carfigure.description(
-            short=True, include_emoji=True, bot=self.bot, is_trade=True
+            short=True, include_emoji=True, bot=self.bot, is_trade=False
         )
 
         await interaction.response.send_message(
@@ -553,14 +558,14 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
         await carfigure.unlock()
 
     @app_commands.command(
-        name=commandings.count_name, description=commandings.count_desc
+        name=commandconfig.count_name, description=commandconfig.count_desc
     )
     async def count(
         self,
         interaction: discord.Interaction,
         carfigure: CarEnabledTransform | None = None,
         event: EventEnabledTransform | None = None,
-        limited: bool | None = None,
+        exclusive: ExclusiveTransform | None = None,
         current_server: bool = False,
     ):
         """
@@ -572,8 +577,8 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
             The carfigure you want to count
         event: Event
             The event you want to count
-        limited: bool
-            Whether you want to count limited carfigures
+        exclusive: Exclusive
+            The exclusive card you want to count
         current_server: bool
             Only count carfigures caught in the current server
         """
@@ -586,8 +591,8 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
         filters = {}
         if carfigure:
             filters["car"] = carfigure
-        if limited is not None:
-            filters["limited"] = limited
+        if exclusive:
+            filters["exclusive"] = exclusive
         if event:
             filters["event"] = event
         if current_server:
@@ -603,16 +608,16 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
             if cars == 1
             else f"{appearance.collectible_plural}"
         )
-        limited_str = "limited " if limited else ""
+        exclusive_str = f"{exclusive.name} " if exclusive else ""
         event_str = f"{event.name} " if event else ""
         guild = f" caught in {interaction.guild.name}" if current_server else ""
         await interaction.followup.send(
-            f"You have {cars} {event_str}{limited_str}"
+            f"You have {cars} {event_str}{exclusive_str}"
             f"{full_name}{collectible}{guild}."
         )
 
     @app_commands.command(
-        name=commandings.rarity_name, description=commandings.rarity_desc
+        name=commandconfig.rarity_name, description=commandconfig.rarity_desc
     )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def rarity(
@@ -671,7 +676,7 @@ class Cars(commands.GroupCog, group_name=commandings.cars_group):
         await pages.start()
 
     @app_commands.command(
-        name=commandings.compare_name, description=commandings.compare_desc
+        name=commandconfig.compare_name, description=commandconfig.compare_desc
     )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def compare(

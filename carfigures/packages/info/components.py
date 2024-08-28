@@ -1,13 +1,9 @@
 import psutil
-from typing import List
-
 import discord
 from discord import app_commands
 from discord.ui import Select, View
-
-from carfigures.core.models import Library
-from carfigures.settings import settings
-
+from carfigures.configs import settings
+from carfigures.docs import DocsManager
 
 def machine_info():
     """
@@ -47,35 +43,42 @@ def mention_app_command(app_command: app_commands.Command | app_commands.Group) 
 
 
 class LibrarySelector(View):
-    def __init__(self, topics: List[Library]):
+    def __init__(self, docs_manager: DocsManager, language: str):
         super().__init__()
-        self.add_item(LibrarySource(topics))
-
+        self.docs_manager = docs_manager
+        self.language = language
+        self.add_item(LibrarySource(docs_manager, language))
 
 class LibrarySource(Select):
-    def __init__(self, library: List[Library]):
+    def __init__(self, docs_manager: DocsManager, language: str):
+        self.docs_manager = docs_manager
+        self.language = language
         options = [
             discord.SelectOption(
-                label=topic.name,
-                description=topic.description,
-                value=str(topic.pk),
+                label=info['name'][language],
+                description=info['description'][language],
+                value=topic,
             )
-            for topic in library
+            for topic, info in docs_manager.topics.items()
         ]
         super().__init__(
             placeholder="Choose a topic...", min_values=1, max_values=1, options=options
         )
 
     async def callback(self, interaction: discord.Interaction):
-        topic_id = int(self.values[0])
-        selected_topic = await Library.get(id=topic_id)
+        selected_topic = self.values[0]
+        topic_info = self.docs_manager.topics[selected_topic]
+        content = self.docs_manager.get_topic_content(selected_topic, self.language)
+
         embed = discord.Embed(
             title=f"☳ {settings.bot_name} Documentations",
-            description=f"∴ {selected_topic.description}",
+            description=f"∴ {topic_info['description'][self.language]}",
             color=settings.default_embed_color,
         )
+        
         embed.add_field(
-            name=f"⋄ {selected_topic.name} | {selected_topic.description}",
-            value=selected_topic.text,
+            name=f"⋄ {topic_info['name'][self.language]}",
+            value=content[:1024] if content else "Content not available in this language."
         )
         await interaction.response.edit_message(embed=embed, view=self.view)
+

@@ -19,13 +19,13 @@ from carfigures.core.utils.transformers import (
 from carfigures.packages.trade.display import TradeViewFormat
 from carfigures.packages.trade.menu import TradeMenu
 from carfigures.packages.trade.trade_user import TradingUser
-from carfigures.settings import appearance, commandings
+from carfigures.configs import appearance, commandconfig
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
 
 
-class Trade(commands.GroupCog, group_name=commandings.trade_group):
+class Trade(commands.GroupCog, group_name=commandconfig.trade_group):
     """
     Trade carfigures with other players
     """

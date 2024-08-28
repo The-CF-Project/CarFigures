@@ -1,7 +1,6 @@
 import datetime
 import logging
 import random
-import re
 from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional, cast
@@ -26,8 +25,6 @@ from carfigures.core.models import (
     PrivacyPolicy,
     DonationPolicy,
     Player as PlayerModel,
-    DONATION_POLICY_MAP,
-    PRIVATE_POLICY_MAP,
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.core.utils.logging import log_action
@@ -39,37 +36,28 @@ from carfigures.core.utils.transformers import (
     EventTransform,
     ExclusiveTransform,
 )
+from carfigures.packages.superuser.components import (
+    save_file,
+    PRIVATE_POLICY_MAP,
+    DONATION_POLICY_MAP,
+)
 from carfigures.packages.carfigures.carfigure import CarFigure
 from carfigures.packages.trade.display import TradeViewFormat, fill_trade_embed_fields
 from carfigures.packages.trade.trade_user import TradingUser
-from carfigures.settings import settings, appearance, commandings, superuser
+from carfigures.configs import settings, appearance, commandconfig, superuser
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
     from carfigures.packages.carfigures.cog import CarFiguresSpawner
 
 log = logging.getLogger("carfigures.packages.superuser.cog")
-FILENAME_RE = re.compile(r"^(.+)(\.\S+)$")
-
-
-async def save_file(attachment: discord.Attachment) -> Path:
-    path = Path(f"./static/uploads/{attachment.filename}")
-    match = FILENAME_RE.match(attachment.filename)
-    if not match:
-        raise TypeError("The file you uploaded lacks an extension.")
-    i = 1
-    while path.exists():
-        path = Path(f"./static/uploads/{match.group(1)}-{i}{match.group(2)}")
-        i = i + 1
-    await attachment.save(path)
-    return path
 
 
 @app_commands.guilds(*superuser.guilds)
 @app_commands.default_permissions(administrator=True)
-class SuperUser(commands.GroupCog, group_name=commandings.sudo_group):
+class SuperUser(commands.GroupCog, group_name=commandconfig.sudo_group):
     """
-    Bot admin commands.
+    Superuser commands.
     """
 
     def __init__(self, bot: "CarFiguresBot"):
@@ -83,7 +71,7 @@ class SuperUser(commands.GroupCog, group_name=commandings.sudo_group):
     blacklist_guild = app_commands.Group(
         name="blacklistguild", description="Guild blacklist management"
     )
-    cars = app_commands.Group(name=commandings.cars_group, description="s management")
+    cars = app_commands.Group(name=commandconfig.cars_group, description="s management")
     logs = app_commands.Group(name="logs", description="Bot logs management")
     history = app_commands.Group(name="history", description="Trade history management")
     info = app_commands.Group(name="info", description="Information commands")
@@ -1617,7 +1605,7 @@ class SuperUser(commands.GroupCog, group_name=commandings.sudo_group):
             ),
             app_commands.Choice(
                 name="Request your approval first",
-                value=DonationPolicy.REQUEST_APPROVAL,
+                value=DonationPolicy.APPROVAL_REQUIRED,
             ),
             app_commands.Choice(
                 name="Deny all donations", value=DonationPolicy.ALWAYS_DENY

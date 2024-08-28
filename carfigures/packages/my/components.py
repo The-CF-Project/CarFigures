@@ -5,8 +5,13 @@ import random
 import discord
 from discord.ui import Button, View, Select, button
 
-from carfigures.core.models import Friendship, GuildConfig, Car, cars as carfigures
-from carfigures.settings import settings, information, appearance
+from carfigures.core.models import (
+    Friendship,
+    GuildConfig,
+    Car,
+    cars as carfigures,
+)
+from carfigures.configs import settings, information, appearance
 
 
 activation_embed = discord.Embed(
@@ -92,16 +97,16 @@ class AcceptTOSView(View):
 class FriendSelector(View):
     def __init__(self, friends: List[Friendship]):
         super().__init__()
-        self.add_item(LibrarySource(friends))
+        self.add_item(FriendSource(friends))
 
 
-class LibrarySource(Select):
+class FriendSource(Select):
     def __init__(self, friends: List[Friendship]):
         options = [
             discord.SelectOption(
-                label=friend.player1,
-                description=topic.description,
-                value=str(topic.pk),
+                label=f"{friend.player1}",
+                description=f"{friend.pk}",
+                value=str(friend.pk),
             )
             for friend in friends
         ]
@@ -111,15 +116,15 @@ class LibrarySource(Select):
 
     async def callback(self, interaction: discord.Interaction):
         topic_id = int(self.values[0])
-        selected_topic = await Library.get(id=topic_id)
+        selected_topic = await Friendship.get(id=topic_id)
         embed = discord.Embed(
             title=f"☳ {settings.bot_name} Documentations",
-            description=f"∴ {selected_topic.description}",
+            description=f"∴ {selected_topic.player1}",
             color=settings.default_embed_color,
         )
         embed.add_field(
-            name=f"⋄ {selected_topic.name} | {selected_topic.description}",
-            value=selected_topic.text,
+            name=f"⋄ {selected_topic.bestie} | {selected_topic.since}",
+            value=f"{selected_topic.id}",
         )
         await interaction.response.edit_message(embed=embed, view=self.view)
 
