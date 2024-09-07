@@ -34,11 +34,13 @@ from carfigures.core.models import (
     BlacklistedGuild,
     BlacklistedUser,
     Album,
+    FontsPack,
     Country,
     CarType,
     Event,
     Exclusive,
     GuildConfig,
+    fontspacks,
     cars,
     countries,
     cartypes,
@@ -50,7 +52,7 @@ from carfigures.configs import (
     appearance,
     superuser,
     information,
-    commandings,
+    commandconfig,
 )
 
 if TYPE_CHECKING:
@@ -75,9 +77,11 @@ class Translator(app_commands.Translator):
             TranslationContextLocation.other,
         ):
             return None
-        return string.message.replace(
-            "carfigure", appearance.collectible_singular
-        ).replace("CarFigures", settings.bot_name)
+        return (
+            string.message.replace("carfigure", appearance.collectible_singular)
+            .replace("CarFigures", settings.bot_name)
+            .replace("carfigures", appearance.collectible_plural)
+        )
 
 
 # observing the duration and status code of HTTP requests through aiohttp TraceConfig
@@ -232,6 +236,11 @@ class CarFiguresBot(commands.AutoShardedBot):
         table.add_row(appearance.collectible_singular.title(), str(len(cars)))
 
         table.add_row("Albums", str(await Album.all().count()))
+
+        fontspacks.clear()
+        for fontspack in await FontsPack.all():
+            fontspacks[fontspack.pk] = fontspack
+        table.add_row("FontsPacks", str(len(fontspacks)))
         cartypes.clear()
         for cartype in await CarType.all():
             cartypes[cartype.pk] = cartype
@@ -362,7 +371,7 @@ class CarFiguresBot(commands.AutoShardedBot):
                     continue
                 synced_commands = await self.tree.sync(guild=guild)
                 log.info(
-                    f"Synced {len(synced_commands)} {commandings.sudo_group} commands for guild {guild.id}."
+                    f"Synced {len(synced_commands)} {commandconfig.sudo_group} commands for guild {guild.id}."
                 )
 
         if settings.prometheus_enabled:

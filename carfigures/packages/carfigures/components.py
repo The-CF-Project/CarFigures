@@ -11,7 +11,7 @@ from prometheus_client import Counter
 from tortoise.timezone import now as datetime_now
 
 from carfigures.core.models import CarInstance, Player, events, exclusives
-from carfigures.configs import appearance, commandings
+from carfigures.configs import appearance, commandconfig
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -80,7 +80,7 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
             if has_caught_before:
                 event += (
                     f"This is a **new {appearance.collectible_singular}** "
-                    f"that has been added to your {commandings.garage_name}!"
+                    f"that has been added to your {commandconfig.garage_name}!"
                 )
 
             await interaction.followup.send(
@@ -105,38 +105,39 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
         # stat may vary by +/- 50% of base stat
         bonus_horsepower = random.randint(-50, 50)
         bonus_weight = random.randint(-50, 50)
+        exclusive_chance = random.randint(1, 2048) == 1
 
         # check if we can spawn cards with the event card
         event: "Event | None" = None
         exclusive: "Exclusive | None" = None
-        exclusivity = [
+        exclusive_population = [
             x for x in exclusives.values() if x.rebirth_required <= player.rebirths
         ]
-        population = [
+        event_population = [
             x for x in events.values() if x.start_date <= datetime_now() <= x.end_date
         ]
 
-        if not exclusivity and population:
+        # Handle exclusive selection (similar to event, but with a lower chance)
+        if exclusive_population:
+            exclusive_chance = 0.05  # 5% chance to trigger exclusive selection
+            if random.random() < exclusive_chance:
+                common_weight = sum(1 - x.rarity for x in exclusive_population)
+                weights = [x.rarity for x in exclusive_population] + [common_weight]
+                exclusive = random.choices(
+                    population=exclusive_population + [None], weights=weights, k=1
+                )[0]
+
+        if event_population:
             # Here we try to determine what should be the chance of having a common card
             # since the rarity field is a value between 0 and 1, 1 being no common
             # and 0 only common, we get the remaining value by doing (1-rarity)
             # We then sum each value for each current event, and we should get an algorithm
             # that kinda makes sense.
-            common_weight = sum(1 - x.rarity for x in population)
-
-            weights = [x.rarity for x in population] + [common_weight]
+            common_weight = sum(1 - x.rarity for x in event_population)
+            weights = [x.rarity for x in event_population] + [common_weight]
             # None is added representing the common carfigure
             event = random.choices(
-                population=population + [None], weights=weights, k=1
-            )[0]
-
-        elif exclusivity:
-            common_weight = sum(1 - x.rarity for x in exclusivity)
-
-            weights = [x.rarity for x in exclusivity] + [common_weight]
-            # None is added representing the common carfigure
-            exclusive = random.choices(
-                population=exclusivity + [None], weights=weights, k=1
+                population=event_population + [None], weights=weights, k=1
             )[0]
 
         is_new = not await CarInstance.filter(

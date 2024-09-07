@@ -18,6 +18,7 @@ from tortoise import Tortoise
 
 from carfigures.core.bot import CarFiguresBot
 from carfigures.langs import readlangs
+from carfigures.docs import loaddocs
 from carfigures.logging import init_logger
 from carfigures.configs import read_settings, settings
 from carfigures import bot_version
@@ -40,6 +41,7 @@ class CLIFlags(argparse.Namespace):
     version: bool
     config_file: Path
     lang_file: Path
+    docs_folder: Path
     reset_settings: bool
     disable_rich: bool
     debug: bool
@@ -55,6 +57,12 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
         type=Path,
         help="Set the path to configuration.toml",
         default=Path("./config.toml"),
+    )
+    parser.add_argument(
+        "--docs-folder",
+        type=Path,
+        help="Set the path for docs",
+        default=Path("./carfigures/docs"),
     )
     parser.add_argument(
         "--lang-file",
@@ -261,6 +269,7 @@ def main():
         print(
             f"[red]The language file [blue]{cli_flags.lang_file}[/blue] couldn't be found.[/red]"
         )
+    loaddocs(cli_flags.docs_folder)
     print_welcome()
     queue_listener: logging.handlers.QueueListener | None = None
 

@@ -74,8 +74,9 @@ class SuperUser(commands.GroupCog, group_name=commandconfig.sudo_group):
     cars = app_commands.Group(name=commandconfig.cars_group, description="s management")
     logs = app_commands.Group(name="logs", description="Bot logs management")
     history = app_commands.Group(name="history", description="Trade history management")
-    info = app_commands.Group(name="info", description="Information commands")
-    player = app_commands.Group(name="player", description="Player commands")
+    info = app_commands.Group(name="info", description="Information management")
+    player = app_commands.Group(name="player", description="Player management")
+    rebirth = app_commands.Group(name="rebirth", description="Rebirth management")
 
     @app_commands.command()
     @app_commands.checks.has_any_role(*superuser.roots)
@@ -1044,9 +1045,9 @@ class SuperUser(commands.GroupCog, group_name=commandconfig.sudo_group):
         cars = await CarInstance.filter(**filters).count()
         full_name = f"{carfigure.full_name} " if carfigure else ""
         collectible = (
-            f"{appearance.collectible_plural}"
-            if cars > 1 or cars == 0
-            else f"{appearance.collectible_singular}"
+            f"{appearance.collectible_singular}"
+            if cars == 1
+            else f"{appearance.collectible_plural}"
         )
         event_str = f"{event.name} " if event else ""
         exclusive_str = f"{exclusive.name} " if exclusive else ""
@@ -1640,7 +1641,7 @@ class SuperUser(commands.GroupCog, group_name=commandconfig.sudo_group):
             self.bot,
         )
 
-    @player.command()
+    @rebirth.command(name="add")
     async def rebirth_add(
         self,
         interaction: discord.Interaction,
@@ -1685,7 +1686,7 @@ class SuperUser(commands.GroupCog, group_name=commandconfig.sudo_group):
             self.bot,
         )
 
-    @player.command()
+    @rebirth.command(name="remove")
     async def rebirth_remove(
         self,
         interaction: discord.Interaction,

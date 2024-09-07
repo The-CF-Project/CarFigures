@@ -8,7 +8,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from carfigures import bot_version
-from carfigures.configs import settings, commandings, information, appearance
+from carfigures.configs import settings, commandconfig, information, appearance
 from carfigures.core.models import cars
 from carfigures.core.utils.transformers import EventTransform
 from carfigures.core.utils.paginator import FieldPageSource, Pages
@@ -18,7 +18,7 @@ from carfigures.packages.info.components import (
     mention_app_command,
     LibrarySelector,
 )
-
+from carfigures.docs import docsmanager
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.info")
 
 
-class Info(commands.GroupCog, group_name=commandings.info_group):
+class Info(commands.GroupCog, group_name=commandconfig.info_group):
     """
     info commands.
     """
@@ -47,7 +47,7 @@ class Info(commands.GroupCog, group_name=commandings.info_group):
         cars_count = len([
             carfigure for carfigure in cars.values() if carfigure.enabled
         ])
-        team = information.team_members
+        team = settings.team_members
         players_count = await row_count_estimate("player")
         cars_instances_count = await row_count_estimate("carinstance")
         team1 = "\n".join([f"\u200b **⋄** {member}" for member in team[:5]])
@@ -165,6 +165,28 @@ class Info(commands.GroupCog, group_name=commandings.info_group):
         source.embed.colour = settings.default_embed_color
         pages = Pages(source=source, interaction=interaction, compact=True)
         await pages.start()
+
+    @app_commands.command()
+    async def library(self, interaction: discord.Interaction):
+        """
+        CarFigure's Official Documentation
+        """
+        if not docsmanager.topics:
+            await interaction.response.send_message(
+                "No topics available in the documentation."
+            )
+            return
+
+        embed = discord.Embed(
+            title="Select a Topic",
+            description="Please select a topic from the dropdown menu below.",
+            color=settings.default_embed_color,
+        )
+
+        # Assume English as default language, you might want to get this from user settings
+        language = "english"
+        view = LibrarySelector(docsmanager, language)
+        await interaction.response.send_message(embed=embed, view=view)
 
     @app_commands.command()
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)

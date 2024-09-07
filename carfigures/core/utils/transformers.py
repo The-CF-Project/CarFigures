@@ -19,6 +19,7 @@ from carfigures.core.models import (
     CarType,
     Event,
     Exclusive,
+    Languages,
     cars,
     countries,
     cartypes,
@@ -58,6 +59,21 @@ class ValidationError(Exception):
 
     def __init__(self, message: str):
         self.message = message
+
+
+class LanguageTransformer(app_commands.Transformer):
+    async def transform(
+        self,
+        interaction: Interaction["CarFiguresBot"],
+        value: str,
+    ):
+        if not value:
+            await interaction.response.send_message(
+                "You need to use the autocomplete function for the economy selection."
+            )
+            return None
+
+        return await super().transform(interaction, value)
 
 
 class ModelTransformer(app_commands.Transformer, Generic[T]):
@@ -123,7 +139,7 @@ class ModelTransformer(app_commands.Transformer, Generic[T]):
         t2 = time.time()
         log.debug(
             f"{self.name.title()} autocompletion took "
-            f"{round((t2-t1)*1000)}ms, {len(choices)} results"
+            f"{round((t2 - t1) * 1000)}ms, {len(choices)} results"
         )
         return choices
 

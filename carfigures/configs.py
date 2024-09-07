@@ -7,7 +7,7 @@ import tomllib
 if TYPE_CHECKING:
     from pathlib import Path
 
-log = logging.getLogger("carfigures.settings")
+log = logging.getLogger("carfigures.configs")
 
 
 @dataclass
@@ -107,7 +107,7 @@ def read_settings(path: "Path"):
     settings.spawnalert = config["settings"]["spawnalert"]
     settings.default_embed_color = int(config["settings"]["default_embed_color"], 16)
     settings.team_members = config["team"]["members"]
-    
+
     appearance.collectible_singular = config["appearance"]["collectible_singular"]
     appearance.collectible_plural = config["appearance"]["collectible_plural"]
     appearance.cartype = config["appearance"]["cartype"]

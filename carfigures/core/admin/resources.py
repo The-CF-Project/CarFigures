@@ -16,6 +16,7 @@ from carfigures.core.models import (
     BlacklistedUser,
     Country,
     Exclusive,
+    FontsPack,
     GuildConfig,
     Player,
     CarType,
@@ -101,6 +102,7 @@ class EventResource(Model):
             display=displays.InputOnly(),
             input_=inputs.TextArea(),
         ),
+        "fontspack",
         Field(
             name="banner",
             label="The Event Banner!",
@@ -174,6 +176,7 @@ class ExclusiveResource(Model):
             display=displays.Image(width="40"),
             input_=inputs.Image(upload=upload, null=True),
         ),
+        "fontspack",
         "rarity",
         Field(
             name="rebirth_required",
@@ -202,6 +205,48 @@ class AlbumResource(Model):
 
 
 @app.register
+class FontsPackResource(Model):
+    label = "FontsPacks"
+    model = FontsPack
+    icon = "fas fa-bag"
+    page_pre_title = "The List of:"
+    page_title = "Fonts Packs"
+    fields = [
+        Field(name="name", label="The name of the pack"),
+        Field(
+            name="title",
+            label="The Font of the Title",
+            display=displays.Display(),
+            input_=inputs.File(upload=upload, null=False),
+        ),
+        Field(
+            name="capacityn",
+            label="The Font of the Capacity Name",
+            display=displays.Display(),
+            input_=inputs.File(upload=upload, null=False),
+        ),
+        Field(
+            name="capacityd",
+            label="The Font of the Capacity Description",
+            display=displays.Display(),
+            input_=inputs.File(upload=upload, null=False),
+        ),
+        Field(
+            name="stats",
+            label="The Font of the Stats",
+            display=displays.Display(),
+            input_=inputs.File(upload=upload, null=False),
+        ),
+        Field(
+            name="credits",
+            label="The Font of the Credits",
+            display=displays.Display(),
+            input_=inputs.File(upload=upload, null=False),
+        ),
+    ]
+
+
+@app.register
 class CardResource(Model):
     label = "Cards"
     model = CarType
@@ -216,6 +261,8 @@ class CardResource(Model):
             display=displays.Image(width="40"),
             input_=inputs.Image(upload=upload, null=True),
         ),
+        "fontspack",
+        "icon_position",
     ]
 
 
@@ -374,7 +421,6 @@ class InstanceResource(Model):
         "player",
         "catch_date",
         "server_id",
-        "limited",
         "exclusive",
         "event",
         "favorite",

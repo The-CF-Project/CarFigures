@@ -37,9 +37,9 @@ def init_fastapi_app() -> FastAPI:
         name="static",
     )
     app.mount(
-        "/carfigures/core/image_generator/src",
-        StaticFiles(directory=BASE_DIR / "carfigures/core/image_generator/src"),
-        name="image_gen",
+        "/carfigures/core/imaging/src",
+        StaticFiles(directory=BASE_DIR / "carfigures/core/imaging/src"),
+        name="imager",
     )
 
     @app.get("/")

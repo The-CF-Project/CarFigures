@@ -5,6 +5,7 @@ from discord.ui import Select, View
 from carfigures.configs import settings
 from carfigures.docs import DocsManager
 
+
 def machine_info():
     """
     Function to gather information about the machine's CPU, memory, and disk usage.
@@ -49,14 +50,15 @@ class LibrarySelector(View):
         self.language = language
         self.add_item(LibrarySource(docs_manager, language))
 
+
 class LibrarySource(Select):
     def __init__(self, docs_manager: DocsManager, language: str):
         self.docs_manager = docs_manager
         self.language = language
         options = [
             discord.SelectOption(
-                label=info['name'][language],
-                description=info['description'][language],
+                label=info["name"][language],
+                description=info["description"][language],
                 value=topic,
             )
             for topic, info in docs_manager.topics.items()
@@ -75,10 +77,11 @@ class LibrarySource(Select):
             description=f"∴ {topic_info['description'][self.language]}",
             color=settings.default_embed_color,
         )
-        
+
         embed.add_field(
             name=f"⋄ {topic_info['name'][self.language]}",
-            value=content[:1024] if content else "Content not available in this language."
+            value=content[:1024]
+            if content
+            else "Content not available in this language.",
         )
         await interaction.response.edit_message(embed=embed, view=self.view)
-

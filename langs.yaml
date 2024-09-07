@@ -36,7 +36,6 @@ english:
   invalid_input: "Invalid input!"
 
   # Rebirth Command
-  no_cars_registered: "There are no {collectibles} registered on this bot yet."
   incomplete_collection: "You haven't reached 100% of the bot collection yet. There are still {missing} cars missing."
   confirm_rebirth: "Are you sure you want to delete all your {collectibles} for advantages?"
   rebirth_completed: "Congratulations! This is your {ordinal} Rebirth, hopefully you get even more!"
@@ -67,6 +66,28 @@ english:
   enabled: "Enabled"
   disabled: "Disabled"
   not_set: "Not set"
+
+  # Friends
+  cannot_friend_self: "You can't add yourself as a friend."
+  cannot_friend_bot: "You can't add a bot as a friend."
+  cannot_friend_blacklisted: "You cannot add a blacklisted user."
+  friend_request_already_sent: "You have already sent a friend request to {user}"
+  friend_request_sent: "You have sent a friend request to {user}"
+  no_friend_requests: "You currently don't have any friend requests"
+  friend_request_from: "This Friend request is coming from:"
+  friend_requests_title: "{user}'s Friend requests"
+  select_friend_request: "Pls select one of the people"
+  confirm_friend_request: "you sure u want to accept this request?"
+  friend_request_accepted: "you have accepted this request"
+  friend_request_declined: "you have rejected this request"
+  friend_requests_description: "select one of the requests to view!"
+
+  # Cars
+  you_do_not: "You don't"
+  they_do_not: "{user} doesn't"
+  do_not_have: "{pov} have any {car} {collectibles} yet."
+  view_garage: "Viewing {user}'s garage!"
+  no_cars_registered: "There are no {collectibles} registered on this bot yet."
 
 french:
   # Profile Command

@@ -4,7 +4,7 @@ from typing import Dict
 from carfigures.core.models import Languages
 from pathlib import Path
 
-log = logging.getLogger("carfigures.languages")
+log = logging.getLogger("carfigures.langs")
 
 LANGUAGE_MAP = {
     1: "English",

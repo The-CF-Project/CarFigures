@@ -3,14 +3,18 @@ import logging
 
 from typing import TYPE_CHECKING, cast
 
-from discord import app_commands
+from discord import Interaction, app_commands
 from discord.ext import commands
 from discord.utils import format_dt
+from tortoise.expressions import Q
+from discord.ui import View, Select
 
 from carfigures.core.models import (
+    Friendship as FriendshipModel,
     GuildConfig,
     DonationPolicy,
     Languages,
+    FriendshipRequest as FriendshipRequestModel,
     PrivacyPolicy,
     Player as PlayerModel,
     CarInstance,
@@ -18,6 +22,7 @@ from carfigures.core.models import (
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.packages.my.components import (
+    FriendSelector,
     _get_10_cars_emojis,
     AcceptTOSView,
     activation_embed,
@@ -40,14 +45,13 @@ class My(commands.GroupCog, group_name=commandconfig.my_group):
 
     def __init__(self, bot: "CarFiguresBot"):
         self.bot = bot
-        self.server.parent = self.__cog_app_commands_group__
-        self.own.parent = self.__cog_app_commands_group__
 
     server = app_commands.Group(name="server", description="Server management")
     own = app_commands.Group(name="own", description="My management")
+    rebirth = app_commands.Group(name="rebirth", description="Rebirth management")
     friends = app_commands.Group(name="friends", description="Friends management")
+    goals = app_commands.Group(name="goals", description="Goals management")
 
-    @own.command()
     @app_commands.choices(
         policy=[
             app_commands.Choice(name="Public Inventory", value=PrivacyPolicy.PUBLIC),
@@ -55,7 +59,10 @@ class My(commands.GroupCog, group_name=commandconfig.my_group):
             app_commands.Choice(name="Private Inventory", value=PrivacyPolicy.PRIVATE),
         ]
     )
-    async def privacy(self, interaction: discord.Interaction, policy: PrivacyPolicy):
+    @own.command(name="privacy")
+    async def playerprivacy(
+        self, interaction: discord.Interaction, policy: PrivacyPolicy
+    ):
         """
         Set your privacy policy.
         """
@@ -97,8 +104,8 @@ class My(commands.GroupCog, group_name=commandconfig.my_group):
             ),
         ]
     )
-    @own.command()
-    async def policy(
+    @own.command(name="policy")
+    async def playerpolicy(
         self, interaction: discord.Interaction, policy: app_commands.Choice[int]
     ):
         """
@@ -134,10 +141,10 @@ class My(commands.GroupCog, group_name=commandconfig.my_group):
 
         await interaction.response.send_message(message, ephemeral=True)
 
-    @own.command()
-    async def profile(self, interaction: discord.Interaction):
+    @own.command(name="profile")
+    async def playerprofile(self, interaction: discord.Interaction):
         """
-        Show your profile.
+        View your profile.
         """
 
         player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
@@ -173,8 +180,8 @@ class My(commands.GroupCog, group_name=commandconfig.my_group):
         embed.set_thumbnail(url=interaction.user.display_avatar.url)
         await interaction.response.send_message(embed=embed)
 
-    @own.command()
-    async def rebirth(self, interaction: discord.Interaction):
+    @rebirth.command(name="start")
+    async def rebirthstart(self, interaction: discord.Interaction):
         """
         Delete all your cars if you have full completion, to get advantages back
         """
@@ -183,7 +190,13 @@ class My(commands.GroupCog, group_name=commandconfig.my_group):
         bot_carfigures = {
             id: carfigure.pk for id, carfigure in cars.items() if carfigure.enabled
         }
-        filters = {"player__discord_id": interaction.user.id, "car__enabled": True}
+        filters = {
+            "player__discord_id": interaction.user.id,
+            "car__enabled": True,
+            "favorite": False,
+            "exclusive": None,
+            "event": None,
+        }
 
         if not bot_carfigures:
             await interaction.response.send_message(
@@ -241,6 +254,188 @@ class My(commands.GroupCog, group_name=commandconfig.my_group):
                 "rebirth_completed", player.language, ordinal=ordinal(player.rebirths)
             )
         )
+
+    @friends.command(name="profiles")
+    async def friendsprofiles(self, interaction: discord.Interaction):
+        """
+        List all your friends' profiles
+        """
+        player = await PlayerModel.get(discord_id=interaction.user.id)
+        friends = await player.get_friends()
+        embed = discord.Embed(
+            title="Select your friend!",
+            description="Please select a friend to view their profile.",
+            color=settings.default_embed_color,
+        )
+        view = FriendSelector(friends, player, "profiles")
+        await interaction.response.send_message(embed=embed, view=view)
+
+    @friends.command(name="goals")
+    async def friendsgoals(self, interaction: discord.Interaction):
+        """
+        List all your friends' goals
+        """
+        player = await PlayerModel.get(discord_id=interaction.user.id)
+        friends = await player.get_friends()
+        embed = discord.Embed(
+            title="Select your friend!",
+            description="Please select a friend to view their goals.",
+            color=settings.default_embed_color,
+        )
+        view = FriendSelector(friends, player, "goals")
+        await interaction.response.send_message(embed=embed, view=view)
+
+    @friends.command(name="add")
+    async def friendsadd(self, interaction: Interaction, user: discord.User):
+        """
+        Send a friend request to another user.
+        """
+        sender, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+        receiver, _ = await PlayerModel.get_or_create(discord_id=user.id)
+
+        if sender == receiver:
+            await interaction.response.send_message(
+                translate("cannot_friend_self", sender.language), ephemeral=True
+            )
+            return
+
+        existing_request = (
+            await FriendshipRequestModel.filter(
+                (
+                    Q(sender__discord_id=sender.discord_id)
+                    & Q(receiver__discord_id=receiver.discord_id)
+                )
+                | (
+                    Q(sender__discord_id=receiver.discord_id)
+                    & Q(receiver__discord_id=sender.discord_id)
+                )
+            )
+            .first()
+            .prefetch_related("sender", "receiver")
+        )
+
+        if existing_request:
+            await interaction.response.send_message(
+                translate(
+                    "friend_request_already_sent",
+                    sender.language,
+                    user=user.display_name,
+                ),
+                ephemeral=True,
+            )
+            return
+        existing_friendship = await FriendshipModel.filter(
+            Q(
+                player1__discord_id=sender.discord_id,
+                player2__discord_id=receiver.discord_id,
+            )
+            | Q(
+                player1__discord_id=receiver.discord_id,
+                player2__discord_id=sender.discord_id,
+            )
+        ).first()
+
+        if existing_friendship:
+            await interaction.response.send_message(
+                translate("already_friends", sender.language, user=user.display_name),
+                ephemeral=True,
+            )
+            return
+
+        await FriendshipRequestModel.create(sender=sender, receiver=receiver)
+        await interaction.response.send_message(
+            translate("friend_request_sent", sender.language, user=user.display_name),
+            ephemeral=True,
+        )
+
+    @friends.command(name="requests")
+    async def friendsrequests(self, interaction: Interaction):
+        """
+        View and manage your friend requests.
+        """
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+        requests = await FriendshipRequestModel.filter(
+            receiver=player
+        ).prefetch_related("sender")
+
+        if not requests:
+            await interaction.response.send_message(
+                translate("no_friend_requests", player.language), ephemeral=True
+            )
+            return
+
+        embed = discord.Embed(
+            title=translate(
+                "friend_requests_title",
+                player.language,
+                user=interaction.user.display_name,
+            ),
+            color=settings.default_embed_color,
+        )
+
+        options = []
+        for request in requests:
+            sender = request.sender
+            options.append(
+                discord.SelectOption(
+                    label=f"{sender.discord_id}",
+                    description=translate(
+                        "friend_request_from", player.language, user=sender.discord_id
+                    ),
+                    value=str(request.id),
+                )
+            )
+
+        select = Select(
+            placeholder=translate("select_friend_request", player.language),
+            options=options,
+        )
+
+        async def select_callback(interaction: discord.Interaction):
+            request_id = int(select.values[0])
+            request = await FriendshipRequestModel.get(id=request_id).prefetch_related(
+                "sender"
+            )
+            view = ConfirmChoiceView(interaction)
+            await interaction.response.send_message(
+                translate(
+                    "confirm_friend_request",
+                    player.language,
+                    user=request.sender.discord_id,
+                ),
+                view=view,
+                ephemeral=True,
+            )
+
+            await view.wait()
+            if view.value:
+                await FriendshipModel.create(player1=player, player2=request.sender)
+                await request.delete()
+                await interaction.followup.send(
+                    translate(
+                        "friend_request_accepted",
+                        player.language,
+                        user=request.sender.discord_id,
+                    ),
+                    ephemeral=True,
+                )
+            else:
+                await request.delete()
+                await interaction.followup.send(
+                    translate(
+                        "friend_request_declined",
+                        player.language,
+                        user=request.sender.discord_id,
+                    ),
+                    ephemeral=True,
+                )
+
+        select.callback = select_callback  # type: ignore
+        view = View()
+        view.add_item(select)
+
+        embed.description = translate("friend_requests_description", player.language)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     @server.command()
     async def spawnchannel(
@@ -411,9 +606,9 @@ class My(commands.GroupCog, group_name=commandconfig.my_group):
             f"you have successfully changed your server language to **{language.name}**"
         )
 
-    @server.command()
+    @server.command(name="info")
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
-    async def info(self, interaction: discord.Interaction):
+    async def serverinfo(self, interaction: discord.Interaction):
         """
         Display information about the server.
         """

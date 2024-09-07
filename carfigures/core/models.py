@@ -10,14 +10,14 @@ import discord
 from discord.utils import format_dt
 from fastapi_admin.models import AbstractAdmin
 from tortoise import exceptions, fields, models, signals, timezone, validators
-
-from carfigures.core.image_generator.image_gen import draw_card, draw_banner
+from tortoise.expressions import Q
+from carfigures.core.imaging.imager import draw_card, draw_banner
 from carfigures.configs import appearance
 
 if TYPE_CHECKING:
     from tortoise.backends.base.client import BaseDBAsyncClient
 
-
+fontspacks: dict[int, FontsPack] = {}
 cars: dict[int, Car] = {}
 cartypes: dict[int, CarType] = {}
 countries: dict[int, Country] = {}
@@ -96,9 +96,38 @@ class GuildConfig(models.Model):
     )
 
 
+class FontsPack(models.Model):
+    name = fields.CharField(max_length=64)
+    title = fields.CharField(max_length=200)
+    capacityn = fields.CharField(max_length=200)
+    capacityd = fields.CharField(max_length=200)
+    stats = fields.CharField(max_length=200)
+
+
+class CountryPosition(IntEnum):
+    RIGHT = 1
+    LEFT = 2
+
+
 class CarType(models.Model):
+    fontspack_id: int
+
     name = fields.CharField(max_length=64)
     image = fields.CharField(max_length=200, description="1428x2000 PNG image")
+    fontspack: fields.ForeignKeyRelation[FontsPack] = fields.ForeignKeyField(
+        "models.FontsPack",
+        description="The FontPack this exclusive uses",
+        on_delete=fields.CASCADE,
+    )
+    icon_position = fields.IntEnumField(
+        CountryPosition,
+        description="The Position of the icon",
+        default=CountryPosition.RIGHT,
+    )
+
+    @property
+    def cached_fontspack(self) -> FontsPack:
+        return fontspacks.get(self.fontspack_id, self.fontspack)
 
     def __str__(self):
         return self.name
@@ -113,8 +142,15 @@ class Country(models.Model):
 
 
 class Exclusive(models.Model):
+    fontspack_id: int
+
     name = fields.CharField(max_length=64)
     image = fields.CharField(max_length=200, description="1428x2000 PNG image")
+    fontspack: fields.ForeignKeyRelation[FontsPack] = fields.ForeignKeyField(
+        "models.FontsPack",
+        description="The FontPack this exclusive uses",
+        on_delete=fields.CASCADE,
+    )
     rebirth_required = fields.IntField(default=0)
     rarity = fields.FloatField(description="Value between 0 and 1.")
     emoji = fields.CharField(
@@ -129,11 +165,17 @@ class Exclusive(models.Model):
         default=None,
     )
 
+    @property
+    def cached_fontspack(self) -> FontsPack:
+        return fontspacks.get(self.fontspack_id, self.fontspack)
+
     def __str__(self):
         return self.name
 
 
 class Event(models.Model):
+    fontspack_id: int
+
     name = fields.CharField(
         max_length=64,
         description="The name of the event",
@@ -159,6 +201,11 @@ class Event(models.Model):
     card = fields.CharField(
         max_length=200, description="1428x2000 PNG image", null=True
     )
+    fontspack: fields.ForeignKeyRelation[FontsPack] = fields.ForeignKeyField(
+        "models.FontsPack",
+        description="The FontPack this exclusive uses",
+        on_delete=fields.CASCADE,
+    )
     emoji = fields.CharField(
         max_length=20,
         description="Either a unicode character or a discord emoji ID",
@@ -174,6 +221,10 @@ class Event(models.Model):
 
     class Meta:
         ordering = ["-start_date"]
+
+    @property
+    def cached_fontspack(self) -> FontsPack:
+        return fontspacks.get(self.fontspack_id, self.fontspack)
 
     def draw_banner(self) -> BytesIO:
         image = draw_banner(self)
@@ -539,6 +590,7 @@ class Player(models.Model):
         default=PrivacyPolicy.PUBLIC,
     )
     cars: fields.BackwardFKRelation[CarInstance]
+    friends: fields.BackwardFKRelation[Friendship]
     rebirths = fields.IntField(default=0)
     bolts = fields.IntField(default=0)
     goals: fields.BackwardFKRelation[Goal]
@@ -551,29 +603,19 @@ class Player(models.Model):
     def __str__(self) -> str:
         return str(self.discord_id)
 
-class Goal(models.Model):
-    name = fields.CharField(
-        max_length=64,
-        description="The name of the goal"
-    )
-    player: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
-        "models.Player", related_name="goals"
-    )
-    car: fields.ForeignKeyRelation[Car] = fields.ForeignKeyField(
-        "models.Car"
-    )
-    current = fields.IntField(description="the current number of the car in the garage")
-    target = fields.IntField(description="the target number")
-    completed = fields.BooleanField(default=False)
+    async def get_friends(self):
+        return await Friendship.filter(
+            Q(player1=self) | Q(player2=self)
+        ).prefetch_related("player1", "player2")
 
 
 class Friendship(models.Model):
     id: int
     player1: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
-        "models.Player", related_name="friend1"
+        "models.Player", related_name="friend1", source_field="player1"
     )
     player2: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
-        "models.Player", related_name="friend2"
+        "models.Player", related_name="friend2", source_field="player2"
     )
     bestie = fields.BooleanField(default=False)
     since = fields.DatetimeField(auto_now_add=True)
@@ -585,15 +627,26 @@ class Friendship(models.Model):
 class FriendshipRequest(models.Model):
     id: int
     sender: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
-        "models.Player", related_name="sender"
+        "models.Player", related_name="sent_request", source_field="sender"
     )
     receiver: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
-        "models.Player", related_name="receiver"
+        "models.Player", related_name="received_request", source_field="receiver"
     )
-    date = fields.DatetimeField(auto_now_add=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return str(self.pk)
+
+
+class Goal(models.Model):
+    name = fields.CharField(max_length=64, description="The name of the goal")
+    player: fields.ForeignKeyRelation[Player] = fields.ForeignKeyRelation(
+        "models.Player", related_name="goals"
+    )  # type: ignore
+    car: fields.ForeignKeyRelation[Car] = fields.ForeignKeyField("models.Car")
+    current = fields.IntField(description="the current number of the car in the garage")
+    target = fields.IntField(description="the target number")
+    completed = fields.BooleanField(default=False)
 
 
 class BlacklistedUser(models.Model):
