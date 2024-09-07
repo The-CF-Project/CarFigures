@@ -10,15 +10,14 @@ import discord
 from discord.utils import format_dt
 from fastapi_admin.models import AbstractAdmin
 from tortoise import exceptions, fields, models, signals, timezone, validators
-from tortoise.fields.data import IntField
-
-from carfigures.core.image_generator.image_gen import draw_card, draw_banner
-from carfigures.settings import settings
+from tortoise.expressions import Q
+from carfigures.core.imaging.imager import draw_card, draw_banner
+from carfigures.configs import appearance
 
 if TYPE_CHECKING:
     from tortoise.backends.base.client import BaseDBAsyncClient
 
-
+fontspacks: dict[int, FontsPack] = {}
 cars: dict[int, Car] = {}
 cartypes: dict[int, CarType] = {}
 countries: dict[int, Country] = {}
@@ -34,9 +33,9 @@ async def lower_catch_names(
     update_fields: Iterable[str] | None = None,
 ):
     if instance.catch_names:
-        instance.catch_names = ";".join(
-            [x.strip() for x in instance.catch_names.split(";")]
-        ).lower()
+        instance.catch_names = ";".join([
+            x.strip() for x in instance.catch_names.split(";")
+        ]).lower()
 
 
 class DiscordSnowflakeValidator(validators.Validator):
@@ -45,6 +44,23 @@ class DiscordSnowflakeValidator(validators.Validator):
             raise exceptions.ValidationError(
                 "Discord IDs are between 17 and 19 characters long"
             )
+
+
+class Languages(IntEnum):
+    ENGLISH = 1
+    FRENCH = 2
+    ARABIC = 3
+    CHINESE = 4
+    GERMAN = 5
+    RUSSIAN = 6
+    TURKISH = 7
+    GREEK = 8
+    BULGARIAN = 9
+    POLISH = 10
+    LITHUANIAN = 11
+    UKRAINIAN = 12
+    BOSNIAN = 13
+    VIETNAMESE = 14
 
 
 class Admin(AbstractAdmin):
@@ -73,11 +89,45 @@ class GuildConfig(models.Model):
     enabled = fields.BooleanField(
         description="Whether the bot will spawn carfigures in this guild", default=True
     )
+    language = fields.IntEnumField(
+        Languages,
+        description="The language spoken inside the server",
+        default=Languages.ENGLISH,
+    )
+
+
+class FontsPack(models.Model):
+    name = fields.CharField(max_length=64)
+    title = fields.CharField(max_length=200)
+    capacityn = fields.CharField(max_length=200)
+    capacityd = fields.CharField(max_length=200)
+    stats = fields.CharField(max_length=200)
+
+
+class CountryPosition(IntEnum):
+    RIGHT = 1
+    LEFT = 2
 
 
 class CarType(models.Model):
+    fontspack_id: int
+
     name = fields.CharField(max_length=64)
     image = fields.CharField(max_length=200, description="1428x2000 PNG image")
+    fontspack: fields.ForeignKeyRelation[FontsPack] = fields.ForeignKeyField(
+        "models.FontsPack",
+        description="The FontPack this exclusive uses",
+        on_delete=fields.CASCADE,
+    )
+    icon_position = fields.IntEnumField(
+        CountryPosition,
+        description="The Position of the icon",
+        default=CountryPosition.RIGHT,
+    )
+
+    @property
+    def cached_fontspack(self) -> FontsPack:
+        return fontspacks.get(self.fontspack_id, self.fontspack)
 
     def __str__(self):
         return self.name
@@ -92,8 +142,15 @@ class Country(models.Model):
 
 
 class Exclusive(models.Model):
+    fontspack_id: int
+
     name = fields.CharField(max_length=64)
     image = fields.CharField(max_length=200, description="1428x2000 PNG image")
+    fontspack: fields.ForeignKeyRelation[FontsPack] = fields.ForeignKeyField(
+        "models.FontsPack",
+        description="The FontPack this exclusive uses",
+        on_delete=fields.CASCADE,
+    )
     rebirth_required = fields.IntField(default=0)
     rarity = fields.FloatField(description="Value between 0 and 1.")
     emoji = fields.CharField(
@@ -108,11 +165,17 @@ class Exclusive(models.Model):
         default=None,
     )
 
+    @property
+    def cached_fontspack(self) -> FontsPack:
+        return fontspacks.get(self.fontspack_id, self.fontspack)
+
     def __str__(self):
         return self.name
 
 
 class Event(models.Model):
+    fontspack_id: int
+
     name = fields.CharField(
         max_length=64,
         description="The name of the event",
@@ -138,6 +201,11 @@ class Event(models.Model):
     card = fields.CharField(
         max_length=200, description="1428x2000 PNG image", null=True
     )
+    fontspack: fields.ForeignKeyRelation[FontsPack] = fields.ForeignKeyField(
+        "models.FontsPack",
+        description="The FontPack this exclusive uses",
+        on_delete=fields.CASCADE,
+    )
     emoji = fields.CharField(
         max_length=20,
         description="Either a unicode character or a discord emoji ID",
@@ -153,6 +221,10 @@ class Event(models.Model):
 
     class Meta:
         ordering = ["-start_date"]
+
+    @property
+    def cached_fontspack(self) -> FontsPack:
+        return fontspacks.get(self.fontspack_id, self.fontspack)
 
     def draw_banner(self) -> BytesIO:
         image = draw_banner(self)
@@ -176,9 +248,20 @@ class Event(models.Model):
         return content, discord.File(buffer, "banner.png")
 
 
+class Album(models.Model):
+    name = fields.CharField(max_length=64, unique=True)
+    rebirth_required = fields.IntField(default=0)
+    emoji = fields.CharField(
+        max_length=20,
+        description="Either a unicode character or a discord emoji ID",
+        null=True,
+    )
+
+
 class Car(models.Model):
     cartype_id: int
     country_id: int
+    album_id: int
 
     full_name = fields.CharField(max_length=48, unique=True)
     short_name = fields.CharField(max_length=20, null=True, default=None)
@@ -195,6 +278,12 @@ class Car(models.Model):
     country: fields.ForeignKeyRelation[Country] | None = fields.ForeignKeyField(
         "models.Country",
         description="The Country of this car",
+        on_delete=fields.SET_NULL,
+        null=True,
+    )
+    album: fields.ForeignKeyRelation[Album] | None = fields.ForeignKeyField(
+        "models.Album",
+        description="The Album this entity Belongs to",
         on_delete=fields.SET_NULL,
         null=True,
     )
@@ -257,7 +346,6 @@ class CarInstance(models.Model):
     server_id = fields.BigIntField(
         description="Discord server ID where this car was caught", null=True
     )
-    limited = fields.BooleanField(default=False)
     exclusive: fields.ForeignKeyRelation[Exclusive] | None = fields.ForeignKeyField(
         "models.Exclusive", null=True, default=None, on_delete=fields.SET_NULL
     )
@@ -332,10 +420,10 @@ class CarInstance(models.Model):
             emotes += "🔒"
         if self.favorite:
             emotes += "❤️"
-        if self.limited:
-            emotes += self.exclusive_emoji(bot)
         if emotes:
             emotes += " "
+        if self.exclusivecard:
+            emotes += self.exclusive_emoji(bot)
         if self.eventcard:
             emotes += self.event_emoji(bot)
         full_name = (
@@ -446,8 +534,8 @@ class CarInstance(models.Model):
             f"ID: `#{self.pk:0X}`\n"
             f"Caught on {format_dt(self.catch_date)} ({format_dt(self.catch_date, style='R')}).\n"
             f"{trade_content}\n"
-            f"{settings.hp_replacement}: {self.horsepower} ({self.horsepower_bonus:+d}%)\n"
-            f"{settings.kg_replacement}: {self.weight} ({self.weight_bonus:+d}%)"
+            f"{appearance.hp}: {self.horsepower} ({self.horsepower_bonus:+d}%)\n"
+            f"{appearance.kg}: {self.weight} ({self.weight_bonus:+d}%)"
         )
 
         # draw image
@@ -475,14 +563,14 @@ class CarInstance(models.Model):
 
 class DonationPolicy(IntEnum):
     ALWAYS_ACCEPT = 1
-    REQUEST_APPROVAL = 2
+    APPROVAL_REQUIRED = 2
     ALWAYS_DENY = 3
 
 
 class PrivacyPolicy(IntEnum):
-    ALLOW = 1
-    DENY = 2
-    SAME_SERVER = 3
+    PUBLIC = 1
+    FRIENDS = 2
+    PRIVATE = 3
 
 
 class Player(models.Model):
@@ -499,13 +587,66 @@ class Player(models.Model):
     privacy_policy = fields.IntEnumField(
         PrivacyPolicy,
         description="How you want to handle privacy",
-        default=PrivacyPolicy.ALLOW,
+        default=PrivacyPolicy.PUBLIC,
     )
     cars: fields.BackwardFKRelation[CarInstance]
-    rebirths = IntField(default=0)
+    friends: fields.BackwardFKRelation[Friendship]
+    rebirths = fields.IntField(default=0)
+    bolts = fields.IntField(default=0)
+    goals: fields.BackwardFKRelation[Goal]
+    language = fields.IntEnumField(
+        Languages,
+        description="The Language spoken by the player",
+        default=Languages.ENGLISH,
+    )
 
     def __str__(self) -> str:
         return str(self.discord_id)
+
+    async def get_friends(self):
+        return await Friendship.filter(
+            Q(player1=self) | Q(player2=self)
+        ).prefetch_related("player1", "player2")
+
+
+class Friendship(models.Model):
+    id: int
+    player1: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="friend1", source_field="player1"
+    )
+    player2: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="friend2", source_field="player2"
+    )
+    bestie = fields.BooleanField(default=False)
+    since = fields.DatetimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return str(self.pk)
+
+
+class FriendshipRequest(models.Model):
+    id: int
+    sender: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="sent_request", source_field="sender"
+    )
+    receiver: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="received_request", source_field="receiver"
+    )
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return str(self.pk)
+
+
+class Goal(models.Model):
+    name = fields.CharField(max_length=64, description="The name of the goal")
+    player: fields.ForeignKeyRelation[Player] = fields.ForeignKeyRelation(
+        "models.Player", related_name="goals"
+    )  # type: ignore
+    car: fields.ForeignKeyRelation[Car] = fields.ForeignKeyField("models.Car")
+    current = fields.IntField(description="the current number of the car in the garage")
+    target = fields.IntField(description="the target number")
+    completed = fields.BooleanField(default=False)
 
 
 class BlacklistedUser(models.Model):

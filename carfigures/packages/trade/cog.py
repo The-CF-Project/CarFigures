@@ -1,4 +1,3 @@
-import datetime
 from collections import defaultdict
 from typing import TYPE_CHECKING, cast
 
@@ -15,26 +14,27 @@ from carfigures.core.utils.paginator import Pages
 from carfigures.core.utils.transformers import (
     CarEnabledTransform,
     CarInstanceTransform,
-    EventEnabledTransform,
     TradeCommandType,
 )
 from carfigures.packages.trade.display import TradeViewFormat
 from carfigures.packages.trade.menu import TradeMenu
 from carfigures.packages.trade.trade_user import TradingUser
-from carfigures.settings import settings
+from carfigures.configs import appearance, commandconfig
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
 
 
-class Trade(commands.GroupCog, group_name=settings.trade_group_name):
+class Trade(commands.GroupCog, group_name=commandconfig.trade_group):
     """
     Trade carfigures with other players
     """
 
     def __init__(self, bot: "CarFiguresBot"):
         self.bot = bot
-        self.trades: dict[int, dict[int, list[TradeMenu]]] = defaultdict(lambda: defaultdict(list))
+        self.trades: dict[int, dict[int, list[TradeMenu]]] = defaultdict(
+            lambda: defaultdict(list)
+        )
 
     def get_trade(
         self,
@@ -96,7 +96,9 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
         return (trade, trader)
 
     @app_commands.command()
-    async def begin(self, interaction: discord.Interaction["CarFiguresBot"], user: discord.User):
+    async def begin(
+        self, interaction: discord.Interaction["CarFiguresBot"], user: discord.User
+    ):
         """
         Begin a trade with the chosen user.
 
@@ -106,7 +108,9 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
             The user you want to trade with
         """
         if user.bot:
-            await interaction.response.send_message("You cannot trade with bots.", ephemeral=True)
+            await interaction.response.send_message(
+                "You cannot trade with bots.", ephemeral=True
+            )
             return
         if user.id == interaction.user.id:
             await interaction.response.send_message(
@@ -123,7 +127,8 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
             return
         if trade2 or trader2:
             await interaction.response.send_message(
-                "The user you are trying to trade with is already in a trade.", ephemeral=True
+                "The user you are trying to trade with is already in a trade.",
+                ephemeral=True,
             )
             return
 
@@ -136,7 +141,10 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
             return
 
         menu = TradeMenu(
-            self, interaction, TradingUser(interaction.user, player1), TradingUser(user, player2)
+            self,
+            interaction,
+            TradingUser(interaction.user, player1),
+            TradingUser(user, player2),
         )
         self.trades[interaction.guild.id][interaction.channel.id].append(menu)  # type: ignore
         await menu.start()
@@ -147,8 +155,6 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
         self,
         interaction: discord.Interaction,
         carfigure: CarInstanceTransform,
-        event: EventEnabledTransform | None = None,
-        limited: bool | None = None,
     ):
         """
         Add a carfigure to the ongoing trade.
@@ -157,13 +163,7 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
         ----------
         carfigure: CarInstance
             The carfigure you want to add to your proposal
-        event: Event
-            Filter the results of autocompletion to an event. Ignored afterward.
-        limited: bool
-            Filter the results of autocompletion to limited. Ignored afterward.
         """
-        if not carfigure:
-            return
         if not carfigure.is_tradeable:
             await interaction.response.send_message(
                 "You cannot trade this carfigure.", ephemeral=True
@@ -183,7 +183,9 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
 
         trade, trader = self.get_trade(interaction)
         if not trade or not trader:
-            await interaction.followup.send("You do not have an ongoing trade.", ephemeral=True)
+            await interaction.followup.send(
+                "You do not have an ongoing trade.", ephemeral=True
+            )
             return
         if trader.locked:
             await interaction.followup.send(
@@ -194,7 +196,7 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
             return
         if carfigure in trader.proposal:
             await interaction.followup.send(
-                f"You already have this {settings.collectible_name} in your proposal.",
+                f"You already have this {appearance.collectible_singular} in your proposal.",
                 ephemeral=True,
             )
             return
@@ -208,15 +210,15 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
 
         await carfigure.lock_for_trade()
         trader.proposal.append(carfigure)
-        await interaction.followup.send(f"{carfigure.carfigure.full_name} added.", ephemeral=True)
+        await interaction.followup.send(
+            f"{carfigure.carfigure.full_name} added.", ephemeral=True
+        )
 
     @app_commands.command(extras={"trade": TradeCommandType.REMOVE})
     async def remove(
         self,
         interaction: discord.Interaction,
         carfigure: CarInstanceTransform,
-        event: EventEnabledTransform | None = None,
-        limited: bool | None = None,
     ):
         """
         Remove a carfigure from what you proposed in the ongoing trade.
@@ -225,13 +227,7 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
         ----------
         carfigure: CarInstance
             The carfigure you want to remove from your proposal
-        event: Event
-            Filter the results of autocompletion to an event. Ignored afterwards.
-        limited: bool
-            Filter the results of autocompletion to limiteds. Ignored afterwards.
         """
-        if not carfigure:
-            return
 
         trade, trader = self.get_trade(interaction)
         if not trade or not trader:
@@ -248,7 +244,8 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
             return
         if carfigure not in trader.proposal:
             await interaction.response.send_message(
-                f"That {settings.collectible_name} is not in your proposal.", ephemeral=True
+                f"That {appearance.collectible_singular} is not in your proposal.",
+                ephemeral=True,
             )
             return
         trader.proposal.remove(carfigure)

@@ -6,13 +6,10 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from discord.utils import format_dt
-from tortoise.exceptions import DoesNotExist
 
 from carfigures.core.models import (
     CarInstance,
     DonationPolicy,
-    Trade,
-    TradeObject,
     Player,
     cars,
 )
@@ -21,16 +18,17 @@ from carfigures.core.utils.transformers import (
     CarEnabledTransform,
     CarInstanceTransform,
     EventEnabledTransform,
-    TradeCommandType,
+    EventTransform,
+    ExclusiveTransform,
 )
-from carfigures.core.utils.buttons import ConfirmChoiceView
+from carfigures.langs import translate
 from carfigures.packages.cars.components import (
     SortingChoices,
     DonationRequest,
     CarFiguresViewer,
     inventory_privacy,
 )
-from carfigures.settings import settings
+from carfigures.configs import appearance, commandconfig, settings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -38,7 +36,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.carfigures")
 
 
-class Cars(commands.GroupCog, group_name=settings.cars_group_name):
+class Cars(commands.GroupCog, group_name=commandconfig.cars_group):
     """
     View and manage your carfigures collection.
     """
@@ -47,7 +45,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         self.bot = bot
 
     @app_commands.command(
-        name=settings.garage_command_name, description=settings.garage_command_desc
+        name=commandconfig.garage_name, description=commandconfig.garage_desc
     )
     @app_commands.checks.cooldown(1, 10, key=lambda i: i.user.id)
     async def garage(
@@ -57,6 +55,8 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         sort: SortingChoices | None = None,
         reverse: bool = False,
         carfigure: CarEnabledTransform | None = None,
+        event: EventTransform | None = None,
+        exclusive: ExclusiveTransform | None = None,
     ):
         """
         Show your garage!
@@ -71,89 +71,122 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             Reverse the output of the list.
         carfigure: Car
             Filter the list by a specific carfigure.
+        event: Event
+            Filter the list for a specific event
+        exclusive: Exclusive
+            Filter the list for an exclusive card
         """
         # simple variables
         player_obj = user or interaction.user
         await interaction.response.defer(thinking=True)
+        player, _ = await Player.get_or_create(discord_id=player_obj.id)
 
-        try:
-            player = await Player.get(discord_id=player_obj.id)
-        except DoesNotExist:
-            if player_obj == interaction.user:
-                await interaction.followup.send(
-                    f"You don't have any {settings.collectible_name} yet."
-                )
-            else:
-                await interaction.followup.send(
-                    f"{player_obj.name} doesn't have any {settings.collectible_name} yet."
-                )
+        if player.cars.filter().count() == 0:
+            pov = (
+                translate("they_do_not", player.language, user=player_obj.display_name)
+                if user
+                else translate("you_do_not", player.language)
+            )
+            await interaction.followup.send(
+                translate(
+                    "do_not_have",
+                    player.language,
+                    pov=pov,
+                    car="",
+                    collectible=appearance.collectible_plural,
+                ),
+                ephemeral=True,
+            )
             return
 
         # Seeing if the player's garage is private.
-        if player is not None:
-            if (
-                await inventory_privacy(self.bot, interaction, player, player_obj)
-                is False
-            ):
-                return
+        if await inventory_privacy(self.bot, interaction, player, player_obj) is False:
+            return
 
         await player.fetch_related("cars")
         filters = {"car__id": carfigure.pk} if carfigure else {}
-        # Having Ifs to filter the garage based on the player selection
-        if sort:
-            if sort == SortingChoices.duplicates:
+        if event:
+            filters["event"] = event
+        if exclusive:
+            filters["exclusive"] = exclusive
+
+        # Having match statement to filter the garage
+        # based on the player sorting selection
+        match sort:
+            case SortingChoices.duplicates:
                 carfigures = await player.cars.filter(**filters)
                 count = defaultdict(int)
                 for car in carfigures:
                     count[car.carfigure.pk] += 1
                 carfigures.sort(key=lambda m: (-count[m.carfigure.pk], m.carfigure.pk))
-            elif sort == SortingChoices.favorite:
+            case SortingChoices.favorite:
                 carfigures = await player.cars.filter(**filters).order_by("-favorite")
-            elif sort == SortingChoices.limited:
-                carfigures = await player.cars.filter(**filters).order_by("-limited")
-            elif sort == SortingChoices.stats_bonus:
+            case SortingChoices.stats_bonus:
                 carfigures = await player.cars.filter(**filters)
                 carfigures.sort(
-                    key=lambda x: x.weight_bonus + x.horsepower_bonus, reverse=True
+                    key=lambda carfigure: carfigure.weight_bonus
+                    + carfigure.horsepower_bonus,
+                    reverse=True,
                 )
-            elif sort == SortingChoices.weight:
+            case SortingChoices.weight:
                 carfigures = await player.cars.filter(**filters)
-                carfigures.sort(key=lambda x: x.weight, reverse=True)
-            elif sort == SortingChoices.horsepower:
+                carfigures.sort(key=lambda carfigure: carfigure.weight, reverse=True)
+            case SortingChoices.horsepower:
                 carfigures = await player.cars.filter(**filters)
-                carfigures.sort(key=lambda x: x.horsepower, reverse=True)
-            elif sort == SortingChoices.total_stats:
+                carfigures.sort(
+                    key=lambda carfigure: carfigure.horsepower, reverse=True
+                )
+            case SortingChoices.total_stats:
                 carfigures = await player.cars.filter(**filters)
-                carfigures.sort(key=lambda x: x.weight + x.horsepower, reverse=True)
-            else:
-                carfigures = await player.cars.filter(**filters).order_by(sort.value)
-        else:
-            carfigures = await player.cars.filter(**filters).order_by(
-                "-favorite", "-limited"
+                carfigures.sort(
+                    key=lambda carfigure: carfigure.weight + carfigure.horsepower,
+                    reverse=True,
+                )
+            case _:
+                if sort:
+                    carfigures = await player.cars.filter(**filters).order_by(
+                        sort.value
+                    )
+                else:
+                    carfigures = await player.cars.filter(**filters).order_by(
+                        "-favorite"
+                    )
+
+        # Error Handling where the player chooses a car
+        # he doesn't have or has no cars in general
+        if not carfigures:
+            car = carfigure.full_name if carfigure else ""
+            pov = (
+                translate("they_do_not", player.language, user=player_obj.display_name)
+                if user
+                else translate("you_do_not", player.language)
             )
-        # Error Handling where the player chooses a car he doesn't have or has no cars in general
-        if len(carfigures) < 1:
-            car_txt = carfigure.full_name if carfigure else ""
-            if player_obj == interaction.user:
-                await interaction.followup.send(
-                    f"You don't have any {car_txt} {settings.collectible_name} yet."
-                )
-            else:
-                await interaction.followup.send(
-                    f"{player_obj.name} doesn't have any {car_txt} {settings.collectible_name} yet."
-                )
-            return
+            await interaction.followup.send(
+                translate(
+                    "do_not_have",
+                    player.language,
+                    pov=pov,
+                    car=car,
+                    collectible=appearance.collectible_plural,
+                ),
+                ephemeral=True,
+            )
         if reverse:
             carfigures.reverse()
+
         # Starting the Dropdown menu
         paginator = CarFiguresViewer(interaction, carfigures)
         if player_obj == interaction.user:
             await paginator.start()
         else:
-            await paginator.start(content=f"Viewing {player_obj.name}'s garage!")
+            await paginator.start(
+                content=translate(
+                    "view_garage", player.language, user=player_obj.display_name
+                )
+            )
 
     @app_commands.command(
-        name=settings.exhibit_command_name, description=settings.exhibit_command_desc
+        name=commandconfig.exhibit_name, description=commandconfig.exhibit_desc
     )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def exhibit(
@@ -161,7 +194,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         interaction: discord.Interaction["CarFiguresBot"],
         user: discord.User | None = None,
         event: EventEnabledTransform | None = None,
-        limited: bool | None = None,
+        exclusive: ExclusiveTransform | None = None,
     ):
         """
         Show your showroom in the bot.
@@ -172,55 +205,75 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             The user whose showroom you want to view, if not yours.
         event: Event
             The event you want to see the showroom of
-        limited: bool
+        exclusive: Exclusive
             Whether you want to see the showroom of limited carfigures
         """
-        # checking if the user is selected or Nothing
-        # also Verify if the player's exhibit is private
         player_obj = user or interaction.user
-        if user is not None:
-            try:
-                player = await Player.get(discord_id=player_obj.id)
-            except DoesNotExist:
-                await interaction.response.send_message(
-                    f"{player_obj.name} doesn't have any {settings.collectible_name} yet."
-                )
-                return
-            if (
-                await inventory_privacy(self.bot, interaction, player, player_obj)
-                is False
-            ):
-                return
-        # Filter disabled cars, they do not count towards progression
+        await interaction.response.defer(thinking=True)
+        player, _ = await Player.get_or_create(discord_id=player_obj.id)
+
+        if player.cars.filter().count() == 0:
+            pov = (
+                translate("they_do_not", player.language, user=player_obj.display_name)
+                if user
+                else translate("you_do_not", player.language)
+            )
+            await interaction.followup.send(
+                translate(
+                    "do_not_have",
+                    player.language,
+                    pov=pov,
+                    car="",
+                    collectible=appearance.collectible_plural,
+                ),
+                ephemeral=True,
+            )
+            return
+
+        if await inventory_privacy(self.bot, interaction, player, player_obj) is False:
+            return
+
+        # Filtering out disabled cars, they do not count towards progression
         # Only ID and emoji is interesting for us
-        bot_carfigures = {x: y.emoji_id for x, y in cars.items() if y.enabled}
+        bot_carfigures = {
+            emoji: carfigure.emoji_id
+            for emoji, carfigure in cars.items()
+            if carfigure.enabled
+        }
 
         # Set of car IDs owned by the user
         filters = {"player__discord_id": player_obj.id, "car__enabled": True}
         if event:
             filters["event"] = event
             bot_carfigures = {
-                x: y.emoji_id
-                for x, y in cars.items()
-                if y.enabled and y.created_at < event.end_date
+                emoji: carfigure.emoji_id
+                for emoji, carfigure in cars.items()
+                if carfigure.enabled and carfigure.created_at < event.end_date
             }
         if not bot_carfigures:
             await interaction.response.send_message(
-                f"There are no {settings.collectible_name}s registered on this bot yet.",
+                translate(
+                    "no_cars_registered",
+                    player.language,
+                    collectibles=appearance.collectible_plural,
+                ),
                 ephemeral=True,
             )
             return
-        await interaction.response.defer(thinking=True)
 
-        if limited is not None:
-            filters["limited"] = limited
+        if exclusive is not None:
+            filters["exclusive"] = exclusive
+            bot_carfigures = {
+                emoji: carfigure.emoji_id
+                for emoji, carfigure in cars.items()
+                if carfigure.enabled
+            }
         owned_carfigures = set(
-            x[0]
-            for x in await CarInstance.filter(**filters)
+            carfigures[0]
+            for carfigures in await CarInstance.filter(**filters)
             .distinct()  # Do not query everything
             .values_list("car_id")
         )
-
         entries: list[tuple[str, str]] = []
 
         def fill_fields(title: str, emoji_ids: set[int]):
@@ -253,37 +306,38 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         if owned_carfigures:
             # Getting the list of emoji IDs from the IDs of the owned carfigures
             fill_fields(
-                f"⋄ Owned {settings.collectible_name}s | {len(owned_carfigures) if len(owned_carfigures) > 0 else '0'} total",
-                set(bot_carfigures[x] for x in owned_carfigures),
+                f"⋄ Owned {appearance.collectible_plural} | {len(owned_carfigures) if owned_carfigures else 'Zero'} total",
+                set(bot_carfigures[carfigure] for carfigure in owned_carfigures),
             )
         else:
-            entries.append(
-                (f"__**Owned {settings.collectible_name.title()}s**__", "Nothing yet.")
-            )
+            entries.append((
+                f"__**Owned {appearance.collectible_plural.title()}s**__",
+                "Nothing yet.",
+            ))
         # Getting the list of emoji IDs of any carfigures not owned by the player
         if missing := set(
-            y for x, y in bot_carfigures.items() if x not in owned_carfigures
+            emoji
+            for carfigure, emoji in bot_carfigures.items()
+            if carfigure not in owned_carfigures
         ):
             fill_fields(
-                f"⋄ Missing {settings.collectible_name.title()}s | {len(missing) if len(missing) > 0 else '0'} total",
+                f"⋄ Missing {appearance.collectible_plural.title()}s | {len(missing) if missing else 'Zero'} total",
                 missing,
             )
         else:
-            entries.append(
-                (
-                    f"__**:partying_face: No missing {settings.collectible_name}s, "
-                    "congratulations! :partying_face:**__",
-                    "\u200b",
-                )
-            )  # force empty field value
+            entries.append((
+                f"__**:partying_face: No missing {appearance.collectible_plural}, "
+                "congratulations! :partying_face:**__",
+                "\u200b",
+            ))  # force empty field value
         # Running a pager to navigate between pages of Emoji IDs
         source = FieldPageSource(
             entries, per_page=5, inline=False, clear_description=False
         )
-        event_str = f" ({event.name})" if event else ""
-        limited_str = " limited" if limited else ""
+        event_str = f" | {event.name} " if event else ""
+        exclusive_str = f" | {exclusive.name} " if exclusive else ""
         source.embed.description = (
-            f"**⊾ {settings.bot_name}{event_str}{limited_str} Progression: "
+            f"**⊾ {settings.bot_name}{event_str}{exclusive_str} Progression: "
             f"{round(len(owned_carfigures) / len(bot_carfigures) * 100, 1)}% | {len(owned_carfigures)}/{len(bot_carfigures)}**"
         )
         source.embed.colour = settings.default_embed_color
@@ -295,7 +349,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         await pages.start()
 
     @app_commands.command(
-        name=settings.show_command_name, description=settings.show_command_desc
+        name=commandconfig.show_name, description=commandconfig.show_desc
     )
     @app_commands.checks.cooldown(1, 5, key=lambda i: i.user.id)
     async def show(
@@ -321,7 +375,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         file.close()
 
     @app_commands.command(
-        name=settings.info_command_name, description=settings.info_command_desc
+        name=commandconfig.info_name, description=commandconfig.info_desc
     )
     @app_commands.checks.cooldown(1, 5, key=lambda i: i.user.id)
     async def info(
@@ -335,32 +389,29 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         carfigure: CarInstance
             The carfigure you want to inspect
         """
-        emoji = (
-            self.bot.get_emoji(carfigure.emoji_id) or ""
-        )  # Get emoji or an empty string if not found
-        car_info_embed = discord.Embed(
+        emoji = self.bot.get_emoji(carfigure.emoji_id) or ""
+
+        embed = discord.Embed(
             title=f"{emoji} {carfigure.full_name} Information:",
             description=(
                 f"**⋄ Short Name:** {carfigure.short_name}\n"
                 f"**⋄ Catch Names:** {''.join(carfigure.catch_names)}\n"
-                f"**⋄ {settings.cartype_replacement}:** {carfigure.cached_cartype.name}\n"
-                f"**⋄ {settings.country_replacement}:** {carfigure.cached_country.name if carfigure.cached_country else 'None'}\n"
+                f"**⋄ {appearance.cartype}:** {carfigure.cached_cartype.name}\n"
+                f"**⋄ {appearance.country}:** {carfigure.cached_country.name if carfigure.cached_country else 'None'}\n"
                 f"**⋄ Rarity:** {carfigure.rarity}\n"
-                f"**⋄ {settings.horsepower_replacement}:** {carfigure.horsepower}\n"
-                f"**⋄ {settings.weight_replacement}:** {carfigure.weight}\n"
+                f"**⋄ {appearance.horsepower}:** {carfigure.horsepower}\n"
+                f"**⋄ {appearance.weight}:** {carfigure.weight}\n"
                 f"**⋄ Capacity Name:** {carfigure.capacity_name}\n"
                 f"**⋄ Capacity Description:** {carfigure.capacity_description}\n"
                 f"**⋄ Image Credits:** {carfigure.image_credits}\n"
-                f"**⋄ {settings.collectible_name.title()} Suggester:** {carfigure.car_suggester}"
+                f"**⋄ {appearance.collectible_singular.title()} Suggester:** {carfigure.car_suggester}"
             ),
             color=settings.default_embed_color,
         )
-        await interaction.response.send_message(
-            embed=car_info_embed
-        )  # Send the car information embed as a response
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(
-        name=settings.last_command_name, description=settings.last_command_desc
+        name=commandconfig.last_name, description=commandconfig.last_desc
     )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def last(
@@ -376,32 +427,48 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         """
         player_obj = user or interaction.user
         await interaction.response.defer(thinking=True)
-        # Try to check if the player have any carfigures
-        try:
-            player = await Player.get(discord_id=player_obj.id)
-        except DoesNotExist:
-            msg = f"{'You do' if user is None else f'{player_obj.display_name} does'}"
+        player, _ = await Player.get_or_create(discord_id=player_obj.id)
+
+        if player.cars.filter().count() == 0:
+            pov = (
+                translate("they_do_not", player.language, user=player_obj.display_name)
+                if user
+                else translate("you_do_not", player.language)
+            )
             await interaction.followup.send(
-                f"{msg} not have any {settings.collectible_name} yet.",
+                translate(
+                    "do_not_have",
+                    player.language,
+                    pov=pov,
+                    car="",
+                    collectible=appearance.collectible_plural,
+                ),
                 ephemeral=True,
             )
             return
 
-        if user is not None:
-            if (
-                await inventory_privacy(self.bot, interaction, player, player_obj)
-                is False
-            ):
-                return
+        if await inventory_privacy(self.bot, interaction, player, player_obj) is False:
+            return
+
         # Sort the cars in the player inventory by -id which means by id but reversed
         # Then Selects the first car in that list
         carfigure = (
             await player.cars.all().order_by("-id").first().select_related("car")
         )
         if not carfigure:
-            msg = f"{'You do' if player is None else f'{player_obj.display_name} does'}"
+            pov = (
+                translate("they_do_not", player.language, user=player_obj.display_name)
+                if user
+                else translate("you_do_not", player.language)
+            )
             await interaction.followup.send(
-                f"{msg} not have any {settings.collectible_name} yet.",
+                translate(
+                    "do_not_have",
+                    player.language,
+                    pov=pov,
+                    car="",
+                    collectible=appearance.collectible_plural,
+                ),
                 ephemeral=True,
             )
             return
@@ -411,7 +478,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         file.close()
 
     @app_commands.command(
-        name=settings.favorite_command_name, description=settings.favorite_command_desc
+        name=commandconfig.favorite_name, description=commandconfig.favorite_desc
     )
     async def favorite(
         self,
@@ -425,16 +492,12 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         ----------
         carfigure: CarInstance
             The carfigure you want to set/unset as favorite
-        event: Event
-            Filter the results of autocompletion to an event. Ignored afterwards.
-        limited: bool
-            Filter the results of autocompletion to limiteds. Ignored afterwards.
         """
         # Checks if the car is not favorited
+        user = interaction.user
         if not carfigure.favorite:
-            player = await Player.get(discord_id=interaction.user.id).prefetch_related(
-                "cars"
-            )
+            player = await Player.get(discord_id=user.id).prefetch_related("cars")
+
             # Checks if the amount of the cars that have been favorited equals to the limit
             if (
                 await player.cars.filter(favorite=True).count()
@@ -442,7 +505,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             ):
                 await interaction.response.send_message(
                     f"You cannot set more than {settings.max_favorites} "
-                    f"favorite {settings.collectible_name}s.",
+                    f"favorite {appearance.collectible_plural}.",
                     ephemeral=True,
                 )
                 return
@@ -452,7 +515,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             emoji = self.bot.get_emoji(carfigure.carfigure.emoji_id) or ""
             await interaction.response.send_message(
                 f"{emoji} `#{carfigure.pk:0X}` {carfigure.carfigure.full_name} "
-                f"is now a favorite {settings.collectible_name}!",
+                f"is now a favorite {appearance.collectible_singular}!",
                 ephemeral=True,
             )
         # Unfavorite the carfigure
@@ -462,48 +525,43 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             emoji = self.bot.get_emoji(carfigure.carfigure.emoji_id) or ""
             await interaction.response.send_message(
                 f"{emoji} `#{carfigure.pk:0X}` {carfigure.carfigure.full_name} "
-                f"isn't a favorite {settings.collectible_name} anymore.",
+                f"isn't a favorite {appearance.collectible_singular} anymore.",
                 ephemeral=True,
             )
 
     @app_commands.command(
-        name=settings.give_command_name,
-        description=settings.give_command_desc,
-        extras={"trade": TradeCommandType.PICK},
+        name=commandconfig.gift_name, description=commandconfig.gift_desc
     )
-    async def give(
+    async def gift(
         self,
         interaction: discord.Interaction,
         user: discord.User,
         carfigure: CarInstanceTransform,
     ):
         """
-        Give a carfigure to a user.
+        Gift a carfigure to a user.
 
         Parameters
         ----------
         user: discord.User
-            The user you want to give a carfigure to
+            The user you want to gift the carfigure to
         carfigure: CarInstance
-            The carfigure you're giving away
-        event: Event
-            Filter the results of autocompletion to an event. Ignored afterwards.
-        limited: bool
-            Filter the results of autocompletion to limiteds. Ignored afterwards.
+            The carfigure you're gifting
         """
         if not carfigure.is_tradeable:
             await interaction.response.send_message(
-                f"You cannot donate this {settings.collectible_name}.", ephemeral=True
+                f"You cannot gift this {appearance.collectible_singular}.",
+                ephemeral=True,
             )
             return
         if user.bot:
             await interaction.response.send_message(
-                "You cannot donate to bots.", ephemeral=True
+                "You cannot gift to bots.", ephemeral=True
             )
             return
         if await carfigure.is_locked():
             await interaction.response.send_message(
-                f"This {settings.collectible_name} is currently locked for a trade. "
+                f"This {appearance.collectible_singular} is currently locked for a trade. "
                 "Please try again later."
             )
             return
@@ -513,29 +571,29 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
 
         if new_player == old_player:
             await interaction.response.send_message(
-                f"You cannot give a {settings.collectible_name} to yourself.",
+                f"You cannot gift a {appearance.collectible_singular} to yourself.",
                 ephemeral=True,
             )
             await carfigure.unlock()
             return
         if new_player.donation_policy == DonationPolicy.ALWAYS_DENY:
             await interaction.response.send_message(
-                "This user does not accept donations. You can use trades instead.",
+                "This user does not accept gifts. You can use trades instead.",
                 ephemeral=True,
             )
             await carfigure.unlock()
             return
         if new_player.discord_id in self.bot.blacklist_user:
             await interaction.response.send_message(
-                "You cannot donate to a blacklisted user", ephemeral=True
+                "You cannot gift to a blacklisted user", ephemeral=True
             )
             await carfigure.unlock()
             return
-        elif new_player.donation_policy == DonationPolicy.REQUEST_APPROVAL:
+        elif new_player.donation_policy == DonationPolicy.APPROVAL_REQUIRED:
             await interaction.response.send_message(
-                f"Hey {user.mention}, {interaction.user.name} wants to give you "
+                f"Hey {user.mention}, {interaction.user.name} wants to gift you "
                 f"{carfigure.description(include_emoji=True, bot=self.bot, is_trade=True)}!\n"
-                "Do you accept this donation?",
+                "Do you accept this gift?",
                 view=DonationRequest(self.bot, interaction, carfigure, new_player),
             )
             return
@@ -545,27 +603,24 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         carfigure.favorite = False
         await carfigure.save()
 
-        trade = await Trade.create(player1=old_player, player2=new_player)
-        await TradeObject.create(trade=trade, carinstance=carfigure, player=new_player)
-
-        cf_txt = carfigure.description(
-            short=True, include_emoji=True, bot=self.bot, is_trade=True
+        car = carfigure.description(
+            short=True, include_emoji=True, bot=self.bot, is_trade=False
         )
 
         await interaction.response.send_message(
-            f"You just gave the {settings.collectible_name} {cf_txt} to {user.mention}!"
+            f"You just gifted the {car} to {user.mention}!"
         )
         await carfigure.unlock()
 
     @app_commands.command(
-        name=settings.count_command_name, description=settings.count_command_desc
+        name=commandconfig.count_name, description=commandconfig.count_desc
     )
     async def count(
         self,
         interaction: discord.Interaction,
         carfigure: CarEnabledTransform | None = None,
         event: EventEnabledTransform | None = None,
-        limited: bool | None = None,
+        exclusive: ExclusiveTransform | None = None,
         current_server: bool = False,
     ):
         """
@@ -577,8 +632,8 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             The carfigure you want to count
         event: Event
             The event you want to count
-        limited: bool
-            Whether you want to count limited carfigures
+        exclusive: Exclusive
+            The exclusive card you want to count
         current_server: bool
             Only count carfigures caught in the current server
         """
@@ -591,8 +646,8 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         filters = {}
         if carfigure:
             filters["car"] = carfigure
-        if limited is not None:
-            filters["limited"] = limited
+        if exclusive:
+            filters["exclusive"] = exclusive
         if event:
             filters["event"] = event
         if current_server:
@@ -603,22 +658,26 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         # Entering the filter selected in the bot then give back info based on it
         cars = await CarInstance.filter(**filters).count()
         full_name = f"{carfigure.full_name} " if carfigure else ""
-        plural = "s" if cars > 1 or cars == 0 else ""
-        limited_str = "limited " if limited else ""
+        collectible = (
+            f"{appearance.collectible_singular}"
+            if cars == 1
+            else f"{appearance.collectible_plural}"
+        )
+        exclusive_str = f"{exclusive.name} " if exclusive else ""
         event_str = f"{event.name} " if event else ""
         guild = f" caught in {interaction.guild.name}" if current_server else ""
         await interaction.followup.send(
-            f"You have {cars} {event_str}{limited_str}"
-            f"{full_name}{settings.collectible_name}{plural}{guild}."
+            f"You have {cars} {event_str}{exclusive_str}"
+            f"{full_name}{collectible}{guild}."
         )
 
     @app_commands.command(
-        name=settings.rarity_command_name, description=settings.rarity_command_desc
+        name=commandconfig.rarity_name, description=commandconfig.rarity_desc
     )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def rarity(
         self,
-        interaction: discord.Interaction,
+        interaction: discord.Interaction["CarFiguresBot"],
         reverse: bool = False,
     ):
         """
@@ -630,12 +689,17 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             Whether to show the rarity list in reverse
         """
 
+        player = await Player.get(discord_id=interaction.user.id).only("language")
         # Filter enabled collectibles
         enabled_collectibles = [x for x in cars.values() if x.enabled]
 
         if not enabled_collectibles:
             await interaction.response.send_message(
-                f"There are no collectibles registered in {settings.bot_name} yet.",
+                translate(
+                    "no_cars_registered",
+                    player.language,
+                    collectibles=appearance.collectible_plural,
+                ),
                 ephemeral=True,
             )
             return
@@ -654,12 +718,10 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         # Display collectibles grouped by rarity
         entries = []
         for rarity in sorted_rarities:
-            collectible_names = "\n".join(
-                [
-                    f"\u200b ⋄ {self.bot.get_emoji(c.emoji_id) or 'N/A'} {c.full_name}"
-                    for c in rarity_to_collectibles[rarity]
-                ]
-            )
+            collectible_names = "\n".join([
+                f"\u200b ⋄ {self.bot.get_emoji(c.emoji_id) or 'N/A'} {c.full_name}"
+                for c in rarity_to_collectibles[rarity]
+            ])
             entry = (f"∥ Rarity: {rarity}", f"{collectible_names}")
             entries.append(entry)
 
@@ -674,7 +736,7 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         await pages.start()
 
     @app_commands.command(
-        name=settings.compare_command_name, description=settings.compare_command_desc
+        name=commandconfig.compare_name, description=commandconfig.compare_desc
     )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def compare(
@@ -703,10 +765,21 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         player = await Player.get(discord_id=player_obj.id)
         if not player:
             await interaction.response.send_message(
-                f"You do not have any {settings.collectible_name} yet.",
+                f"""{translate("you_do_not", player.language)} {
+                    translate(
+                        "do_not_have",
+                        player.language,
+                        collectibles=appearance.collectible_plural,
+                    )
+                }""",
                 ephemeral=True,
             )
             return
+
+        if first == second:
+            await interaction.response.send_message(
+                f"You can't compare identical {appearance.collectible_plural}."
+            )
 
         # Creating an Embed to hold all these
         embed = discord.Embed(
@@ -719,21 +792,23 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             name="◊ Name",
             value=f""
             f"• ID\n"
-            f"• {settings.cartype_replacement}\n"
-            f"• {settings.country_replacement}\n"
+            f"• {appearance.cartype}\n"
+            f"• {appearance.country}\n"
             f"• Rarity\n"
-            f"• {settings.horsepower_replacement}\n"
-            f"• {settings.horsepower_replacement} Bonus\n"
-            f"• {settings.weight_replacement}\n"
-            f"• {settings.weight_replacement} Bonus\n"
+            f"• {appearance.horsepower}\n"
+            f"• {appearance.horsepower} Bonus\n"
+            f"• {appearance.weight}\n"
+            f"• {appearance.weight} Bonus\n"
             f"• Catch Date",
             inline=True,
         )
         embed.add_field(
-            name=f"◊ {self.bot.get_emoji(first.carfigure.emoji_id) or 'N/A'} **{first.carfigure.full_name}**\n",
+            name=f"◊ {self.bot.get_emoji(first.carfigure.emoji_id) or 'N/A'} **{first.carfigure.short_name}**\n",
             value=f"≛ {first.pk}\n"
             f"≛ {first.carfigure.cached_cartype.name}\n"
             f"≛ {first.carfigure.cached_country.name if first.carfigure.cached_country else 'None'}\n"
+            f"≛ {first.exclusive.name if first.exclusive else 'None'}"
+            f"≛ {first.event.name if first.event else 'None'}"
             f"≛ {first.carfigure.rarity}\n"
             f"≛ {first.horsepower}\n"
             f"≛ {first.horsepower_bonus}\n"
@@ -743,10 +818,12 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
             inline=True,
         )
         embed.add_field(
-            name=f"◊ {self.bot.get_emoji(second.carfigure.emoji_id) or 'N/A'} **{second.carfigure.full_name}**",
+            name=f"◊ {self.bot.get_emoji(second.carfigure.emoji_id) or 'N/A'} **{second.carfigure.short_name}**",
             value=f"≛ {second.pk}\n"
             f"≛ {second.carfigure.cached_cartype.name}\n"
             f"≛ {second.carfigure.cached_country.name if second.carfigure.cached_country else 'None'}\n"
+            f"≛ {second.exclusive.name if second.exclusive else 'None'}"
+            f"≛ {second.event.name if second.event else 'None'}"
             f"≛ {second.carfigure.rarity}\n"
             f"≛ {second.horsepower}\n"
             f"≛ {second.horsepower_bonus}\n"
@@ -762,40 +839,3 @@ class Cars(commands.GroupCog, group_name=settings.cars_group_name):
         )
 
         await interaction.followup.send(embed=embed)
-
-    @app_commands.command()
-    @app_commands.checks.cooldown(1, 120, key=lambda i: i.user.id)
-    async def delete(
-        self, interaction: discord.Interaction, carfigure: CarInstanceTransform
-    ):
-        """
-        Delete one carfigure from your garage of your choice.
-
-        Parameters
-        ----------
-        carfigure: Car
-            The carfigure you want to delete.
-        """
-        bot_carfigures = {x: y.pk for x, y in cars.items() if y.enabled}
-
-        if not bot_carfigures:
-            await interaction.response.send_message(
-                f"There are no {settings.collectible_name}s registered on this bot yet.",
-                ephemeral=True,
-            )
-            return
-
-        view = ConfirmChoiceView(interaction)
-        await interaction.response.send_message(
-            f"Are you sure you want to delete this {settings.collectible_name}?",
-            view=view,
-            ephemeral=True,
-        )
-        await view.wait()
-        if view.value is None or not view.value:
-            return
-
-        await carfigure.delete()
-        await interaction.followup.send(
-            f"Successfully deleted the {settings.collectible_name}.", ephemeral=True
-        )

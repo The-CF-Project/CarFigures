@@ -1,1 +1,1 @@
-bot_version = "August 4, 2024"
+bot_version = "v3"

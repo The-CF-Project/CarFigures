@@ -6,11 +6,17 @@ import enum
 import discord
 from discord.ui import Button, View, button
 
-from carfigures.core.models import CarInstance, Player, Trade, TradeObject, PrivacyPolicy
+from carfigures.core.models import (
+    CarInstance,
+    Player,
+    Trade,
+    TradeObject,
+    PrivacyPolicy,
+)
 from carfigures.core.utils import menus
 from carfigures.core.utils.paginator import Pages
 
-from carfigures.settings import settings
+from carfigures.configs import appearance
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -41,16 +47,19 @@ class DonationRequest(View):
     async def on_timeout(self):
         for item in self.children:
             item.disabled = True  # type: ignore
-        try:
-            await self.original_interaction.followup.edit_message(
-                "@original", view=self  # type: ignore
-            )
-        except discord.NotFound:
-            pass
+        if self.original_interaction.message:
+            try:
+                await self.original_interaction.followup.edit_message(
+                    self.original_interaction.message.id,
+                    view=self,  # type: ignore
+                )
+            except discord.NotFound:
+                pass
         await self.carfigure.unlock()
 
     @button(
-        style=discord.ButtonStyle.success, emoji="\N{HEAVY CHECK MARK}\N{VARIATION SELECTOR-16}"
+        style=discord.ButtonStyle.success,
+        emoji="\N{HEAVY CHECK MARK}\N{VARIATION SELECTOR-16}",
     )
     async def accept(self, interaction: discord.Interaction, button: Button):
         self.stop()
@@ -60,7 +69,9 @@ class DonationRequest(View):
         self.carfigure.trade_player = self.carfigure.player
         self.carfigure.player = self.new_player
         await self.carfigure.save()
-        trade = await Trade.create(user1=self.carfigure.trade_player, user2=self.new_player)
+        trade = await Trade.create(
+            user1=self.carfigure.trade_player, user2=self.new_player
+        )
         await TradeObject.create(
             trade=trade, carinstance=self.carfigure, player=self.carfigure.trade_player
         )
@@ -93,7 +104,7 @@ class SortingChoices(enum.Enum):
     rarity = "car__rarity"
     event = "event__id"
     favorite = "-favorite"
-    limited = "limited"
+    exclusive = "exclusive__id"
     weight = "weight"
     horsepower = "horsepower"
     weight_bonus = "-weight_bonus"
@@ -106,14 +117,6 @@ class SortingChoices(enum.Enum):
     duplicates = "manualsort-duplicates"
 
 
-class SortingChoices2(enum.Enum):
-    alphabetic = "event__name"
-    expired = "expired"
-    running = "running"
-    newest = "newest"
-    oldest = "oldest"
-
-
 class CarFiguresSource(menus.ListPageSource):
     def __init__(self, entries: List[CarInstance]):
         super().__init__(entries, per_page=25)
@@ -124,7 +127,9 @@ class CarFiguresSource(menus.ListPageSource):
 
 
 class CarFiguresSelector(Pages):
-    def __init__(self, interaction: discord.Interaction["CarFiguresBot"], cars: List[CarInstance]):
+    def __init__(
+        self, interaction: discord.Interaction["CarFiguresBot"], cars: List[CarInstance]
+    ):
         self.bot = interaction.client
         source = CarFiguresSource(cars)
         super().__init__(source, interaction=interaction)
@@ -135,12 +140,12 @@ class CarFiguresSelector(Pages):
         for car in cars:
             emoji = self.bot.get_emoji(int(car.carfigure.emoji_id))
             favorite = "❤️ " if car.favorite else ""
-            limited = "💠 " if car.limited else ""
+            exclusive = car.exclusive_emoji(self.bot, True)
             event = car.event_emoji(self.bot, True)
             options.append(
                 discord.SelectOption(
-                    label=f"{favorite}{limited}{event}#{car.pk:0X} {car.carfigure.full_name}",
-                    description=f"{settings.hp_replacement}: {car.horsepower_bonus:+d}% • {settings.kg_replacement}: {car.weight_bonus:+d}% • "
+                    label=f"{favorite}{exclusive}{event}#{car.pk:0X} {car.carfigure.full_name}",
+                    description=f"{appearance.hp}: {car.horsepower_bonus:+d}% • {appearance.kg}: {car.weight_bonus:+d}% • "
                     f"Caught on {car.catch_date.strftime('%d/%m/%y %H:%M')}",
                     emoji=emoji,
                     value=f"{car.pk}",
@@ -149,19 +154,25 @@ class CarFiguresSelector(Pages):
         self.select_car_menu.options = options
 
     @discord.ui.select()
-    async def select_car_menu(self, interaction: discord.Interaction, item: discord.ui.Select):
+    async def select_car_menu(
+        self, interaction: discord.Interaction, item: discord.ui.Select
+    ):
         await interaction.response.defer(thinking=True)
         car_instance = await CarInstance.get(
             id=int(interaction.data.get("values")[0])  # type: ignore
         )
         await self.car_selected(interaction, car_instance)
 
-    async def car_selected(self, interaction: discord.Interaction, car_instance: CarInstance):
+    async def car_selected(
+        self, interaction: discord.Interaction, car_instance: CarInstance
+    ):
         raise NotImplementedError()
 
 
 class CarFiguresViewer(CarFiguresSelector):
-    async def car_selected(self, interaction: discord.Interaction, car_instance: CarInstance):
+    async def car_selected(
+        self, interaction: discord.Interaction, car_instance: CarInstance
+    ):
         content, file = await car_instance.prepare_for_message(interaction)
         await interaction.followup.send(content=content, file=file)
         file.close()
@@ -174,11 +185,7 @@ async def inventory_privacy(
     player_obj: Union[discord.User, discord.Member],
 ):
     privacy_policy = player.privacy_policy
-    if interaction.guild and interaction.guild.id in settings.superuser_guild_ids:
-        roles = settings.superuser_role_ids + settings.root_role_ids
-        if any(role.id in roles for role in interaction.user.roles):  # type: ignore
-            return True
-    if privacy_policy == PrivacyPolicy.DENY:
+    if privacy_policy == PrivacyPolicy.PRIVATE:
         if interaction.user.id != player_obj.id:
             await interaction.followup.send(
                 "This user has set their inventory to private.", ephemeral=True
@@ -186,7 +193,7 @@ async def inventory_privacy(
             return False
         else:
             return True
-    elif privacy_policy == PrivacyPolicy.SAME_SERVER:
+    elif privacy_policy == PrivacyPolicy.FRIENDS:
         if not bot.intents.members:
             await interaction.followup.send(
                 "This user has their policy set to `Same Server`, "
@@ -200,6 +207,8 @@ async def inventory_privacy(
             )
             return False
         elif interaction.guild.get_member(player_obj.id) is None:
-            await interaction.followup.send("This user is not in the server.", ephemeral=True)
+            await interaction.followup.send(
+                "This user is not in the server.", ephemeral=True
+            )
             return False
     return True

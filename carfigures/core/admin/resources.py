@@ -9,12 +9,14 @@ from fastapi_admin.widgets import displays, filters, inputs
 from starlette.requests import Request
 
 from carfigures.core.models import (
+    Album,
     Car,
     CarInstance,
     BlacklistedGuild,
     BlacklistedUser,
     Country,
     Exclusive,
+    FontsPack,
     GuildConfig,
     Player,
     CarType,
@@ -100,6 +102,7 @@ class EventResource(Model):
             display=displays.InputOnly(),
             input_=inputs.TextArea(),
         ),
+        "fontspack",
         Field(
             name="banner",
             label="The Event Banner!",
@@ -173,6 +176,7 @@ class ExclusiveResource(Model):
             display=displays.Image(width="40"),
             input_=inputs.Image(upload=upload, null=True),
         ),
+        "fontspack",
         "rarity",
         Field(
             name="rebirth_required",
@@ -186,6 +190,58 @@ class ExclusiveResource(Model):
             label="The Catch Phrase!",
             display=displays.InputOnly(),
             input_=inputs.Text(),
+        ),
+    ]
+
+
+@app.register
+class AlbumResource(Model):
+    label = "Albums"
+    model = Album
+    icon = "fas fa-books"
+    page_pre_title = "The List of:"
+    page_title = "Albums"
+    fields = ["name", "rebirth_required", "emoji"]
+
+
+@app.register
+class FontsPackResource(Model):
+    label = "FontsPacks"
+    model = FontsPack
+    icon = "fas fa-bag"
+    page_pre_title = "The List of:"
+    page_title = "Fonts Packs"
+    fields = [
+        Field(name="name", label="The name of the pack"),
+        Field(
+            name="title",
+            label="The Font of the Title",
+            display=displays.Display(),
+            input_=inputs.File(upload=upload, null=False),
+        ),
+        Field(
+            name="capacityn",
+            label="The Font of the Capacity Name",
+            display=displays.Display(),
+            input_=inputs.File(upload=upload, null=False),
+        ),
+        Field(
+            name="capacityd",
+            label="The Font of the Capacity Description",
+            display=displays.Display(),
+            input_=inputs.File(upload=upload, null=False),
+        ),
+        Field(
+            name="stats",
+            label="The Font of the Stats",
+            display=displays.Display(),
+            input_=inputs.File(upload=upload, null=False),
+        ),
+        Field(
+            name="credits",
+            label="The Font of the Credits",
+            display=displays.Display(),
+            input_=inputs.File(upload=upload, null=False),
         ),
     ]
 
@@ -205,6 +261,8 @@ class CardResource(Model):
             display=displays.Image(width="40"),
             input_=inputs.Image(upload=upload, null=True),
         ),
+        "fontspack",
+        "icon_position",
     ]
 
 
@@ -263,6 +321,7 @@ class EntityResource(Model):
         "created_at",
         "cartype",
         "country",
+        "album",
         "weight",
         "horsepower",
         "rarity",
@@ -362,7 +421,6 @@ class InstanceResource(Model):
         "player",
         "catch_date",
         "server_id",
-        "limited",
         "exclusive",
         "event",
         "favorite",
@@ -398,7 +456,7 @@ class PlayerResource(Model):
 
 @app.register
 class ServerResource(Model):
-    label = "Server Settings"
+    label = "Servers"
     model = GuildConfig
     icon = "fas fa-cog"
     page_pre_title = "The List of:"

@@ -18,9 +18,9 @@ COMMENT ON COLUMN "cartype"."image" IS '1428x2000 PNG image';
 ALTER TABLE "car" ADD CONSTRAINT "fk_car_cartype_d7fd92a9" FOREIGN KEY ("cartype_id") REFERENCES "cartype" ("id") ON DELETE CASCADE;
 ALTER TABLE "car" ADD CONSTRAINT "fk_car_country_cfe9c5c3" FOREIGN KEY ("country_id") REFERENCES "country" ("id") ON DELETE SET NULL;
 INSERT INTO "country" ("name", "image") VALUES
-    ('France', '/carfigures/core/image_generator/src/france.png');
+    ('France', '/carfigures/core/imaging/src/france.png');
 INSERT INTO "cartype" ("name", "image") VALUES
-    ('Union', '/carfigures/core/image_generator/src/union.png');
+    ('Union', '/carfigures/core/imaging/src/union.png');
 UPDATE "car" SET "country_id" = "country" WHERE "country" != 2;
 UPDATE "car" SET "country_id" = null WHERE "country" = 2;
 UPDATE "car" SET "cartype_id" = "cartype";

@@ -3,13 +3,18 @@ import logging
 
 from typing import TYPE_CHECKING, cast
 
-from discord import app_commands
+from discord import Interaction, app_commands
 from discord.ext import commands
 from discord.utils import format_dt
+from tortoise.expressions import Q
+from discord.ui import View, Select
 
 from carfigures.core.models import (
+    Friendship as FriendshipModel,
     GuildConfig,
     DonationPolicy,
+    Languages,
+    FriendshipRequest as FriendshipRequestModel,
     PrivacyPolicy,
     Player as PlayerModel,
     CarInstance,
@@ -17,13 +22,15 @@ from carfigures.core.models import (
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.packages.my.components import (
+    FriendSelector,
     _get_10_cars_emojis,
     AcceptTOSView,
     activation_embed,
 )
 
 
-from carfigures.settings import settings
+from carfigures.configs import settings, appearance, commandconfig
+from carfigures.langs import LANGUAGE_MAP, translate
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -31,41 +38,56 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.my")
 
 
-class My(commands.GroupCog, group_name=settings.my_group_name):
+class My(commands.GroupCog, group_name=commandconfig.my_group):
     """
-    idk for now
+    The My Command Collection
     """
 
     def __init__(self, bot: "CarFiguresBot"):
         self.bot = bot
-        self.server.parent = self.__cog_app_commands_group__
-        self.own.parent = self.__cog_app_commands_group__
 
     server = app_commands.Group(name="server", description="Server management")
     own = app_commands.Group(name="own", description="My management")
+    rebirth = app_commands.Group(name="rebirth", description="Rebirth management")
+    friends = app_commands.Group(name="friends", description="Friends management")
+    goals = app_commands.Group(name="goals", description="Goals management")
 
-    @own.command()
     @app_commands.choices(
         policy=[
-            app_commands.Choice(name="Open Inventory", value=PrivacyPolicy.ALLOW),
-            app_commands.Choice(name="Private Inventory", value=PrivacyPolicy.DENY),
-            app_commands.Choice(name="Same Server", value=PrivacyPolicy.SAME_SERVER),
+            app_commands.Choice(name="Public Inventory", value=PrivacyPolicy.PUBLIC),
+            app_commands.Choice(name="Friends Only", value=PrivacyPolicy.FRIENDS),
+            app_commands.Choice(name="Private Inventory", value=PrivacyPolicy.PRIVATE),
         ]
     )
-    async def privacy(self, interaction: discord.Interaction, policy: PrivacyPolicy):
+    @own.command(name="privacy")
+    async def playerprivacy(
+        self, interaction: discord.Interaction, policy: PrivacyPolicy
+    ):
         """
         Set your privacy policy.
         """
-        if policy == PrivacyPolicy.SAME_SERVER and not self.bot.intents.members:
-            await interaction.response.send_message(
-                "I need the `members` intent to use this policy.", ephemeral=True
-            )
-            return
+
         user, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         user.privacy_policy = policy
         await user.save()
         await interaction.response.send_message(
-            f"Your privacy policy has been set to **{policy.name}**.", ephemeral=True
+            translate("privacy_updated", user.language, policy=policy.name),
+            ephemeral=True,
+        )
+
+    @own.command(name="language")
+    async def playerlanguage(
+        self, interaction: discord.Interaction, language: Languages
+    ):
+        """
+        Set your preferred Language
+        """
+
+        user, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+        user.language = language
+        await user.save()
+        await interaction.response.send_message(
+            f"you have successfully changed your language to **{language.name}**"
         )
 
     @app_commands.choices(
@@ -75,15 +97,15 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
             ),
             app_commands.Choice(
                 name="Request your approval first",
-                value=DonationPolicy.REQUEST_APPROVAL,
+                value=DonationPolicy.APPROVAL_REQUIRED,
             ),
             app_commands.Choice(
                 name="Deny all donations", value=DonationPolicy.ALWAYS_DENY
             ),
         ]
     )
-    @own.command()
-    async def policy(
+    @own.command(name="policy")
+    async def playerpolicy(
         self, interaction: discord.Interaction, policy: app_commands.Choice[int]
     ):
         """
@@ -96,109 +118,122 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
         """
         user, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         user.donation_policy = DonationPolicy(policy.value)
-        if policy.value == DonationPolicy.ALWAYS_ACCEPT:
-            await interaction.response.send_message(
-                f"Setting updated, you will now receive all donated {settings.collectible_name}s "
-                "immediately.",
-                ephemeral=True,
-            )
-        elif policy.value == DonationPolicy.REQUEST_APPROVAL:
-            await interaction.response.send_message(
-                "Setting updated, you will now have to approve donation requests manually.",
-                ephemeral=True,
-            )
-        elif policy.value == DonationPolicy.ALWAYS_DENY:
-            await interaction.response.send_message(
-                "Setting updated, it is now impossible to use "
-                f"`/{settings.cars_group_name} give` with "
-                "you. It is still possible to perform donations using the trade system.",
-                ephemeral=True,
-            )
-        else:
-            await interaction.response.send_message("Invalid input!", ephemeral=True)
-            return
         await user.save()  # do not save if the input is invalid
 
-    @own.command()
-    async def profile(self, interaction: discord.Interaction):
+        match policy.value:
+            case DonationPolicy.ALWAYS_ACCEPT:
+                message = translate(
+                    "policy_updated_accept",
+                    user.language,
+                    collectibles=appearance.collectible_plural,
+                )
+            case DonationPolicy.APPROVAL_REQUIRED:
+                message = translate("policy_updated_approval", user.language)
+            case DonationPolicy.ALWAYS_DENY:
+                message = translate(
+                    "policy_updated_deny",
+                    user.language,
+                    cars_group=commandconfig.cars_group,
+                    gift_name=commandconfig.gift_name,
+                )
+            case _:
+                message = translate("invalid_input", user.language)
+
+        await interaction.response.send_message(message, ephemeral=True)
+
+    @own.command(name="profile")
+    async def playerprofile(self, interaction: discord.Interaction):
         """
-        Show your profile.
+        View your profile.
         """
-        
+
         player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         await player.fetch_related("cars")
 
         emojis = ""
-        if settings.minimal_profile == False:
+        if not settings.minimal_profile:
             cars = await _get_10_cars_emojis(self)
             emojis = " ".join(str(x) for x in cars)
 
         # Creating the Embed and Storting the variables in it
         embed = discord.Embed(
-            title=f" ❖ {interaction.user.display_name}'s Profile",
+            title=translate(
+                "profile_title", player.language, username=interaction.user.display_name
+            ),
             color=settings.default_embed_color,
         )
-        if player.privacy_policy == PrivacyPolicy.ALLOW:
-            privacy = "Open Inventory"
-        else:
-            privacy = "Private Inventory"
-
-        if player.donation_policy == DonationPolicy.ALWAYS_ACCEPT:
-            donation = "All Accepted"
-        elif player.donation_policy == DonationPolicy.REQUEST_APPROVAL:
-            donation = "Approval Required"
-        else:
-            donation = "All Denied"
 
         embed.description = (
             f"{emojis}\n"
-            f"**Ⅲ Player Settings**\n"
-            f"\u200b **⋄ Privacy Policy:** {privacy}\n"
-            f"\u200b **⋄ Donation Policy:** {donation}\n\n"
-            f"**Ⅲ Player Info\n**"
-            f"\u200b **⋄ Cars Collected:** {await player.cars.filter().count()}\n"
-            f"\u200b **⋄ Rebirths Done:** {player.rebirths}\n"
+            f"**Ⅲ {translate('player_settings', player.language)}**\n"
+            f"\u200b **⋄ {translate('privacy_policy', player.language)}:** "
+            f"{translate(player.privacy_policy.name.lower(), player.language)}\n"
+            f"\u200b **⋄ {translate('donation_policy', player.language)}:** "
+            f"{translate(player.donation_policy.name.lower(), player.language)}\n"
+            f"\u200b **⋄ {translate('language_selected', player.language)}:** {LANGUAGE_MAP[player.language]}\n\n"
+            f"**Ⅲ {translate('player_info', player.language)}**\n"
+            f"\u200b **⋄ {translate('cars_collected', player.language)}:** {await player.cars.filter().count()}\n"
+            f"\u200b **⋄ {translate('rebirths_done', player.language)}:** {player.rebirths}\n"
+            f"\u200b **⋄ {translate('bolts_acquired', player.language)}:** {player.bolts}\n"
         )
 
         embed.set_thumbnail(url=interaction.user.display_avatar.url)
         await interaction.response.send_message(embed=embed)
 
-    @own.command()
-    async def rebirth(self, interaction: discord.Interaction):
+    @rebirth.command(name="start")
+    async def rebirthstart(self, interaction: discord.Interaction):
         """
         Delete all your cars if you have full completion, to get advantages back
         """
 
-        bot_carfigures = {x: y.pk for x, y in cars.items() if y.enabled}
-        filters = {"player__discord_id": interaction.user.id, "car__enabled": True}
+        player = await PlayerModel.get(discord_id=interaction.user.id)
+        bot_carfigures = {
+            id: carfigure.pk for id, carfigure in cars.items() if carfigure.enabled
+        }
+        filters = {
+            "player__discord_id": interaction.user.id,
+            "car__enabled": True,
+            "favorite": False,
+            "exclusive": None,
+            "event": None,
+        }
 
         if not bot_carfigures:
             await interaction.response.send_message(
-                f"There are no {settings.collectible_name}s registered on this bot yet.",
+                translate(
+                    "no_cars_registered",
+                    player.language,
+                    collectibles=appearance.collectible_plural,
+                ),
                 ephemeral=True,
             )
             return
 
         owned_carfigures = set(
-            x[0]
-            for x in await CarInstance.filter(**filters)
+            carfigures[0]
+            for carfigures in await CarInstance.filter(**filters)
             .distinct()  # Do not query everything
             .values_list("car_id")
         )
 
         if missing := set(
-            y for x, y in bot_carfigures.items() if x not in owned_carfigures
+            cars for cars in bot_carfigures.items() if cars not in owned_carfigures
         ):
             await interaction.response.send_message(
-                "You haven't reached 100% of the bot collection yet."
-                f"there is still {missing}",
+                translate(
+                    "incomplete_collection", player.language, missing=len(missing)
+                ),
                 ephemeral=True,
             )
             return
 
         view = ConfirmChoiceView(interaction)
         await interaction.response.send_message(
-            f"Are you sure you want to delete all your {settings.collectible_name}s for advantages?",
+            translate(
+                "confirm_rebirth",
+                player.language,
+                collectibles=appearance.collectible_plural,
+            ),
             view=view,
         )
 
@@ -210,19 +245,197 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
         await player.save()
         await CarInstance.filter(player=player).delete()
 
-        ordinal_rebirth = (
-            "1st"
-            if player.rebirths == 1
-            else "2nd"
-            if player.rebirths == 2
-            else "3rd"
-            if player.rebirths == 3
-            else f"{player.rebirths}th"
+        ordinal = lambda n: "%d%s" % (
+            n,
+            "tsnrhtdd"[(n // 10 % 10 != 1) * (n % 10 < 4) * n % 10 :: 4],
+        )
+        await interaction.followup.send(
+            translate(
+                "rebirth_completed", player.language, ordinal=ordinal(player.rebirths)
+            )
         )
 
-        await interaction.followup.send(
-            f"Congratulations! this is your {ordinal_rebirth} Rebirth, hopefully u get even more!"
+    @friends.command(name="profiles")
+    async def friendsprofiles(self, interaction: discord.Interaction):
+        """
+        List all your friends' profiles
+        """
+        player = await PlayerModel.get(discord_id=interaction.user.id)
+        friends = await player.get_friends()
+        embed = discord.Embed(
+            title="Select your friend!",
+            description="Please select a friend to view their profile.",
+            color=settings.default_embed_color,
         )
+        view = FriendSelector(friends, player, "profiles")
+        await interaction.response.send_message(embed=embed, view=view)
+
+    @friends.command(name="goals")
+    async def friendsgoals(self, interaction: discord.Interaction):
+        """
+        List all your friends' goals
+        """
+        player = await PlayerModel.get(discord_id=interaction.user.id)
+        friends = await player.get_friends()
+        embed = discord.Embed(
+            title="Select your friend!",
+            description="Please select a friend to view their goals.",
+            color=settings.default_embed_color,
+        )
+        view = FriendSelector(friends, player, "goals")
+        await interaction.response.send_message(embed=embed, view=view)
+
+    @friends.command(name="add")
+    async def friendsadd(self, interaction: Interaction, user: discord.User):
+        """
+        Send a friend request to another user.
+        """
+        sender, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+        receiver, _ = await PlayerModel.get_or_create(discord_id=user.id)
+
+        if sender == receiver:
+            await interaction.response.send_message(
+                translate("cannot_friend_self", sender.language), ephemeral=True
+            )
+            return
+
+        existing_request = (
+            await FriendshipRequestModel.filter(
+                (
+                    Q(sender__discord_id=sender.discord_id)
+                    & Q(receiver__discord_id=receiver.discord_id)
+                )
+                | (
+                    Q(sender__discord_id=receiver.discord_id)
+                    & Q(receiver__discord_id=sender.discord_id)
+                )
+            )
+            .first()
+            .prefetch_related("sender", "receiver")
+        )
+
+        if existing_request:
+            await interaction.response.send_message(
+                translate(
+                    "friend_request_already_sent",
+                    sender.language,
+                    user=user.display_name,
+                ),
+                ephemeral=True,
+            )
+            return
+        existing_friendship = await FriendshipModel.filter(
+            Q(
+                player1__discord_id=sender.discord_id,
+                player2__discord_id=receiver.discord_id,
+            )
+            | Q(
+                player1__discord_id=receiver.discord_id,
+                player2__discord_id=sender.discord_id,
+            )
+        ).first()
+
+        if existing_friendship:
+            await interaction.response.send_message(
+                translate("already_friends", sender.language, user=user.display_name),
+                ephemeral=True,
+            )
+            return
+
+        await FriendshipRequestModel.create(sender=sender, receiver=receiver)
+        await interaction.response.send_message(
+            translate("friend_request_sent", sender.language, user=user.display_name),
+            ephemeral=True,
+        )
+
+    @friends.command(name="requests")
+    async def friendsrequests(self, interaction: Interaction):
+        """
+        View and manage your friend requests.
+        """
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+        requests = await FriendshipRequestModel.filter(
+            receiver=player
+        ).prefetch_related("sender")
+
+        if not requests:
+            await interaction.response.send_message(
+                translate("no_friend_requests", player.language), ephemeral=True
+            )
+            return
+
+        embed = discord.Embed(
+            title=translate(
+                "friend_requests_title",
+                player.language,
+                user=interaction.user.display_name,
+            ),
+            color=settings.default_embed_color,
+        )
+
+        options = []
+        for request in requests:
+            sender = request.sender
+            options.append(
+                discord.SelectOption(
+                    label=f"{sender.discord_id}",
+                    description=translate(
+                        "friend_request_from", player.language, user=sender.discord_id
+                    ),
+                    value=str(request.id),
+                )
+            )
+
+        select = Select(
+            placeholder=translate("select_friend_request", player.language),
+            options=options,
+        )
+
+        async def select_callback(interaction: discord.Interaction):
+            request_id = int(select.values[0])
+            request = await FriendshipRequestModel.get(id=request_id).prefetch_related(
+                "sender"
+            )
+            view = ConfirmChoiceView(interaction)
+            await interaction.response.send_message(
+                translate(
+                    "confirm_friend_request",
+                    player.language,
+                    user=request.sender.discord_id,
+                ),
+                view=view,
+                ephemeral=True,
+            )
+
+            await view.wait()
+            if view.value:
+                await FriendshipModel.create(player1=player, player2=request.sender)
+                await request.delete()
+                await interaction.followup.send(
+                    translate(
+                        "friend_request_accepted",
+                        player.language,
+                        user=request.sender.discord_id,
+                    ),
+                    ephemeral=True,
+                )
+            else:
+                await request.delete()
+                await interaction.followup.send(
+                    translate(
+                        "friend_request_declined",
+                        player.language,
+                        user=request.sender.discord_id,
+                    ),
+                    ephemeral=True,
+                )
+
+        select.callback = select_callback  # type: ignore
+        view = View()
+        view.add_item(select)
+
+        embed.description = translate("friend_requests_description", player.language)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     @server.command()
     async def spawnchannel(
@@ -235,27 +448,42 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
         """
         guild = cast(discord.Guild, interaction.guild)  # guild-only command
         user = cast(discord.Member, interaction.user)
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         if not user.guild_permissions.manage_guild:
             await interaction.response.send_message(
-                "You need the permission to manage the server to use this.",
-                ephemeral=True,
+                translate("no_permission", player.language), ephemeral=True
             )
             return
         if not channel.permissions_for(guild.me).read_messages:
             await interaction.response.send_message(
-                f"I need the permission to read messages in {channel.mention}.",
+                translate(
+                    "bot_needs_permission",
+                    player.language,
+                    permission="read messages",
+                    channel=channel.mention,
+                ),
                 ephemeral=True,
             )
             return
         if not channel.permissions_for(guild.me).send_messages:
             await interaction.response.send_message(
-                f"I need the permission to send messages in {channel.mention}.",
+                translate(
+                    "bot_needs_permission",
+                    player.language,
+                    permission="send messages",
+                    channel=channel.mention,
+                ),
                 ephemeral=True,
             )
             return
         if not channel.permissions_for(guild.me).embed_links:
             await interaction.response.send_message(
-                f"I need the permission to send embed links in {channel.mention}.",
+                translate(
+                    "bot_needs_permission",
+                    player.language,
+                    permission="embed links",
+                    channel=channel.mention,
+                ),
                 ephemeral=True,
             )
             return
@@ -270,37 +498,49 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
         """
         guild = cast(discord.Guild, interaction.guild)  # guild-only command
         user = cast(discord.Member, interaction.user)
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
+
         if not user.guild_permissions.manage_guild:
             await interaction.response.send_message(
-                "You need the permission to manage the server to use this.",
-                ephemeral=True,
+                translate("no_permission", player.language), ephemeral=True
             )
             return
-        config = await GuildConfig.get(guild_id=interaction.guild_id)
+        config, _ = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
         if config.enabled:
-            config.enabled = False  # type: ignore
+            config.enabled = False
             await config.save()
             self.bot.dispatch("carfigures_settings_change", guild, enabled=False)
             await interaction.response.send_message(
-                f"{settings.bot_name} is now disabled in this server. Commands will still be "
-                f"available, but the spawn of new {settings.collectible_name}s is suspended.\n"
-                "To re-enable the spawn, use the same command."
+                translate(
+                    "spawn_disabled",
+                    player.language,
+                    bot_name=settings.bot_name,
+                    collectibles=appearance.collectible_plural,
+                )
             )
         else:
-            config.enabled = True  # type: ignore
+            config.enabled = True
             await config.save()
             self.bot.dispatch("carfigures_settings_change", guild, enabled=True)
             if config.spawn_channel and (
                 channel := guild.get_channel(config.spawn_channel)
             ):
                 await interaction.response.send_message(
-                    f"{settings.bot_name} is now enabled in this server, "
-                    f"{settings.collectible_name}s will start spawning soon in {channel.mention}."
+                    translate(
+                        "spawn_enabled",
+                        player.language,
+                        bot_name=settings.bot_name,
+                        collectibles=appearance.collectible_plural,
+                        channel=channel.mention,
+                    )
                 )
             else:
                 await interaction.response.send_message(
-                    f"{settings.bot_name} is now enabled in this server, however there is no "
-                    "spawning channel set. Please configure one with `/server channel`."
+                    translate(
+                        "spawn_enabled_no_channel",
+                        player.language,
+                        bot_name=settings.bot_name,
+                    )
                 )
 
     @server.command()
@@ -311,69 +551,102 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
 
         guild = cast(discord.Guild, interaction.guild)
         user = cast(discord.Member, interaction.user)
+        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         if not user.guild_permissions.manage_guild:
             await interaction.response.send_message(
-                "You need the permission to manage the server to use this.",
-                ephemeral=True,
+                translate("no_permission", player.language), ephemeral=True
             )
             return
         if not settings.spawnalert:
             await interaction.response.send_message(
-                "The bot owner has disabled this feature from the bot.", ephemeral=True
+                translate("spawn_alert_disabled", player.language), ephemeral=True
             )
             return
-        config = await GuildConfig.get(guild_id=interaction.guild_id)
+        config, _ = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
         if role:
             if config.spawn_ping == role.id:
                 config.spawn_ping = None  # type: ignore
                 await config.save()
                 self.bot.dispatch("carfigures_settings_change", guild, role=None)
                 await interaction.response.send_message(
-                    f"{settings.bot_name} will no longer alert {role.mention} when {settings.collectible_name}s spawn."
+                    translate(
+                        "spawn_alert_removed",
+                        player.language,
+                        bot_name=settings.bot_name,
+                        role=role.mention,
+                        collectibles=appearance.collectible_plural,
+                    )
                 )
             else:
-                config.spawn_ping = role.id  # type: ignore
+                config.spawn_ping = role.id
                 await config.save()
                 self.bot.dispatch("carfigures_settings_change", guild, role=role)
                 await interaction.response.send_message(
-                    f"{settings.bot_name} will now alert {role.mention} when {settings.collectible_name}s spawn."
+                    translate(
+                        "spawn_alert_set",
+                        player.language,
+                        bot_name=settings.bot_name,
+                        role=role.mention,
+                        collectibles=appearance.collectible_plural,
+                    )
                 )
-                return
 
-    @server.command()
+    @server.command(name="language")
+    async def serverlanguage(
+        self, interaction: discord.Interaction, language: Languages
+    ):
+        """
+        Set your preferred Language
+        """
+
+        server, _ = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
+        server.language = language
+        await server.save()
+        await interaction.response.send_message(
+            f"you have successfully changed your server language to **{language.name}**"
+        )
+
+    @server.command(name="info")
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
-    async def info(self, interaction: discord.Interaction):
+    async def serverinfo(self, interaction: discord.Interaction):
         """
         Display information about the server.
         """
 
         guild = cast(discord.Guild, interaction.guild)
-        config = await GuildConfig.get(guild_id=guild.id)
+        config, _ = await GuildConfig.get_or_create(guild_id=guild.id)
         spawn_channel = guild.get_channel(config.spawn_channel)
         spawn_role = guild.get_role(config.spawn_ping)
         emojis = ""
-        if settings.minimal_profile == False:
+        if not settings.minimal_profile:
             cars = await _get_10_cars_emojis(self)
             emojis = " ".join(str(x) for x in cars)
-            spawn_channel = f"<#{guild.get_channel(config.spawn_channel).id}>"
-            spawn_role = f"<@&{guild.get_role(config.spawn_ping).id}>"
+            spawn_channel = f"<#{config.spawn_channel}>"
+            spawn_role = f"<@&{config.spawn_ping}>"
 
         embed = discord.Embed(
-            title=f"❖ {guild.name} Server Info",
+            title=translate(
+                "server_info_title", config.language, server_name=guild.name
+            ),
             color=settings.default_embed_color,
         )
         embed.description = (
             f"{emojis}\n"
-            f"**Ⅲ Server Settings**\n"
-            f"\u200b **⋄ Spawn State:** {'Enabled' if config.enabled else 'Disabled'}\n"
-            f"\u200b **⋄ Spawn Channel:** {spawn_channel or 'Not set'}\n"
-            f"\u200b **⋄ Spawn Alert Role:** {spawn_role or 'Not set'}\n\n"
-            f"**Ⅲ Server Info**\n"
-            f"\u200b **⋄ Server ID:** {guild.id}\n"
-            f"\u200b **⋄ Server Owner:** <@{guild.owner_id}>\n"
-            f"\u200b **⋄ Member Count:** {guild.member_count}\n"
-            f"\u200b **⋄ Created Since:** {format_dt(guild.created_at, style='R')}\n\n"
-            f"\u200b **⋄ Cars Caught Here:** {await CarInstance.filter(server_id=guild.id).count()}"
+            f"**Ⅲ {translate('server_settings', config.language)}**\n"
+            f"\u200b **⋄ {translate('language_selected', config.language)}:** {LANGUAGE_MAP[config.language]}\n"
+            f"\u200b **⋄ {translate('spawn_state', config.language)}:** "
+            f"{translate('enabled' if config.enabled else 'disabled', config.language)}\n"
+            f"\u200b **⋄ {translate('spawn_channel', config.language)}:** "
+            f"{spawn_channel or translate('not_set', config.language)}\n"
+            f"\u200b **⋄ {translate('spawn_alert_role', config.language)}:** "
+            f"{spawn_role or translate('not_set', config.language)}\n\n"
+            f"**Ⅲ {translate('server_info', config.language)}**\n"
+            f"\u200b **⋄ {translate('server_id', config.language)}:** {guild.id}\n"
+            f"\u200b **⋄ {translate('server_owner', config.language)}:** <@{guild.owner_id}>\n"
+            f"\u200b **⋄ {translate('member_count', config.language)}:** {guild.member_count}\n"
+            f"\u200b **⋄ {translate('created_since', config.language)}:** {format_dt(guild.created_at, style='R')}\n\n"
+            f"\u200b **⋄ {translate('cars_caught_here', config.language)}:** {await CarInstance.filter(server_id=guild.id).count()}"
         )
+
         embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
         await interaction.response.send_message(embed=embed)

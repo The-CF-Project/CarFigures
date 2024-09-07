@@ -6,7 +6,7 @@ from carfigures.core.models import Trade as TradeModel
 from carfigures.core.utils import menus
 from carfigures.core.utils.paginator import Pages
 from carfigures.packages.trade.trade_user import TradingUser
-from carfigures.settings import settings
+from carfigures.configs import settings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot

@@ -37,9 +37,9 @@ def init_fastapi_app() -> FastAPI:
         name="static",
     )
     app.mount(
-        "/carfigures/core/image_generator/src",
-        StaticFiles(directory=BASE_DIR / "carfigures/core/image_generator/src"),
-        name="image_gen",
+        "/carfigures/core/imaging/src",
+        StaticFiles(directory=BASE_DIR / "carfigures/core/imaging/src"),
+        name="imager",
     )
 
     @app.get("/")
@@ -47,27 +47,31 @@ def init_fastapi_app() -> FastAPI:
         return RedirectResponse(url="/admin")
 
     admin_app.add_exception_handler(
-        HTTP_500_INTERNAL_SERVER_ERROR, server_error_exception  # type: ignore
+        HTTP_500_INTERNAL_SERVER_ERROR,
+        server_error_exception,  # type: ignore
     )
     admin_app.add_exception_handler(HTTP_404_NOT_FOUND, not_found_error_exception)  # type: ignore
     admin_app.add_exception_handler(HTTP_403_FORBIDDEN, forbidden_error_exception)  # type: ignore
     admin_app.add_exception_handler(
-        HTTP_401_UNAUTHORIZED, unauthorized_error_exception  # type: ignore
+        HTTP_401_UNAUTHORIZED,
+        unauthorized_error_exception,  # type: ignore
     )
 
     @app.on_event("startup")
     async def startup():
         redis = aioredis.from_url(
-            os.environ["CARFIGURESBOT_REDIS_URL"], decode_responses=True, encoding="utf8"
+            os.environ["CARFIGURESBOT_REDIS_URL"],
+            decode_responses=True,
+            encoding="utf8",
         )
         await admin_app.configure(
-            logo_url="https://i.imgur.com/EijzuYy.png",
+            logo_url="https://raw.githubusercontent.com/The-CF-Project/CarFigures/upstream/assets/logos/Short%20Text%20Themed.png",
             template_folders=[os.path.join(BASE_DIR, "carfigures", "templates")],
             favicon_url="https://raw.githubusercontent.com/fastapi-admin/"  # type: ignore
-            "fastapi-admin/dev/images/favicon.png",
+            "CarFigures/upstream/assets/logos/Short%20Text%20Themed.png",
             providers=[
                 UsernamePasswordProvider(
-                    login_logo_url="https://preview.tabler.io/static/logo.svg",
+                    login_logo_url="https://raw.githubusercontent.com/The-CF-Project/CarFigures/upstream/assets/logos/Short%20Text%20Themed.png",
                     admin_model=Admin,
                 )
             ],

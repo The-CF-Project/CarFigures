@@ -11,7 +11,7 @@ from prometheus_client import Counter
 from tortoise.timezone import now as datetime_now
 
 from carfigures.core.models import CarInstance, Player, events, exclusives
-from carfigures.settings import settings
+from carfigures.configs import appearance, commandconfig
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -20,7 +20,9 @@ if TYPE_CHECKING:
 
 log = logging.getLogger("carfigures.packages.carfigures.components")
 caught_cars = Counter(
-    "caught_cf", "Caught carfigures", ["full_name", "limited", "exclusive", "event", "guild_size"]
+    "caught_cf",
+    "Caught carfigures",
+    ["full_name", "exclusive", "event", "guild_size"],
 )
 
 
@@ -42,11 +44,11 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
         log.exception("An error occurred in carfigure catching prompt", exc_info=error)
         if interaction.response.is_done():
             await interaction.followup.send(
-                f"An error occurred with this {settings.collectible_name}."
+                f"An error occurred with this {appearance.collectible_singular}."
             )
         else:
             await interaction.response.send_message(
-                f"An error occurred with this {settings.collectible_name}."
+                f"An error occurred with this {appearance.collectible_singular}."
             )
 
     async def on_submit(self, interaction: discord.Interaction["CarFiguresBot"]):
@@ -71,14 +73,14 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
             )
 
             event = ""
-            if car.limited and car.exclusivecard.catch_phrase:
+            if car.exclusivecard and car.exclusivecard.catch_phrase:
                 event += f"*{car.exclusivecard.catch_phrase}*\n"
             if car.eventcard and car.eventcard.catch_phrase:
                 event += f"*{car.eventcard.catch_phrase}*\n"
             if has_caught_before:
                 event += (
-                    f"This is a **new {settings.collectible_name}** "
-                    f"that has been added to your {settings.garage_command_name}!"
+                    f"This is a **new {appearance.collectible_singular}** "
+                    f"that has been added to your {commandconfig.garage_name}!"
                 )
 
             await interaction.followup.send(
@@ -103,44 +105,39 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
         # stat may vary by +/- 50% of base stat
         bonus_horsepower = random.randint(-50, 50)
         bonus_weight = random.randint(-50, 50)
-        limited = random.randint(1, 2048) == 1
+        exclusive_chance = random.randint(1, 2048) == 1
 
         # check if we can spawn cards with the event card
         event: "Event | None" = None
         exclusive: "Exclusive | None" = None
-        exclusivity = [
+        exclusive_population = [
             x for x in exclusives.values() if x.rebirth_required <= player.rebirths
         ]
-        population = [
+        event_population = [
             x for x in events.values() if x.start_date <= datetime_now() <= x.end_date
         ]
 
-        if not limited and population:
+        # Handle exclusive selection (similar to event, but with a lower chance)
+        if exclusive_population:
+            exclusive_chance = 0.05  # 5% chance to trigger exclusive selection
+            if random.random() < exclusive_chance:
+                common_weight = sum(1 - x.rarity for x in exclusive_population)
+                weights = [x.rarity for x in exclusive_population] + [common_weight]
+                exclusive = random.choices(
+                    population=exclusive_population + [None], weights=weights, k=1
+                )[0]
+
+        if event_population:
             # Here we try to determine what should be the chance of having a common card
             # since the rarity field is a value between 0 and 1, 1 being no common
             # and 0 only common, we get the remaining value by doing (1-rarity)
             # We then sum each value for each current event, and we should get an algorithm
             # that kinda makes sense.
-            common_weight = sum(1 - x.rarity for x in population)
-
-            weights = [x.rarity for x in population] + [common_weight]
+            common_weight = sum(1 - x.rarity for x in event_population)
+            weights = [x.rarity for x in event_population] + [common_weight]
             # None is added representing the common carfigure
             event = random.choices(
-                population=population + [None], weights=weights, k=1
-            )[0]
-        
-        elif limited and exclusivity:
-            # Here we try to determine what should be the chance of having a common card
-            # since the rarity field is a value between 0 and 1, 1 being no
-            # and 0 only common, we get the remaining value by doing (1-rarity)
-            # We then sum each value for each current event, and we should get an algorithm
-            # that kinda makes sense.
-            common_weight = sum(1 - x.rarity for x in exclusivity)
-
-            weights = [x.rarity for x in exclusivity] + [common_weight]
-            # None is added representing the common carfigure
-            exclusive = random.choices(
-                exclusivity=exclusivity + [None], weights=weights, k=1
+                population=event_population + [None], weights=weights, k=1
             )[0]
 
         is_new = not await CarInstance.filter(
@@ -149,7 +146,6 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
         car = await CarInstance.create(
             car=self.car.model,
             player=player,
-            limited=limited,
             exclusive=exclusive,
             event=event,
             horsepower_bonus=bonus_horsepower,
@@ -159,18 +155,15 @@ class CarFigureNamePrompt(Modal, title="Catch this Entity!"):
         )
         if user.id in bot.catch_log:
             log.info(
-                f"{user} caught {settings.collectible_name}"
-                f" {self.car.model}, {limited=} {exclusive=} {event=}",
+                f"{user} caught a {self.car.model}, {exclusive=} {event=}",
             )
         else:
             log.debug(
-                f"{user} caught {settings.collectible_name}"
-                f" {self.car.model}, {limited=} {exclusive=} {event=}",
+                f"{user} caught a {self.car.model}, {exclusive=} {event=}",
             )
         if user.guild.member_count:
             caught_cars.labels(
                 full_name=self.car.model.full_name,
-                limited=limited,
                 exclusive=exclusive,
                 event=event,
                 # observe the size of the server, rounded to the nearest power of 10

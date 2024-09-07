@@ -33,17 +33,27 @@ from carfigures.core.models import (
     Car,
     BlacklistedGuild,
     BlacklistedUser,
+    Album,
+    FontsPack,
     Country,
     CarType,
     Event,
     Exclusive,
+    GuildConfig,
+    fontspacks,
     cars,
     countries,
     cartypes,
     events,
     exclusives,
 )
-from carfigures.settings import settings
+from carfigures.configs import (
+    settings,
+    appearance,
+    superuser,
+    information,
+    commandconfig,
+)
 
 if TYPE_CHECKING:
     from discord.ext.commands.bot import PrefixType
@@ -67,8 +77,10 @@ class Translator(app_commands.Translator):
             TranslationContextLocation.other,
         ):
             return None
-        return string.message.replace("carfigure", settings.collectible_name).replace(
-            "CarFigures", settings.bot_name
+        return (
+            string.message.replace("carfigure", appearance.collectible_singular)
+            .replace("CarFigures", settings.bot_name)
+            .replace("carfigures", appearance.collectible_plural)
         )
 
 
@@ -123,7 +135,7 @@ class CommandTree(app_commands.CommandTree):
             if interaction.type != discord.InteractionType.autocomplete:
                 await interaction.response.send_message(
                     "The bot is currently starting, please wait for a few minutes... "
-                    f"({round((len(bot.shards)/bot.shard_count)*100)}%)",
+                    f"({round((len(bot.shards) / bot.shard_count) * 100)}%)",
                     ephemeral=True,
                 )
             return False  # wait for all shards to be connected
@@ -221,17 +233,23 @@ class CarFiguresBot(commands.AutoShardedBot):
         cars.clear()
         for car in await Car.all():
             cars[car.pk] = car
-        table.add_row(settings.collectible_name.title() + "s", str(len(cars)))
+        table.add_row(appearance.collectible_singular.title(), str(len(cars)))
 
+        table.add_row("Albums", str(await Album.all().count()))
+
+        fontspacks.clear()
+        for fontspack in await FontsPack.all():
+            fontspacks[fontspack.pk] = fontspack
+        table.add_row("FontsPacks", str(len(fontspacks)))
         cartypes.clear()
         for cartype in await CarType.all():
             cartypes[cartype.pk] = cartype
-        table.add_row(f"{settings.cartype_replacement}s", str(len(cartypes)))
+        table.add_row("Cards", str(len(cartypes)))
 
         countries.clear()
         for country in await Country.all():
             countries[country.pk] = country
-        table.add_row(f"{settings.country_replacement}s", str(len(countries)))
+        table.add_row("Icons", str(len(countries)))
 
         events.clear()
         for event in await Event.all():
@@ -242,6 +260,8 @@ class CarFiguresBot(commands.AutoShardedBot):
         for exclusive in await Exclusive.all():
             exclusives[exclusive.pk] = exclusive
         table.add_row("Exclusives", str(len(exclusives)))
+
+        table.add_row("Servers", str(await GuildConfig.all().count()))
 
         self.blacklist_user = set()
         for blacklisted_id in await BlacklistedUser.all().only("discord_id"):
@@ -345,13 +365,13 @@ class CarFiguresBot(commands.AutoShardedBot):
             log.info("No command to sync.")
 
         if "superuser" in PACKAGES:
-            for guild_id in settings.superuser_guild_ids:
+            for guild_id in superuser.supers:
                 guild = self.get_guild(guild_id)
                 if not guild:
                     continue
                 synced_commands = await self.tree.sync(guild=guild)
                 log.info(
-                    f"Synced {len(synced_commands)} {settings.sudo_group_name} commands for guild {guild.id}."
+                    f"Synced {len(synced_commands)} {commandconfig.sudo_group} commands for guild {guild.id}."
                 )
 
         if settings.prometheus_enabled:
@@ -373,7 +393,7 @@ class CarFiguresBot(commands.AutoShardedBot):
                 await interaction.response.send_message(
                     "You are blacklisted from the bot."
                     "\nYou can appeal this blacklist in our support server: {}".format(
-                        settings.discord_invite
+                        information.discord_invite
                     ),
                     ephemeral=True,
                 )
@@ -383,7 +403,7 @@ class CarFiguresBot(commands.AutoShardedBot):
                 await interaction.response.send_message(
                     "This server is blacklisted from the bot."
                     "\nYou can appeal this blacklist in our support server: {}".format(
-                        settings.discord_invite
+                        information.discord_invite
                     ),
                     ephemeral=True,
                 )

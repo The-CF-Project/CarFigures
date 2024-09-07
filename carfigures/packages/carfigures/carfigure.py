@@ -7,7 +7,7 @@ import discord
 
 from carfigures.core.models import GuildConfig, Car, cars
 from carfigures.packages.carfigures.components import CatchView
-from carfigures.settings import settings
+from carfigures.configs import appearance
 
 log = logging.getLogger("carfigures.packages.carfigures")
 
@@ -54,7 +54,9 @@ class CarFigure:
             """
             Generate a random name.
             """
-            source = string.ascii_uppercase + string.ascii_lowercase + string.ascii_letters
+            source = (
+                string.ascii_uppercase + string.ascii_lowercase + string.ascii_letters
+            )
             return "".join(random.choices(source, k=15))
 
         extension = self.model.spawn_picture.split(".")[-1]
@@ -67,14 +69,14 @@ class CarFigure:
             if permissions.attach_files and permissions.send_messages:
                 if role:
                     self.message = await channel.send(
-                        f"A wild {settings.collectible_name} has appeared! <@&{role}>",
+                        f"A wild {appearance.collectible_singular} has appeared! <@&{role}>",
                         view=CatchView(self),
                         file=discord.File(file_location, filename=file_name),
                     )
                     return True
                 else:
                     self.message = await channel.send(
-                        f"A wild {settings.collectible_name} has appeared!",
+                        f"A wild {appearance.collectible_singular} has appeared!",
                         view=CatchView(self),
                         file=discord.File(file_location, filename=file_name),
                     )
