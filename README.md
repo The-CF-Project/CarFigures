@@ -1,4 +1,4 @@
-# CarFigures - The Better Alternative.
+# CarFigures - The Better Alternative
 
 ![CarFigures Logo](assets/logos/Banner.png)
 [![Array's Profile](https://img.shields.io/badge/Array's%20Profile-ffffff?style=for-the-badge&logo=github&logoColor=black)](https://github.com/arrayunderscore/)
@@ -31,7 +31,7 @@ CarFigures aims to address the community's frustrations and provide an alternati
      Installation
 </h2>
 
-### Prerequisites
+## Prerequisites
 
 Before starting the installation, ensure you have the following tools installed:
 
@@ -42,15 +42,14 @@ Before starting the installation, ensure you have the following tools installed:
 > **Note:** If you are using Linux as your main desktop (like me) or hosting the bot on a Linux server, it is generally better to use [Docker Engine](https://docs.docker.com/engine/install).
 
 ### Installing
+
 Now since all this is done, let's start!
 
 1. `git clone` the project using git like this. ![demo1](assets/demos/demo1.png)
 2. Change the bot folder name from "CarFigures" to the name of your dex/figures bot to make it easier for you in docker to know which is what (very useful if working with multiple dexes/figures bots).
 
-
-
 > **Note:** The settings.toml isn't updated by default when updating the bot files, you are required to check if any changes happened to the toml file by yourself, I will update the link of download every time a new update for it gets released, it's your responsibility.
- 
+
 <h2>
      <sub>
           <img  src="https://www.iconsdb.com/icons/preview/white/settings-11-xxl.png"
@@ -223,6 +222,7 @@ After opening the terminal or command prompt, you shall be greeted with somethin
 Now its time for you to build the project image (the image the contains your database which stores all your bot's progress, the code and more) using `docker compose build`.
 ![demo7](assets/demos/demo7.png)
 =======
+
 Start by getting the Docker desktop up and running, then open your file explorer and head to the bot files. ![demo4](assets/demos/demo3.png)
 
 And now, it is time to start up your bot!\
@@ -261,7 +261,8 @@ That's it! You are all set to rock and roll with CarFigures, If you run into any
 
 Here's how you can jump in and help make this project even better:
 
-### How to Contribute
+## How to Contribute
+
 There are several ways you can contribute to the CarFigures project:
 
 1. **Open Issues:** Found a bug or have a feature request? Open an issue to let us know. This helps us identify and fix problems or consider new features.
@@ -278,16 +279,18 @@ There are several ways you can contribute to the CarFigures project:
 2. Click on the "New Issue" button.
 3. Provide a clear and descriptive title for the issue.
 4. Include detailed information in the body, such as steps to reproduce the bug or a detailed description of the feature request.
+
 </details>
 
 <details>
 <summary><strong>Helping with Documentation</strong></summary>
- 
+
 1. Fork the repository to your GitHub account.
 2. Create a new branch for your documentation changes: git checkout -b improve-docs
 3. Make your changes and commit them with descriptive messages: git commit -m 'Improve documentation for installation process'
 4. Push your changes to your branch: git push origin improve-docs
 Open a pull request (PR) against the stable branch of the original repository.
+
 </details>
 
 <details>
@@ -298,8 +301,8 @@ Open a pull request (PR) against the stable branch of the original repository.
 3. Make your changes and commit them with descriptive messages: git commit -m 'Add new feature'
 4. Push your changes to your branch: git push origin new-feature
 Open a pull request (PR) against the upstream branch of the original repository.
-</details>
 
+</details>
 
 ### Pull Request (PR) Guidelines
 
@@ -365,4 +368,3 @@ I am incredibly grateful to everyone who contributes to The CF Project. Whether 
 Thank you all from the bottom of my heart ❤️ (especially you, Peri :] ❤️).
 
 Let's continue making this project an awesome and valuable project for everyone!
-

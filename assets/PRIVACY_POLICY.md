@@ -2,7 +2,6 @@
 
 The following document explains what data is collected by CarFigures.
 
-
 ## Glossary
 
 - **"Application"** or **"Discord application"** refers to the Discord bot user, its associated owners and the servers is has
@@ -19,7 +18,6 @@ The following document explains what data is collected by CarFigures.
 
 The instance is guaranteed to be running the latest open sourced version of the bot with no proprietary code being used
 
-
 ## Data Collection
 
 CarFigures collects the following data from Discord:
@@ -28,7 +26,7 @@ CarFigures collects the following data from Discord:
 - Server (or guild) IDs, this is used to store settings necessary to the bot's operation
 - Channel IDs, this is used to know in which channel should the collectibles spawn
 
-### In addition, the following data proper to CarFigures is created and used:
+### In addition, the following data proper to CarFigures is created and used
 
 - The list of collectibles owned by a user of the service
 - A history of trades done on collectibles, including the users that once owned the said collectible but do not anymore
@@ -38,11 +36,9 @@ CarFigures collects the following data from Discord:
 - Access to the data
 - The only persons allowed to access the data are the application owners.
 
-
 Any application owner may interact with the bot and the administrator interface. Only HiboMan has direct access on the host machine.
 The CarFigures moderation teams do not have access to the data.
 The data may never be made available to the public, and its access must be secured accordingly.
-
 
 Your rights
 You may request a copy or the delection of your personal data held by the application by opening an ticket on our support server
