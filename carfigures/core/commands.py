@@ -9,7 +9,7 @@ from tortoise.exceptions import DoesNotExist
 
 from carfigures.packages.carfigures.carfigure import CarFigure
 from carfigures.core.models import Car
-from carfigures.settings import settings
+from carfigures.settings import appearance
 
 log = logging.getLogger("carfigures.core.commands")
 
@@ -105,7 +105,7 @@ class Core(commands.Cog):
                 try:
                     car_model = await Car.get(full_name__iexact=car.lower())
                 except DoesNotExist:
-                    await ctx.send(f"No such {settings.collectible_name} exists.")
+                    await ctx.send(f"No such {appearance.collectibleSingular} exists.")
                     return
                 carfigure = CarFigure(car_model)
             await carfigure.spawn(channel or ctx.channel)

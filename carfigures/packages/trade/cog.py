@@ -21,13 +21,13 @@ from carfigures.core.utils.transformers import (
 from carfigures.packages.trade.display import TradeViewFormat
 from carfigures.packages.trade.menu import TradeMenu
 from carfigures.packages.trade.trade_user import TradingUser
-from carfigures.settings import settings
+from carfigures.settings import appearance
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
 
 
-class Trade(commands.GroupCog, group_name=settings.trade_group_name):
+class Trade(commands.GroupCog):
     """
     Trade carfigures with other players
     """
@@ -72,11 +72,7 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
             return (None, None)
         to_remove: list[TradeMenu] = []
         for trade in self.trades[guild.id][channel.id]:
-            if (
-                trade.current_view.is_finished()
-                or trade.trader1.cancelled
-                or trade.trader2.cancelled
-            ):
+            if trade.current_view.is_finished() or trade.trader1.cancelled or trade.trader2.cancelled:
                 # remove what was supposed to have been removed
                 to_remove.append(trade)
                 continue
@@ -109,35 +105,25 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
             await interaction.response.send_message("You cannot trade with bots.", ephemeral=True)
             return
         if user.id == interaction.user.id:
-            await interaction.response.send_message(
-                "You cannot trade with yourself.", ephemeral=True
-            )
+            await interaction.response.send_message("You cannot trade with yourself.", ephemeral=True)
             return
 
         trade1, trader1 = self.get_trade(interaction)
         trade2, trader2 = self.get_trade(channel=interaction.channel, user=user)  # type: ignore
         if trade1 or trader1:
-            await interaction.response.send_message(
-                "You already have an ongoing trade.", ephemeral=True
-            )
+            await interaction.response.send_message("You already have an ongoing trade.", ephemeral=True)
             return
         if trade2 or trader2:
-            await interaction.response.send_message(
-                "The user you are trying to trade with is already in a trade.", ephemeral=True
-            )
+            await interaction.response.send_message("The user you are trying to trade with is already in a trade.", ephemeral=True)
             return
 
         player1, _ = await Player.get_or_create(discord_id=interaction.user.id)
         player2, _ = await Player.get_or_create(discord_id=user.id)
         if player2.discord_id in self.bot.blacklist_user:
-            await interaction.response.send_message(
-                "You cannot trade with a blacklisted user.", ephemeral=True
-            )
+            await interaction.response.send_message("You cannot trade with a blacklisted user.", ephemeral=True)
             return
 
-        menu = TradeMenu(
-            self, interaction, TradingUser(interaction.user, player1), TradingUser(user, player2)
-        )
+        menu = TradeMenu(self, interaction, TradingUser(interaction.user, player1), TradingUser(user, player2))
         self.trades[interaction.guild.id][interaction.channel.id].append(menu)  # type: ignore
         await menu.start()
         await interaction.response.send_message("Trade started!", ephemeral=True)
@@ -165,9 +151,7 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
         if not carfigure:
             return
         if not carfigure.is_tradeable:
-            await interaction.response.send_message(
-                "You cannot trade this carfigure.", ephemeral=True
-            )
+            await interaction.response.send_message("You cannot trade this carfigure.", ephemeral=True)
             return
         await interaction.response.defer(ephemeral=True, thinking=True)
         if carfigure.favorite:
@@ -187,36 +171,32 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
             return
         if trader.locked:
             await interaction.followup.send(
-                "You have locked your proposal, it cannot be edited! "
-                "You can click the cancel button to stop the trade instead.",
+                "You have locked your proposal, it cannot be edited! " "You can click the cancel button to stop the trade instead.",
                 ephemeral=True,
             )
             return
         if carfigure in trader.proposal:
             await interaction.followup.send(
-                f"You already have this {settings.collectible_name} in your proposal.",
+                f"You already have this {appearance.collectibleSingular} in your proposal.",
                 ephemeral=True,
             )
             return
-        if await carfigure.is_locked():
+        if await carfigure.isLocked():
             await interaction.followup.send(
-                "This carfigure is currently in an active trade or donation, "
-                "please try again later.",
+                "This carfigure is currently in an active trade or donation, " "please try again later.",
                 ephemeral=True,
             )
             return
 
-        await carfigure.lock_for_trade()
+        await carfigure.lockForTrade()
         trader.proposal.append(carfigure)
-        await interaction.followup.send(f"{carfigure.carfigure.full_name} added.", ephemeral=True)
+        await interaction.followup.send(f"{carfigure.carfigure.fullName} added.", ephemeral=True)
 
     @app_commands.command(extras={"trade": TradeCommandType.REMOVE})
     async def remove(
         self,
         interaction: discord.Interaction,
         carfigure: CarInstanceTransform,
-        event: EventEnabledTransform | None = None,
-        limited: bool | None = None,
     ):
         """
         Remove a carfigure from what you proposed in the ongoing trade.
@@ -225,36 +205,25 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
         ----------
         carfigure: CarInstance
             The carfigure you want to remove from your proposal
-        event: Event
-            Filter the results of autocompletion to an event. Ignored afterwards.
-        limited: bool
-            Filter the results of autocompletion to limiteds. Ignored afterwards.
         """
         if not carfigure:
             return
 
         trade, trader = self.get_trade(interaction)
         if not trade or not trader:
-            await interaction.response.send_message(
-                "You do not have an ongoing trade.", ephemeral=True
-            )
+            await interaction.response.send_message("You do not have an ongoing trade.", ephemeral=True)
             return
         if trader.locked:
             await interaction.response.send_message(
-                "You have locked your proposal, it cannot be edited! "
-                "You can click the cancel button to stop the trade instead.",
+                "You have locked your proposal, it cannot be edited! " "You can click the cancel button to stop the trade instead.",
                 ephemeral=True,
             )
             return
         if carfigure not in trader.proposal:
-            await interaction.response.send_message(
-                f"That {settings.collectible_name} is not in your proposal.", ephemeral=True
-            )
+            await interaction.response.send_message(f"That {appearance.collectibleSingular} is not in your proposal.", ephemeral=True)
             return
         trader.proposal.remove(carfigure)
-        await interaction.response.send_message(
-            f"{carfigure.carfigure.full_name} removed.", ephemeral=True
-        )
+        await interaction.response.send_message(f"{carfigure.carfigure.fullName} removed.", ephemeral=True)
         await carfigure.unlock()
 
     @app_commands.command()
@@ -264,9 +233,7 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
         """
         trade, trader = self.get_trade(interaction)
         if not trade or not trader:
-            await interaction.response.send_message(
-                "You do not have an ongoing trade.", ephemeral=True
-            )
+            await interaction.response.send_message("You do not have an ongoing trade.", ephemeral=True)
             return
 
         await trade.user_cancel(trader)
@@ -302,23 +269,17 @@ class Trade(commands.GroupCog, group_name=settings.trade_group_name):
         user = interaction.user
         if trade_user:
             history_queryset = TradeModel.filter(
-                Q(player1__discord_id=user.id, player2__discord_id=trade_user.id)
-                | Q(player1__discord_id=trade_user.id, player2__discord_id=user.id)
+                Q(player1__discord_id=user.id, player2__discord_id=trade_user.id) | Q(player1__discord_id=trade_user.id, player2__discord_id=user.id)
             )
         else:
-            history_queryset = TradeModel.filter(
-                Q(player1__discord_id=user.id) | Q(player2__discord_id=user.id)
-            )
+            history_queryset = TradeModel.filter(Q(player1__discord_id=user.id) | Q(player2__discord_id=user.id))
 
         if carfigure:
             history_queryset = history_queryset.filter(
-                Q(player1__tradeobjects__carinstance__car=carfigure)
-                | Q(player2__tradeobjects__carinstance__car=carfigure)
+                Q(player1__tradeobjects__carinstance__car=carfigure) | Q(player2__tradeobjects__carinstance__car=carfigure)
             ).distinct()  # for some reason, this query creates a lot of duplicate rows?
 
-        history = await history_queryset.order_by(sorting.value).prefetch_related(
-            "player1", "player2"
-        )
+        history = await history_queryset.order_by(sorting.value).prefetch_related("player1", "player2")
 
         if not history:
             await interaction.followup.send("No history found.", ephemeral=True)

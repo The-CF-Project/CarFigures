@@ -12,8 +12,6 @@ CREATE TABLE IF NOT EXISTS "exclusive" (
 
 COMMENT ON COLUMN "exclusive"."image" IS '1428x2000 PNG image';
 ALTER TABLE "carinstance" ADD CONSTRAINT "fk_carinst_exclusive_5eb32xaf" FOREIGN KEY ("exclusive_id") REFERENCES "exclusive" ("id") ON DELETE SET NULL;
-INSERT INTO "exclusive" ("name", "image", "emoji", "rebirth_required", "catch_phrase", "rarity") VALUES
-  ('Limited', '/carfigures/core/image_generator/src/limited.png', '💠', 0, 'oh look what we got here, u caught a **Limited Edition** carfigure"', 1);
 ALTER TABLE "carinstance" ADD "exclusive" INT NOT NULL DEFAULT 0;
 
 -- downgrade --

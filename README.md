@@ -44,12 +44,12 @@ Before starting the installation, ensure you have the following tools installed:
 ### Installing
 Now since all this is done, let's start!
 
-1. `git clone` the project using git like this. ![demo1](assets/demos/demo1.png)
-2. Change the bot folder name from "CarFigures" to the name of your dex/figures bot to make it easier for you in docker to know which is what (very useful if working with multiple dexes/figures bots).
+clone the project using git, preferrably also cloning into a new folder with the name of ur bot, like:
+```bash
+    git clone https://github.com/thecfproject/CarFigures showerdex
 
 
-
-> **Note:** The settings.toml isn't updated by default when updating the bot files, you are required to check if any changes happened to the toml file by yourself, I will update the link of download every time a new update for it gets released, it's your responsibility.
+> **Note:** The config.toml isn't updated by default when updating the bot files, you are required to check if any changes happened to the toml file by yourself, it's your responsibility.
  
 <h2>
      <sub>
@@ -57,107 +57,100 @@ Now since all this is done, let's start!
             height="25"
             width="25">
      </sub>
-     Configuration File
+     Configuration
 </h2>
 
-CarFigures is designed to be highly customizable, allowing you to tailor the bot's behavior and appearance to your liking. By building your own configuration file, you can adjust various settings, commands, and more!
+CarFigures is designed to be highly customizable, allowing you to tailor the bot's behavior and appearance to your liking!
 
-This is part of CF's philosophy to make customizing your instance as easy as possible. For now, it's not much, but I'm planning for more soon! :3
+This is part of CF's philosophy to make customizing your instance as easy as possible.
+For now, it's not much, but I'm planning for more soon! :3
 
 now, time to start making that file,
-So in ur Bot files, create a new file called configuration.toml
+So in ur Bot files, create a new file called config.toml
 Read the comments I left in there to help you out!
 
 Here’s a brief overview of the main configuration sections:
 
 - **[settings]**: General bot settings, such as the bot token and command prefix.
-- **[owners]**: Configuration for bot owners and co-owners.
-- **[appearance]**: Customizable namings in the bot interface.
-- **[commands.groups]**: Names of command groups.
-- **[commands.names]**: Names of individual commands.
-- **[commands.descs]**: Descriptions of individual commands.
-- **[info.links]**: Links to various resources related to the bot.
-- **[info.about]**: Information about the project and contributors.
-- **[superuser]**: Settings for superuser commands.
+- **[team]**: Configuration for bot team like superusers and owners.
+- **[appearance.interface]**: Customizable namings in the bot interface.
+- **[appearance.commands.names]**: Names of individual commands.
+- **[appearance.commands.descs]**: Descriptions of individual commands.
+- **[information]**: Information about the project like social links and contributors.
 - **[prometheus]**: Settings for Prometheus metrics collection.
 
-```markdown
+```toml
 # Configuration file for CarFigures Discord Bot
 
 [settings]
-bot_token = ""
-bot_name = "CarFigures"
-text_prefix = "c."
-max_favorites = 50
-spawnalert = true
-minimal_profile = true
-# Default embed color in the bot (hex without #)
-default_embed_color = "5865F2"
+botToken = ""
+botDescription = "Catch, collect and exchange cars in your server!"
+botName = "CarFigures"
+prefix = "!"
+maxFavorites = 50
+spawnAlert = true
+minimalProfile = true
+defaultEmbedColor = "5865F2"
+spawnRate = [22, 55]
+bonusRate = [50, -50]
+exclusivityChance = 0.05 # 1 being 100% chance and 0 being 0% chance
 
-[owners]
+[team]
+# This section is meant for administrator commands logging and staff purposes.
+
 # If enabled and the application is under a team, all team members will be considered as owners
-team_members_are_owners = false
+teamMembersAreOwners = false
 
 # A list of IDs that must be considered owners in addition to the application/team owner
 # Separate IDs with commas (,)
-co_owners = [877557616094638112]
+co-owners = [877557616094638112]
 
-[appearance]
-collectible_name = "carfigure"
+# List of guild IDs where the privilaged commands should be registered
+# and a List of role IDs that have access to the commands
+# Separate IDs with commas (,)
+superGuilds = [1127508116150439958]
+superUsers = [1216684684340236398]
+
+# Log channel ID for Admin Commands logging
+logChannel = 1144639514296459316
+
+
+[appearance.interface]
+collectibleSingular = "carfigure"
+collectiblePlural = "carfigures"
 cartype = "CarType"
 country = "Country"
+exclusive = "Exclusive"
 horsepower = "Horsepower"
 weight = "Weight"
 kg = "KG"
 hp = "HP"
 
-[commands.groups]
+[appearance.commands.names]
 cars = "cars"
 sudo = "sudo"
-info = "info"
-my = "my"
-trade = "trade"
-
-[commands.names]
 garage = "garage"
 exhibit = "exhibit"
 show = "show"
 info = "info"
 last = "last"
-favorite = "favorite"
-give = "give"
-count = "count"
-rarity = "rarity"
-compare = "compare"
+gift = "gift"
 
-[commands.descs]
+[appearance.commands.descs]
 garage = "Show Your garage!"
 exhibit = "Show your showroom in the bot."
 show = "Display info from your carfigures collection."
-info = "Display info from a specific carfigure."
+info = "Display info for a specific carfigure."
 last = "Display info of your or another user's last caught carfigure."
-favorite = "Set favorite carfigures."
-give = "Give a carfigure to a user."
-count = "Count how many carfigures you have."
-rarity = "Show the rarity list of the bot."
-compare = "Compare two carfigures."
+gift = "Give a carfigure to a user."
 
-[info.links]
-repository_link = "https://codeberg.org/array_ye/CarFigures"
-discord_invite = "https://discord.com/invite/PVFyN34ykA"
-terms_of_service = "https://codeberg.org/array_ye/CarFigures/src/branch/stable/assets/TERMS_OF_SERVICE.md"
-privacy_policy = "https://codeberg.org/array_ye/CarFigures/src/branch/stable/assets/PRIVACY_POLICY.md"
-top_gg = "https://top.gg/bot/1127506544578277446"
+[information]
+## This section is also one of bot's main factures that provides information about the bot which can help others to find more information about the bot.
 
-[info.about]
-description = """
-CarFigures (CF) was born out of frustration with the BallsDex team's decisions. Initially, I had no particular liking for the idea; it was more about a response to dissatisfaction. The BallsDex team wasn't keen on implementing features that many of us wanted. I knew that merely complaining wouldn't lead to any change, as hundreds of others had already done so to no avail.
-
-Determined to make a difference, I decided to take matters into my own hands. By forking BallsDex and applying my own changes and preferences, CarFigures came into existence.
-
-CarFigures aims to address the community's frustrations and provide an alternative base to use and build their bots on. It's a project driven by a desire for improvement and a commitment to providing a better user experience.
-"""
-history = ""
+repositoryLink = "https://github.com/The-CF-Project/CarFigures"
+serverInvite = "https://discord.com/invite/PVFyN34ykA"
+termsOfService = "https://codeberg.org/array_ye/CarFigures/src/branch/stable/assets/TERMS_OF_SERVICE.md"
+privacyPolicy = "https://codeberg.org/array_ye/CarFigures/src/branch/stable/assets/PRIVACY_POLICY.md"
 
 # While this is made to make it easier to include yourself and your team/contributors
 # you are NOT allowed to remove El Laggron or Array_YE.
@@ -167,27 +160,9 @@ developers = [
     "Array_YE",
 ]
 contributors = [
-    "Queen_the_darkner",
+    "_Metr_",
     "HiboMan",
-    "KingOfTheHill4965",
-    "DistinguishedAxolotl"
 ]
-
-[superuser]
-# List of guild IDs where the /sudo command should be registered
-# Separate IDs with commas (,)
-guild_ids = [1127508116150439958]
-
-# List of role IDs having full access to /sudo
-# Separate IDs with commas (,)
-root_role_ids = [1127523232933756958]
-
-# List of role IDs having partial access to /sudo (blacklist and guilds)
-# Separate IDs with commas (,)
-superuser_role_ids = [1206246119043244122]
-
-# Log channel ID for Admin Commands logging
-log_channel = 1144639514296459316
 
 [prometheus]
 # Enable Prometheus metrics collection (default: false)
@@ -196,7 +171,6 @@ enabled = false
 host = "0.0.0.0"
 # Port for Prometheus metrics (default: 15260)
 port = 15260
-
 ```
 
 <h2>
@@ -207,7 +181,7 @@ port = 15260
      </sub>
      Booting
 </h2>
-After configuring and editing the settings.toml file, it's time to start the bot instance and play with it!
+After configuring and editing the config.toml file, it's time to start the bot instance and play with it!
 
 Start by getting docker desktop up and running, then open your file explorer and head to the bot files. ![demo3](assets/demos/demo3.png)
 
@@ -215,20 +189,17 @@ Start by getting docker desktop up and running, then open your file explorer and
 <summary><strong>For Windows Users</strong></summary>
 
 To access the command prompt pointed to this bot folder, go to the navigation bar and edit it (you can do that by click the empty part once) to type `cmd` or `powershell` then press enter, this will open a new command prompt instance that is pointed to the bot place:
-![demo4](assets/demos/demo4.png)
-![demo5](assets/demos/demo5.png)
+![demo4](assets/demos/demo1.png)
+![demo5](assets/demos/demo2.png)
 
-After opening the terminal or command prompt, you shall be greeted with something like this (don't mind the toml thing, its git stuff).
-![demo6](assets/demos/demo6.png)
-Now its time for you to build the project image (the image the contains your database which stores all your bot's progress, the code and more) using `docker compose build`.
-![demo7](assets/demos/demo7.png)
-=======
+After opening the terminal or command prompt, its time for you to build the project image (the image the contains your database which stores all your bot's progress, the code and more) using `docker compose build`.
+![demo7](assets/demos/demo3.png)
 Start by getting the Docker desktop up and running, then open your file explorer and head to the bot files. ![demo4](assets/demos/demo3.png)
 
 And now, it is time to start up your bot!\
 Using `docker compose up` will make the docker start all the containers and functions, creating connections to the discord's APIs, and allowing the bot to be alive!
 And after doing it, the final results should be like this, with the end line saying "(your bot name) is now operational!"
-![demo8](assets/demos/demo8.png)
+![demo8](assets/demos/demo5.png)
 
 </details>
 
@@ -237,9 +208,7 @@ And after doing it, the final results should be like this, with the end line say
 
 You should just cd to the place, open a terminal and cd to the folder, if your bot folder is in the documents folder, usually you do `cd ~/Documents/(your bot folder name)`.
 
-After opening the terminal or command prompt, you shall be greeted with something like this (don't mind the toml thing, its git stuff).
-![demo6](assets/demos/demo6.png)
-Now its time for you to build the project image (the image the contains your database which stores all your bot's progress, the code and more) using `docker compose build`.
+After opening the terminal, its time for you to build the project image (the image the contains your database which stores all your bot's progress, the code and more) using `docker compose build`.
 ![demo7](assets/demos/demo7.png)
 
 And now, its time to start up your bot!\
@@ -337,18 +306,10 @@ I'm stoked about every contribution from the community. Let's join forces and ma
 
 I'm excited about the future of the project and all the bots that use it! Here are some features and improvements I have planned:
 
-### Upcoming Features
-
-- Economy and Modifying Packages.
-- Server/Player Settings Embed
-- Leaderboard Embed + Controls
-- Crafting Commands | Customizable Through The Admin Panel
-- Racing/Battling Package
-
 ### Future Plans
 
 - Switch from fastapi_admin to our own tech-stack.
-- Implement a premium plan inside CF.
+- Implementing QoL features for extension developers.
 - Combine some existing commands into one (e.g., /user privacy and /user donation policy into /user settings)
 
 <h2>
@@ -362,7 +323,7 @@ I'm excited about the future of the project and all the bots that use it! Here a
 
 I am incredibly grateful to everyone who contributes to The CF Project. Whether you provide code, suggest features, report bugs, or offer emotional support, your efforts are deeply appreciated. Knowing I am not alone in this project and having a supportive community means the world to me.
 
-Thank you all from the bottom of my heart ❤️ (especially you, Peri :] ❤️).
+Thank you all from the bottom of my heart ❤️ 
 
 Let's continue making this project an awesome and valuable project for everyone!
 

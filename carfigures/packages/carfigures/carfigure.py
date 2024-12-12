@@ -7,7 +7,7 @@ import discord
 
 from carfigures.core.models import GuildConfig, Car, cars
 from carfigures.packages.carfigures.components import CatchView
-from carfigures.settings import settings
+from carfigures.settings import appearance
 
 log = logging.getLogger("carfigures.packages.carfigures")
 
@@ -17,7 +17,7 @@ class CarFigure:
         """
         Defining properties for local use.
         """
-        self.name = model.full_name
+        self.name = model.fullName
         self.model = model
         self.message: discord.Message = discord.utils.MISSING
         self.caught = False
@@ -57,28 +57,20 @@ class CarFigure:
             source = string.ascii_uppercase + string.ascii_lowercase + string.ascii_letters
             return "".join(random.choices(source, k=15))
 
-        extension = self.model.spawn_picture.split(".")[-1]
-        file_location = "." + self.model.spawn_picture
-        file_name = f"nt_{generate_random_name()}.{extension}"
+        extension = self.model.spawnPicture.split(".")[-1]
+        fileLocation = "." + self.model.spawnPicture
+        filename = f"nt_{generate_random_name()}.{extension}"
         guild = await GuildConfig.get(guild_id=channel.guild.id)
-        role = guild.spawn_ping
+        spawnrole = " <@&{guild.spawnRole}>" if guild.spawnRole else None
         try:
             permissions = channel.permissions_for(channel.guild.me)
             if permissions.attach_files and permissions.send_messages:
-                if role:
-                    self.message = await channel.send(
-                        f"A wild {settings.collectible_name} has appeared! <@&{role}>",
-                        view=CatchView(self),
-                        file=discord.File(file_location, filename=file_name),
-                    )
-                    return True
-                else:
-                    self.message = await channel.send(
-                        f"A wild {settings.collectible_name} has appeared!",
-                        view=CatchView(self),
-                        file=discord.File(file_location, filename=file_name),
-                    )
-                    return True
+                self.message = await channel.send(
+                    f"A wild {appearance.collectibleSingular} has appeared!{spawnrole}",
+                    view=CatchView(self),
+                    file=discord.File(fileLocation, filename=filename),
+                )
+                return True
             else:
                 log.error("Missing permission to spawn car in channel %s.", channel)
         except discord.Forbidden:

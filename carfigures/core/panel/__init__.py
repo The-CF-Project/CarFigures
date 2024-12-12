@@ -23,8 +23,8 @@ from starlette.status import (
 from tortoise.contrib.fastapi import register_tortoise
 
 from carfigures.__main__ import TORTOISE_ORM
-from carfigures.core.admin import resources, routes  # noqa: F401
-from carfigures.core.admin.resources import Admin
+from carfigures.core.panel import resources, routes  # noqa: F401
+from carfigures.core.models import Admin
 
 BASE_DIR = pathlib.Path(".")
 
@@ -36,23 +36,20 @@ def init_fastapi_app() -> FastAPI:
         StaticFiles(directory=BASE_DIR / "static"),
         name="static",
     )
-    app.mount(
-        "/carfigures/core/image_generator/src",
-        StaticFiles(directory=BASE_DIR / "carfigures/core/image_generator/src"),
-        name="image_gen",
-    )
 
     @app.get("/")
     async def index():
         return RedirectResponse(url="/admin")
 
     admin_app.add_exception_handler(
-        HTTP_500_INTERNAL_SERVER_ERROR, server_error_exception  # type: ignore
+        HTTP_500_INTERNAL_SERVER_ERROR,
+        server_error_exception,  # type: ignore
     )
     admin_app.add_exception_handler(HTTP_404_NOT_FOUND, not_found_error_exception)  # type: ignore
     admin_app.add_exception_handler(HTTP_403_FORBIDDEN, forbidden_error_exception)  # type: ignore
     admin_app.add_exception_handler(
-        HTTP_401_UNAUTHORIZED, unauthorized_error_exception  # type: ignore
+        HTTP_401_UNAUTHORIZED,
+        unauthorized_error_exception,  # type: ignore
     )
 
     @app.on_event("startup")

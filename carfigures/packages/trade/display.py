@@ -22,12 +22,10 @@ class TradeViewFormat(menus.ListPageSource):
         embed = discord.Embed(
             title=f"Trade history for {self.header}",
             description=f"Trade ID: {trade.pk:0X}",
-            colour=settings.default_embed_color,
+            colour=settings.defaultEmbedColor,
             timestamp=trade.date,
         )
-        embed.set_footer(
-            text=f"Trade {menu.current_page + 1 }/{menu.source.get_max_pages()} | Trade date: "
-        )
+        embed.set_footer(text=f"Trade {menu.current_page + 1 }/{menu.source.get_max_pages()} | Trade date: ")
         fill_trade_embed_fields(
             embed,
             self.bot,
@@ -48,9 +46,7 @@ def _get_prefix_emote(trader: TradingUser) -> str:
         return ""
 
 
-def _build_list_of_strings(
-    trader: TradingUser, bot: "CarFiguresBot", short: bool = False
-) -> list[str]:
+def _build_list_of_strings(trader: TradingUser, bot: "CarFiguresBot", short: bool = False) -> list[str]:
     # this builds a list of strings always lower than 1024 characters
     # while not cutting in the middle of a line
     proposal: list[str] = [""]
@@ -128,21 +124,21 @@ def fill_trade_embed_fields(
         # to do this, we add a 3rd empty field on each line (since 3 fields per line)
         i = 1
         while i < len(trader1_proposal) or i < len(trader2_proposal):
-            embed.add_field(name="\u200B", value="\u200B", inline=True)  # empty
+            embed.add_field(name="\u200b", value="\u200b", inline=True)  # empty
 
             if i < len(trader1_proposal):
-                embed.add_field(name="\u200B", value=trader1_proposal[i], inline=True)
+                embed.add_field(name="\u200b", value=trader1_proposal[i], inline=True)
             else:
-                embed.add_field(name="\u200B", value="\u200B", inline=True)
+                embed.add_field(name="\u200b", value="\u200b", inline=True)
 
             if i < len(trader2_proposal):
-                embed.add_field(name="\u200B", value=trader2_proposal[i], inline=True)
+                embed.add_field(name="\u200b", value=trader2_proposal[i], inline=True)
             else:
-                embed.add_field(name="\u200B", value="\u200B", inline=True)
+                embed.add_field(name="\u200b", value="\u200b", inline=True)
             i += 1
 
         # always add an empty field at the end, otherwise the alignment is off
-        embed.add_field(name="\u200B", value="\u200B", inline=True)
+        embed.add_field(name="\u200b", value="\u200b", inline=True)
 
     if len(embed) > 6000:
         if not compact:

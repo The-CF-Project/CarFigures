@@ -23,7 +23,7 @@ from carfigures.packages.my.components import (
 )
 
 
-from carfigures.settings import settings
+from carfigures.settings import settings, appearance
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.my")
 
 
-class My(commands.GroupCog, group_name=settings.my_group_name):
+class My(commands.GroupCog):
     """
     idk for now
     """
@@ -57,35 +57,25 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
         Set your privacy policy.
         """
         if policy == PrivacyPolicy.SAME_SERVER and not self.bot.intents.members:
-            await interaction.response.send_message(
-                "I need the `members` intent to use this policy.", ephemeral=True
-            )
+            await interaction.response.send_message("I need the `members` intent to use this policy.", ephemeral=True)
             return
         user, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         user.privacy_policy = policy
         await user.save()
-        await interaction.response.send_message(
-            f"Your privacy policy has been set to **{policy.name}**.", ephemeral=True
-        )
+        await interaction.response.send_message(f"Your privacy policy has been set to **{policy.name}**.", ephemeral=True)
 
     @app_commands.choices(
         policy=[
-            app_commands.Choice(
-                name="Accept all donations", value=DonationPolicy.ALWAYS_ACCEPT
-            ),
+            app_commands.Choice(name="Accept all donations", value=DonationPolicy.ALWAYS_ACCEPT),
             app_commands.Choice(
                 name="Request your approval first",
                 value=DonationPolicy.REQUEST_APPROVAL,
             ),
-            app_commands.Choice(
-                name="Deny all donations", value=DonationPolicy.ALWAYS_DENY
-            ),
+            app_commands.Choice(name="Deny all donations", value=DonationPolicy.ALWAYS_DENY),
         ]
     )
     @own.command()
-    async def policy(
-        self, interaction: discord.Interaction, policy: app_commands.Choice[int]
-    ):
+    async def policy(self, interaction: discord.Interaction, policy: app_commands.Choice[int]):
         """
         Change how you want to receive donations.
 
@@ -96,27 +86,27 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
         """
         user, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         user.donation_policy = DonationPolicy(policy.value)
-        if policy.value == DonationPolicy.ALWAYS_ACCEPT:
-            await interaction.response.send_message(
-                f"Setting updated, you will now receive all donated {settings.collectible_name}s "
-                "immediately.",
-                ephemeral=True,
-            )
-        elif policy.value == DonationPolicy.REQUEST_APPROVAL:
-            await interaction.response.send_message(
-                "Setting updated, you will now have to approve donation requests manually.",
-                ephemeral=True,
-            )
-        elif policy.value == DonationPolicy.ALWAYS_DENY:
-            await interaction.response.send_message(
-                "Setting updated, it is now impossible to use "
-                f"`/{settings.cars_group_name} give` with "
-                "you. It is still possible to perform donations using the trade system.",
-                ephemeral=True,
-            )
-        else:
-            await interaction.response.send_message("Invalid input!", ephemeral=True)
-            return
+        match policy.value:
+            case DonationPolicy.ALWAYS_ACCEPT:
+                await interaction.response.send_message(
+                    f"Setting updated, you will now receive all donated {appearance.collectiblePlural} " "immediately.",
+                    ephemeral=True,
+                )
+            case DonationPolicy.REQUEST_APPROVAL:
+                await interaction.response.send_message(
+                    "Setting updated, you will now have to approve donation requests manually.",
+                    ephemeral=True,
+                )
+            case DonationPolicy.ALWAYS_DENY:
+                await interaction.response.send_message(
+                    "Setting updated, it is now impossible to use "
+                    f"`/{appearance.cars} give` with "
+                    "you. It is still possible to perform donations using the trade system.",
+                    ephemeral=True,
+                )
+            case _:
+                await interaction.response.send_message("Invalid input!", ephemeral=True)
+                return
         await user.save()  # do not save if the input is invalid
 
     @own.command()
@@ -124,31 +114,35 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
         """
         Show your profile.
         """
-        
+
         player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         await player.fetch_related("cars")
 
         emojis = ""
-        if settings.minimal_profile == False:
+        if not settings.minimalProfile:
             cars = await _get_10_cars_emojis(self)
             emojis = " ".join(str(x) for x in cars)
 
         # Creating the Embed and Storting the variables in it
         embed = discord.Embed(
             title=f" ❖ {interaction.user.display_name}'s Profile",
-            color=settings.default_embed_color,
+            color=settings.defaultEmbedColor,
         )
-        if player.privacy_policy == PrivacyPolicy.ALLOW:
-            privacy = "Open Inventory"
-        else:
-            privacy = "Private Inventory"
+        match player.privacyPolicy:
+            case PrivacyPolicy.ALLOW:
+                privacy = "Open Inventory"
+            case PrivacyPolicy.DENY:
+                privacy = "Private Inventory"
+            case PrivacyPolicy.SAME_SERVER:
+                privacy = "Partially Open Inventory"
 
-        if player.donation_policy == DonationPolicy.ALWAYS_ACCEPT:
-            donation = "All Accepted"
-        elif player.donation_policy == DonationPolicy.REQUEST_APPROVAL:
-            donation = "Approval Required"
-        else:
-            donation = "All Denied"
+        match player.donationPolicy:
+            case DonationPolicy.ALWAYS_ACCEPT:
+                donation = "All Accepted"
+            case DonationPolicy.REQUEST_APPROVAL:
+                donation = "Approval Required"
+            case DonationPolicy.ALWAYS_DENY:
+                donation = "All Denied"
 
         embed.description = (
             f"{emojis}\n"
@@ -174,7 +168,7 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
 
         if not bot_carfigures:
             await interaction.response.send_message(
-                f"There are no {settings.collectible_name}s registered on this bot yet.",
+                f"There are no {appearance.collectiblePlural} registered on this bot yet.",
                 ephemeral=True,
             )
             return
@@ -186,19 +180,16 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
             .values_list("car_id")
         )
 
-        if missing := set(
-            y for x, y in bot_carfigures.items() if x not in owned_carfigures
-        ):
+        if missing := set(y for x, y in bot_carfigures.items() if x not in owned_carfigures):
             await interaction.response.send_message(
-                "You haven't reached 100% of the bot collection yet."
-                f"there is still {missing}",
+                "You haven't reached 100% of the bot collection yet." f"there is still {missing}",
                 ephemeral=True,
             )
             return
 
         view = ConfirmChoiceView(interaction)
         await interaction.response.send_message(
-            f"Are you sure you want to delete all your {settings.collectible_name}s for advantages?",
+            f"Are you sure you want to delete all your {appearance.collectiblePlural} for advantages?",
             view=view,
         )
 
@@ -211,18 +202,10 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
         await CarInstance.filter(player=player).delete()
 
         ordinal_rebirth = (
-            "1st"
-            if player.rebirths == 1
-            else "2nd"
-            if player.rebirths == 2
-            else "3rd"
-            if player.rebirths == 3
-            else f"{player.rebirths}th"
+            "1st" if player.rebirths == 1 else "2nd" if player.rebirths == 2 else "3rd" if player.rebirths == 3 else f"{player.rebirths}th"
         )
 
-        await interaction.followup.send(
-            f"Congratulations! this is your {ordinal_rebirth} Rebirth, hopefully u get even more!"
-        )
+        await interaction.followup.send(f"Congratulations! this is your {ordinal_rebirth} Rebirth, hopefully u get even more!")
 
     @server.command()
     async def spawnchannel(
@@ -259,9 +242,7 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
                 ephemeral=True,
             )
             return
-        await interaction.response.send_message(
-            embed=activation_embed, view=AcceptTOSView(interaction, channel)
-        )
+        await interaction.response.send_message(embed=activation_embed, view=AcceptTOSView(interaction, channel))
 
     @server.command()
     async def spawnstate(self, interaction: discord.Interaction):
@@ -276,31 +257,29 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
                 ephemeral=True,
             )
             return
-        config = await GuildConfig.get(guild_id=interaction.guild_id)
+        config, _ = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
         if config.enabled:
             config.enabled = False  # type: ignore
             await config.save()
             self.bot.dispatch("carfigures_settings_change", guild, enabled=False)
             await interaction.response.send_message(
-                f"{settings.bot_name} is now disabled in this server. Commands will still be "
-                f"available, but the spawn of new {settings.collectible_name}s is suspended.\n"
+                f"{settings.botName} is now disabled in this server. Commands will still be "
+                f"available, but the spawn of new {appearance.collectiblePlural} is suspended.\n"
                 "To re-enable the spawn, use the same command."
             )
         else:
             config.enabled = True  # type: ignore
             await config.save()
             self.bot.dispatch("carfigures_settings_change", guild, enabled=True)
-            if config.spawn_channel and (
-                channel := guild.get_channel(config.spawn_channel)
-            ):
+            if config.spawnChannel and (channel := guild.get_channel(config.spawnChannel)):
                 await interaction.response.send_message(
-                    f"{settings.bot_name} is now enabled in this server, "
-                    f"{settings.collectible_name}s will start spawning soon in {channel.mention}."
+                    f"{settings.botName} is now enabled in this server, "
+                    f"{appearance.collectiblePlural} will start spawning soon in {channel.mention}."
                 )
             else:
                 await interaction.response.send_message(
-                    f"{settings.bot_name} is now enabled in this server, however there is no "
-                    "spawning channel set. Please configure one with `/server channel`."
+                    f"{settings.botName} is now enabled in this server, however there is no "
+                    "spawning channel set. Please configure one with `/my server spawnchannel`."
                 )
 
     @server.command()
@@ -317,26 +296,24 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
                 ephemeral=True,
             )
             return
-        if not settings.spawnalert:
-            await interaction.response.send_message(
-                "The bot owner has disabled this feature from the bot.", ephemeral=True
-            )
+        if not settings.spawnAlert:
+            await interaction.response.send_message("The bot owner has disabled this feature from the bot.", ephemeral=True)
             return
         config = await GuildConfig.get(guild_id=interaction.guild_id)
         if role:
-            if config.spawn_ping == role.id:
-                config.spawn_ping = None  # type: ignore
+            if config.spawnRole == role.id:
+                config.spawnRole = None  # type: ignore
                 await config.save()
                 self.bot.dispatch("carfigures_settings_change", guild, role=None)
                 await interaction.response.send_message(
-                    f"{settings.bot_name} will no longer alert {role.mention} when {settings.collectible_name}s spawn."
+                    f"{settings.botName} will no longer alert {role.mention} when {appearance.collectiblePlural} spawn."
                 )
             else:
                 config.spawn_ping = role.id  # type: ignore
                 await config.save()
                 self.bot.dispatch("carfigures_settings_change", guild, role=role)
                 await interaction.response.send_message(
-                    f"{settings.bot_name} will now alert {role.mention} when {settings.collectible_name}s spawn."
+                    f"{settings.botName} will now alert {role.mention} when {appearance.collectiblePlural} spawn."
                 )
                 return
 
@@ -349,31 +326,31 @@ class My(commands.GroupCog, group_name=settings.my_group_name):
 
         guild = cast(discord.Guild, interaction.guild)
         config = await GuildConfig.get(guild_id=guild.id)
-        spawn_channel = guild.get_channel(config.spawn_channel)
-        spawn_role = guild.get_role(config.spawn_ping)
+        spawnChannel = guild.get_channel(config.spawnChannel)
+        spawnRole = guild.get_role(config.spawnRole)
         emojis = ""
-        if settings.minimal_profile == False:
+        if not settings.minimalProfile:
             cars = await _get_10_cars_emojis(self)
             emojis = " ".join(str(x) for x in cars)
-            spawn_channel = f"<#{guild.get_channel(config.spawn_channel).id}>"
-            spawn_role = f"<@&{guild.get_role(config.spawn_ping).id}>"
+            spawnChannel = f"<#{config.spawnChannel}>"
+            spawnRole = f"<@&{config.spawnRole}>"
 
         embed = discord.Embed(
             title=f"❖ {guild.name} Server Info",
-            color=settings.default_embed_color,
+            color=settings.defaultEmbedColor,
         )
         embed.description = (
             f"{emojis}\n"
             f"**Ⅲ Server Settings**\n"
             f"\u200b **⋄ Spawn State:** {'Enabled' if config.enabled else 'Disabled'}\n"
-            f"\u200b **⋄ Spawn Channel:** {spawn_channel or 'Not set'}\n"
-            f"\u200b **⋄ Spawn Alert Role:** {spawn_role or 'Not set'}\n\n"
+            f"\u200b **⋄ Spawn Channel:** {spawnChannel or 'Not set'}\n"
+            f"\u200b **⋄ Spawn Alert Role:** {spawnRole or 'Not set'}\n\n"
             f"**Ⅲ Server Info**\n"
             f"\u200b **⋄ Server ID:** {guild.id}\n"
             f"\u200b **⋄ Server Owner:** <@{guild.owner_id}>\n"
             f"\u200b **⋄ Member Count:** {guild.member_count}\n"
             f"\u200b **⋄ Created Since:** {format_dt(guild.created_at, style='R')}\n\n"
-            f"\u200b **⋄ Cars Caught Here:** {await CarInstance.filter(server_id=guild.id).count()}"
+            f"\u200b **⋄ Cars Caught Here:** {await CarInstance.filter(server=guild.id).count()}"
         )
         embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
         await interaction.response.send_message(embed=embed)

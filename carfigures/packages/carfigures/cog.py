@@ -24,9 +24,9 @@ class CarFiguresSpawner(commands.Cog):
         async for config in GuildConfig.all():
             if not config.enabled:
                 continue
-            if not config.spawn_channel:
+            if not config.spawnChannel:
                 continue
-            self.spawn_manager.cache[config.guild_id] = config.spawn_channel
+            self.spawn_manager.cache[config.guild_id] = config.spawnChannel
             i += 1
         log.info(f"Loaded {i} guilds in cache")
 
@@ -64,7 +64,7 @@ class CarFiguresSpawner(commands.Cog):
                 except DoesNotExist:
                     return
                 else:
-                    self.spawn_manager.cache[guild.id] = config.spawn_channel
+                    self.spawn_manager.cache[guild.id] = config.spawnChannel
         else:
             if enabled is False:
                 del self.spawn_manager.cache[guild.id]

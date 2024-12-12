@@ -23,7 +23,7 @@ from carfigures.core.models import (
     countries,
     cartypes,
 )
-from carfigures.settings import settings
+from carfigures.settings import appearance
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -35,6 +35,7 @@ __all__ = (
     "CarTransform",
     "CarInstanceTransform",
     "EventTransform",
+    "ExclusiveTransform",
     "CarTypeTransform",
     "CountryTransform",
 )
@@ -102,41 +103,31 @@ class ModelTransformer(app_commands.Transformer, Generic[T]):
         """
         return await self.model.get(pk=value)
 
-    async def get_options(
-        self, interaction: discord.Interaction["CarFiguresBot"], value: str
-    ) -> list[app_commands.Choice[int]]:
+    async def get_options(self, interaction: discord.Interaction["CarFiguresBot"], value: str) -> list[app_commands.Choice[int]]:
         """
         Generate the list of options for autocompletion
         """
         raise NotImplementedError()
 
-    async def autocomplete(
-        self, interaction: Interaction["CarFiguresBot"], value: str
-    ) -> list[app_commands.Choice[int]]:
+    async def autocomplete(self, interaction: Interaction["CarFiguresBot"], value: str) -> list[app_commands.Choice[int]]:
         t1 = time.time()
         choices: list[app_commands.Choice[int]] = []
         for option in await self.get_options(interaction, value):
             choices.append(option)
         t2 = time.time()
-        log.debug(
-            f"{self.name.title()} autocompletion took "
-            f"{round((t2-t1)*1000)}ms, {len(choices)} results"
-        )
+        log.debug(f"{self.name.title()} autocompletion took " f"{round((t2-t1)*1000)}ms, {len(choices)} results")
         return choices
 
     async def transform(self, interaction: Interaction["CarFiguresBot"], value: str) -> T | None:
         if not value:
-            await interaction.response.send_message(
-                "You need to use the autocomplete function for the economy selection."
-            )
+            await interaction.response.send_message("You need to use the autocomplete function for the economy selection.")
             return None
         try:
             instance = await self.get_from_pk(int(value))
             await self.validate(interaction, instance)
         except (DoesNotExist, KeyError, ValueError):
             await interaction.response.send_message(
-                f"The {self.name} could not be found. Make sure to use the autocomplete "
-                "function on this command.",
+                f"The {self.name} could not be found. Make sure to use the autocomplete " "function on this command.",
                 ephemeral=True,
             )
             return None
@@ -148,7 +139,7 @@ class ModelTransformer(app_commands.Transformer, Generic[T]):
 
 
 class CarInstanceTransformer(ModelTransformer[CarInstance]):
-    name = settings.collectible_name.lower()
+    name = appearance.collectibleSingular.lower()
     model = CarInstance  # type: ignore
 
     async def get_from_pk(self, value: int) -> CarInstance:
@@ -157,45 +148,30 @@ class CarInstanceTransformer(ModelTransformer[CarInstance]):
     async def validate(self, interaction: discord.Interaction["CarFiguresBot"], item: CarInstance):
         # checking if the car does belong to user, and a custom ID wasn't forced
         if item.player.discord_id != interaction.user.id:
-            raise ValidationError(f"That {settings.collectible_name} doesn't belong to you.")
+            raise ValidationError(f"That {appearance.collectibleSingular} doesn't belong to you.")
 
-    async def get_options(
-        self, interaction: Interaction["CarFiguresBot"], value: str
-    ) -> list[app_commands.Choice[int]]:
+    async def get_options(self, interaction: Interaction["CarFiguresBot"], value: str) -> list[app_commands.Choice[int]]:
         cars_queryset = CarInstance.filter(player__discord_id=interaction.user.id)
 
         if (event := getattr(interaction.namespace, "event", None)) and event.isdigit():
             cars_queryset = cars_queryset.filter(event_id=int(event))
-        if (limited := getattr(interaction.namespace, "limited", None)) and limited is not None:
-            cars_queryset = cars_queryset.filter(limited=limited)
+        if (exclusive := getattr(interaction.namespace, "exclusive", None)) and exclusive.isdigit():
+            cars_queryset = cars_queryset.filter(exclusive_id=int(exclusive))
 
         if interaction.command and (trade_type := interaction.command.extras.get("trade", None)):
             if trade_type == TradeCommandType.PICK:
-                cars_queryset = cars_queryset.filter(
-                    Q(
-                        Q(locked__isnull=True)
-                        | Q(locked__lt=tortoise_now() + timedelta(minutes=30))
-                    )
-                )
+                cars_queryset = cars_queryset.filter(Q(Q(locked__isnull=True) | Q(locked__lt=tortoise_now() + timedelta(minutes=30))))
             else:
-                cars_queryset = cars_queryset.filter(
-                    locked__isnull=False, locked__gt=tortoise_now() - timedelta(minutes=30)
-                )
+                cars_queryset = cars_queryset.filter(locked__isnull=False, locked__gt=tortoise_now() - timedelta(minutes=30))
         cars_queryset = (
             cars_queryset.select_related("car")
-            .annotate(
-                searchable=RawSQL(
-                    "to_hex(carinstance.car_id) || carinstance__car.full_name || "
-                    "carinstance__car.catch_names"
-                )
-            )
+            .annotate(searchable=RawSQL("to_hex(carinstance.car_id) || carinstance__car.fullName || " "carinstance__car.catchNames"))
             .filter(searchable__icontains=value.replace(".", ""))
             .limit(25)
         )
 
         choices: list[app_commands.Choice] = [
-            app_commands.Choice(name=x.description(bot=interaction.client), value=str(x.pk))
-            for x in await cars_queryset
+            app_commands.Choice(name=x.description(bot=interaction.client), value=str(x.pk)) for x in await cars_queryset
         ]
         return choices
 
@@ -234,9 +210,7 @@ class TTLModelTransformer(ModelTransformer[T]):
             self.last_refresh = t
             self.search_map = {x: self.key(x).lower() for x in self.items.values()}
 
-    async def get_options(
-        self, interaction: Interaction["CarFiguresBot"], value: str
-    ) -> list[app_commands.Choice[str]]:
+    async def get_options(self, interaction: Interaction["CarFiguresBot"], value: str) -> list[app_commands.Choice[str]]:
         await self.maybe_refresh()
 
         i = 0
@@ -251,11 +225,11 @@ class TTLModelTransformer(ModelTransformer[T]):
 
 
 class CarTransformer(TTLModelTransformer[Car]):
-    name = settings.collectible_name.lower()
+    name = appearance.collectibleSingular.lower()
     model = Car()
 
     def key(self, model: Car) -> str:
-        return model.full_name
+        return model.fullName
 
     async def load_items(self) -> Iterable[Car]:
         return cars.values()
@@ -267,11 +241,16 @@ class CarEnabledTransformer(CarTransformer):
 
 
 class ExclusiveTransformer(TTLModelTransformer[Exclusive]):
-    name = "exclusive"
+    name = appearance.exclusive.lower()
     model = Exclusive()
 
     def key(self, model: Exclusive) -> str:
         return model.name
+
+
+class ExclusiveEnabledTransformer(ExclusiveTransformer):
+    async def load_items(self) -> Iterable[Exclusive]:
+        return await Exclusive.filter(hidden=False).all()
 
 
 class EventTransformer(TTLModelTransformer[Event]):
@@ -288,7 +267,7 @@ class EventEnabledTransformer(EventTransformer):
 
 
 class CarTypeTransformer(TTLModelTransformer[CarType]):
-    name = "cartype"
+    name = appearance.cartype.lower()
     model = CarType()
 
     def key(self, model: CarType) -> str:
@@ -299,7 +278,7 @@ class CarTypeTransformer(TTLModelTransformer[CarType]):
 
 
 class CountryTransformer(TTLModelTransformer[Country]):
-    name = "country"
+    name = appearance.country.lower()
     model = Country()
 
     def key(self, model: Country) -> str:
@@ -312,7 +291,9 @@ class CountryTransformer(TTLModelTransformer[Country]):
 CarTransform = app_commands.Transform[Car, CarTransformer]
 CarInstanceTransform = app_commands.Transform[CarInstance, CarInstanceTransformer]
 EventTransform = app_commands.Transform[Event, EventTransformer]
+ExclusiveTransform = app_commands.Transform[Exclusive, ExclusiveTransformer]
 CarTypeTransform = app_commands.Transform[CarType, CarTypeTransformer]
 CountryTransform = app_commands.Transform[Country, CountryTransformer]
 EventEnabledTransform = app_commands.Transform[Event, EventEnabledTransformer]
+ExclusiveEnabledTransform = app_commands.Transform[Exclusive, ExclusiveEnabledTransformer]
 CarEnabledTransform = app_commands.Transform[Car, CarEnabledTransformer]

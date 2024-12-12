@@ -8,8 +8,10 @@ import sys
 import time
 from pathlib import Path
 from signal import SIGTERM
+from queue import Queue
 
 import discord
+from discord.utils import _ColourFormatter
 import yarl
 from aerich import Command
 from discord.ext.commands import when_mentioned_or
@@ -17,9 +19,7 @@ from rich import print
 from tortoise import Tortoise
 
 from carfigures.core.bot import CarFiguresBot
-from carfigures.logging import init_logger
 from carfigures.settings import read_settings, settings
-from carfigures import bot_version
 
 discord.voice_client.VoiceClient.warn_nacl = False  # disable PyNACL warning
 log = logging.getLogger("carfigures")
@@ -51,12 +51,10 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
     parser.add_argument(
         "--config-file",
         type=Path,
-        help="Set the path to configuration.toml",
-        default=Path("./configuration.toml"),
+        help="Set the path to the configuration file",
+        default=Path("./config.toml"),
     )
-    parser.add_argument(
-        "--disable-rich", action="store_true", help="Disable rich log format"
-    )
+    parser.add_argument("--disable-rich", action="store_true", help="Disable rich log format")
     parser.add_argument("--debug", action="store_true", help="Enable debug logs")
     parser.add_argument("--dev", action="store_true", help="Enable developer mode")
     args = parser.parse_args(arguments, namespace=CLIFlags())
@@ -64,8 +62,7 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
 
 
 def print_welcome():
-    print("[green]{0:-^50}[/green]".format(f" {settings.bot_name} "))
-    # print("[green]{0: ^50}[/green]".format(f" Collect {settings.collectible_name}s "))
+    print("[green]{0:-^50}[/green]".format(f" {settings.botName} "))
     print("[blue]{0:^50}[/blue]".format("Based on The CF Project, Made by Array_YE"))
     print("")
     print(
@@ -73,11 +70,7 @@ def print_welcome():
             "Discord.py version:", discord.__version__
         )
     )
-    print(
-        " [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format(
-            "CF Version:", bot_version
-        )
-    )
+    print(" [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format("CF Version:", "v2.1"))
     print("")
 
 
@@ -123,9 +116,7 @@ def patch_gateway(proxy_url: str):
     def is_ws_ratelimited(self):
         return False
 
-    async def before_identify_hook(
-        self, shard_id: int | None, *, initial: bool = False
-    ):
+    async def before_identify_hook(self, shard_id: int | None, *, initial: bool = False):
         pass
 
     discord.http.HTTPClient.get_gateway = ProductionHTTPClient.get_gateway  # type: ignore
@@ -146,6 +137,40 @@ def patch_gateway(proxy_url: str):
     CarFiguresBot.before_identify_hook = before_identify_hook
 
 
+def init_logger(disable_rich: bool = False, debug: bool = False) -> logging.handlers.QueueListener:
+    formatter = logging.Formatter(
+        "[{asctime}] {levelname} {name}: {message}", datefmt="%Y-%m-%d %H:%M:%S", style="{"
+    )
+    rich_formatter = _ColourFormatter()
+
+    # handlers
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.DEBUG if debug else logging.INFO)
+    stream_handler.setFormatter(formatter if disable_rich else rich_formatter)
+
+    # file handler
+    file_handler = logging.handlers.RotatingFileHandler(
+        "carfigures.log", maxBytes=8**7, backupCount=8
+    )
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+
+    queue = Queue(-1)
+    queue_handler = logging.handlers.QueueHandler(queue)
+
+    root = logging.getLogger()
+    root.addHandler(queue_handler)
+    root.setLevel(logging.INFO)
+    log.setLevel(logging.DEBUG if debug else logging.INFO)
+
+    queue_listener = logging.handlers.QueueListener(queue, stream_handler, file_handler)
+    queue_listener.start()
+
+    logging.getLogger("aiohttp").setLevel(logging.WARNING)  # don't log each prometheus call
+
+    return queue_listener
+
+
 async def shutdown_handler(bot: CarFiguresBot, signal_type: str | None = None):
     if signal_type:
         log.info(f"Received {signal_type}, stopping the bot...")
@@ -157,9 +182,7 @@ async def shutdown_handler(bot: CarFiguresBot, signal_type: str | None = None):
         pending = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
         [task.cancel() for task in pending]
         try:
-            await asyncio.wait_for(
-                asyncio.gather(*pending, return_exceptions=True), timeout=5
-            )
+            await asyncio.wait_for(asyncio.gather(*pending, return_exceptions=True), timeout=5)
         except asyncio.TimeoutError:
             log.error(
                 f"Timed out cancelling tasks. {len([t for t in pending if not t.cancelled])}/"
@@ -168,9 +191,7 @@ async def shutdown_handler(bot: CarFiguresBot, signal_type: str | None = None):
         sys.exit(0 if signal_type else 1)
 
 
-def global_exception_handler(
-    bot: CarFiguresBot, loop: asyncio.AbstractEventLoop, context: dict
-):
+def global_exception_handler(bot: CarFiguresBot, loop: asyncio.AbstractEventLoop, context: dict):
     """
     Logs unhandled exceptions in other tasks
     """
@@ -200,9 +221,7 @@ def bot_exception_handler(bot: CarFiguresBot, bot_task: asyncio.Future):
     except (SystemExit, KeyboardInterrupt, asyncio.CancelledError):
         pass  # Handled by the global_exception_handler, or cancellation
     except Exception as exc:
-        log.critical(
-            "The main bot task didn't handle an exception and has crashed", exc_info=exc
-        )
+        log.critical("The main bot task didn't handle an exception and has crashed", exc_info=exc)
         log.warning("Attempting to die as gracefully as possible...")
         asyncio.create_task(shutdown_handler(bot))
 
@@ -243,9 +262,7 @@ def main():
         print(
             "[red]The config file [blue]{cli_flags.config_file}[/blue] could not be found.[/red]"
         )
-        print(
-            "[yellow]Make sure to follow the configuration guide in the wiki.[/yellow]"
-        )
+        print("[yellow]Make sure to follow the configuration guide in the wiki.[/yellow]")
         sys.exit(1)
 
     print_welcome()
@@ -257,7 +274,7 @@ def main():
     try:
         queue_listener = init_logger(cli_flags.disable_rich, cli_flags.debug)
 
-        token = settings.bot_token
+        token = settings.botToken
         if not token:
             log.error("Token not found!")
             print("[red]You must provide a token inside the settings.toml file.[/red]")
@@ -267,15 +284,13 @@ def main():
         db_url = os.environ.get("CARFIGURESBOT_DB_URL", None)
         if not db_url:
             log.error("Database URL not found!")
-            print(
-                "[red]You must provide a DB URL with the CARFIGURESBOT_DB_URL env var.[/red]"
-            )
+            print("[red]You must provide a DB URL with the CARFIGURESBOT_DB_URL env var.[/red]")
             time.sleep(1)
             sys.exit(0)
 
-        if settings.gateway_url is not None:
-            log.info("Using custom gateway URL: %s", settings.gateway_url)
-            patch_gateway(settings.gateway_url)
+        if settings.gatewayUrl is not None:
+            log.info("Using custom gateway URL: %s", settings.gatewayUrl)
+            patch_gateway(settings.gatewayUrl)
             logging.getLogger("discord.gateway").addFilter(RemoveWSBehindMsg())
 
         prefix = settings.prefix
@@ -290,7 +305,7 @@ def main():
         bot = CarFiguresBot(
             command_prefix=when_mentioned_or(prefix),
             dev=cli_flags.dev,  # type: ignore
-            shard_count=settings.shard_count,
+            shard_count=settings.shardCount,
         )
 
         exc_handler = functools.partial(global_exception_handler, bot)

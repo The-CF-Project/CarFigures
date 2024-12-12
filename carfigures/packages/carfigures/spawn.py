@@ -5,14 +5,14 @@ from collections import deque, namedtuple
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import cast
+from carfigures.settings import settings
+
 
 import discord
 
 from carfigures.packages.carfigures.carfigure import CarFigure
 
 log = logging.getLogger("carfigures.packages.carfigures")
-
-SPAWN_CHANCE_RANGE = (40, 55)
 
 CachedMessage = namedtuple("CachedMessage", ["content", "author_id"])
 
@@ -41,16 +41,18 @@ class SpawnCooldown:
 
     time: datetime
     # initialize partially started, to reduce the dead time after starting the bot
-    amount: float = field(default=SPAWN_CHANCE_RANGE[0] // 2)
-    chance: int = field(default_factory=lambda: random.randint(*SPAWN_CHANCE_RANGE))
-    lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False)
-    message_cache: deque[CachedMessage] = field(
-        default_factory=lambda: deque(maxlen=100)
+    amount: float = field(default=settings.spawnChanceRange[0] // 2)
+    chance: int = field(
+        default_factory=lambda: random.randint(
+            settings.spawnChanceRange[0], settings.spawnChanceRange[-1]
+        )
     )
+    lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False)
+    message_cache: deque[CachedMessage] = field(default_factory=lambda: deque(maxlen=100))
 
     def reset(self, time: datetime):
         self.amount = 1.0
-        self.chance = random.randint(*SPAWN_CHANCE_RANGE)
+        self.chance = random.randint(settings.spawnChanceRange[0], settings.spawnChanceRange[-1])
         try:
             self.lock.release()
         except RuntimeError:  # lock is not acquired

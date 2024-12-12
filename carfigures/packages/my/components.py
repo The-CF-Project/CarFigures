@@ -5,16 +5,16 @@ import discord
 from discord.ui import Button, View, button
 
 from carfigures.core.models import GuildConfig, Car, cars as carfigures
-from carfigures.settings import settings
+from carfigures.settings import settings, information, appearance
 
 
 activation_embed = discord.Embed(
-    colour=settings.default_embed_color,
-    title=f"{settings.bot_name} activation",
-    description=f"To enable {settings.bot_name} in your server, you must "
-    f"read and accept the [Terms of Service]({settings.terms_of_service}).\n\n"
+    colour=settings.defaultEmbedColor,
+    title=f"{settings.botName} activation",
+    description=f"To enable {settings.botName} in your server, you must "
+    f"read and accept the [Terms of Service]({information.termsOfService}).\n\n"
     "As a summary, these are the rules of the bot:\n"
-    f"- No farming (spamming or creating servers for {settings.collectible_name}s)\n"
+    f"- No farming (spamming or creating servers for {appearance.collectiblePlural})\n"
     "- Do not attempt to abuse the bot's internals\n"
     "**Not respecting these rules will lead to a blacklist**",
 )
@@ -33,14 +33,14 @@ class AcceptTOSView(View):
             Button(
                 style=discord.ButtonStyle.link,
                 label="Terms of Service",
-                url=f"{settings.terms_of_service}",
+                url=f"{information.termsOfService}",
             )
         )
         self.add_item(
             Button(
                 style=discord.ButtonStyle.link,
                 label="Privacy Policy",
-                url=f"{settings.privacy_policy}",
+                url=f"{information.privacyPolicy}",
             )
         )
 
@@ -49,19 +49,14 @@ class AcceptTOSView(View):
         style=discord.ButtonStyle.success,
         emoji="\N{HEAVY CHECK MARK}\N{VARIATION SELECTOR-16}",
     )
-    async def accept_button(
-        self, interaction: discord.Interaction, item: discord.ui.Button
-    ):
+    async def accept_button(self, interaction: discord.Interaction, item: discord.ui.Button):
         config, created = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
         config.spawn_channel = self.channel.id  # type: ignore
         await config.save()
-        interaction.client.dispatch(
-            "carfigures_settings_change", interaction.guild, channel=self.channel
-        )
+        interaction.client.dispatch("carfigures_settings_change", interaction.guild, channel=self.channel)
         self.stop()
         await interaction.response.send_message(
-            f"{settings.collectible_name.title()}s will start spawning as"
-            " users talk unless the bot is disabled."
+            f"{appearance.collectiblePlural.title()} will start spawning as" " users talk unless the bot is disabled."
         )
 
         self.accept_button.disabled = True
@@ -92,11 +87,9 @@ async def _get_10_cars_emojis(self) -> list[discord.Emoji]:
     """
     Return a list of up to 10 Discord emojis representing cars.
     """
-    cars: list[Car] = random.choices(
-        [x for x in carfigures.values() if x.enabled], k=min(10, len(carfigures))
-    )
+    cars: list[Car] = random.choices([x for x in carfigures.values() if x.enabled], k=min(10, len(carfigures)))
     emotes: list[discord.Emoji] = []
     for car in cars:
-        if emoji := self.bot.get_emoji(car.emoji_id):
+        if emoji := self.bot.get_emoji(car.emoji):
             emotes.append(emoji)
     return emotes

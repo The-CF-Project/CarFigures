@@ -7,18 +7,12 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from carfigures import bot_version
 from carfigures.core.models import cars as carfigures
-from carfigures.core.utils.transformers import EventTransform
+from carfigures.core.utils.transformers import EventEnabledTransform
 from carfigures.core.utils.paginator import FieldPageSource, Pages
 from carfigures.core.utils.tortoise import row_count_estimate
-from carfigures.packages.info.components import (
-    machine_info,
-    mention_app_command,
-    _get_10_cars_emojis,
-)
 
-from carfigures.settings import settings
+from carfigures.settings import settings, information, appearance
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -26,7 +20,20 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.info")
 
 
-class Info(commands.GroupCog, group_name=settings.info_group_name):
+def mention_app_command(app_command: app_commands.Command | app_commands.Group) -> str:
+    """
+    Generate a mention for the provided app command.
+    """
+    if "mention" in app_command.extras:
+        return app_command.extras["mention"]
+    else:
+        if isinstance(app_command, app_commands.ContextMenu):
+            return f"`{app_command.name}`"
+        else:
+            return f"`/{app_command.name}`"
+
+
+class Info(commands.GroupCog):
     """
     Simple info commands.
     """
@@ -49,30 +56,21 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         Show information about this bot.
         """
         embed = discord.Embed(
-            title=f"❑ {settings.bot_name} Bot Status",
-            color=settings.default_embed_color,
+            title=f"❑ {settings.botName} Bot Status",
+            color=settings.defaultEmbedColor,
         )
 
         cars_count = len([x for x in carfigures.values() if x.enabled])
         players_count = await row_count_estimate("player")
         cars_instances_count = await row_count_estimate("carinstance")
-        developers = "\n".join([f"\u200b **⋄** {dev}" for dev in settings.developers])
+        developers = "\n".join([f"\u200b **⋄** {dev}" for dev in information.developers])
         first_contributors = "\n".join(
-            [f"\u200b **⋄** {contrib}" for contrib in settings.contributors[:4]]
+            [f"\u200b **⋄** {contrib}" for contrib in information.contributors[:4]]
         )
 
         remaining_contributors = "\n".join(
-            [f"\u200b **⋄** {contrib}" for contrib in settings.contributors[4:]]
+            [f"\u200b **⋄** {contrib}" for contrib in information.contributors[4:]]
         )
-        (
-            cpu_usage,
-            memory_usage,
-            memory_total,
-            memory_percentage,
-            disk_usage,
-            disk_total,
-            disk_percentage,
-        ) = machine_info()
 
         assert self.bot.user
         assert self.bot.application
@@ -99,17 +97,10 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
 
         embed.add_field(
             name="∆ Bot Info\n",
-            value=f"\u200b **⋄ {settings.collectible_name.title()}s Count: ** {cars_count:,} • {cars_instances_count:,} **Caught**\n"
+            value=f"\u200b **⋄ {appearance.collectiblePlural.title()}s Count: ** {cars_count:,} • {cars_instances_count:,} **Caught**\n"
             f"\u200b **⋄ Player Count: ** {players_count:,}\n"
             f"\u200b **⋄ Server Count: ** {len(self.bot.guilds):,}\n"
-            f"\u200b **⋄  Operating Version: [{bot_version}]({settings.repository_link})**\n\n",
-            inline=False,
-        )
-        embed.add_field(
-            name="∇ Machine Info\n",
-            value=f"\u200b **⋄ CPU:** {cpu_usage}%\n"
-            f"\u200b **⋄ Memory:** {memory_usage}/{memory_total}MB • {memory_percentage}%\n"
-            f"\u200b **⋄ Disk:** {disk_usage}/{disk_total}GB • {disk_percentage}%\n\n",
+            f"\u200b **⋄  Operating Version: [v2.1.0]({information.repositoryLink})**\n\n",
             inline=False,
         )
         # ⋋
@@ -120,11 +111,10 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
 
         embed.add_field(
             name="⋇ Links",
-            value=f"[Discord server]({settings.discord_invite}) • [Invite me]({invite_link}) • "
-            f"[Source code and issues]({settings.repository_link})\n"
-            f"[Terms of Service]({settings.terms_of_service}) • "
-            f"[Privacy policy]({settings.privacy_policy}) • "
-            f"[Top.gg Link]({settings.top_gg})",
+            value=f"[Discord server]({information.serverInvite}) • [Invite me]({invite_link}) • "
+            f"[Source code and issues]({information.repositoryLink})\n"
+            f"[Terms of Service]({information.termsOfService}) • "
+            f"[Privacy policy]({information.privacyPolicy}) • ",
             inline=False,
         )
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
@@ -142,50 +132,48 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
         """
 
         assert self.bot.users
-        category_to_commands = {}  # Dictionary to store commands by category
+        categoryToCommands = {}  # Dictionary to store commands by category
 
         # Group commands by cog (category)
         for cog in self.bot.cogs.values():
-            for app_command in cog.walk_app_commands():
+            for appCommand in cog.walk_app_commands():
                 # Use cog name as category (unchangeable by users)
                 category = cog.qualified_name
                 if category == "SuperUser":
                     continue
-                category_to_commands.setdefault(category, []).append(app_command)
+                categoryToCommands.setdefault(category, []).append(appCommand)
 
         # Create the paginated source directly using categories dictionary
         entries = []
-        for category_name, cog_commands in category_to_commands.items():
-            sorted_commands = sorted(
-                cog_commands, key=lambda c: c.name
+        for categoryName, cogCommands in categoryToCommands.items():
+            sortedCommands = sorted(
+                cogCommands, key=lambda c: c.name
             )  # Sort commands alphabetically
-            command_descriptions = {
-                c.name: c.description for c in sorted_commands
+            commandDescriptions = {
+                c.name: c.description for c in sortedCommands
             }  # Create temporary dictionary
-            for app_command in sorted_commands:
-                # Combine formatted command names with newlines
-                command_list = "\n".join(
-                    [
-                        f"\u200b ⋄ {mention_app_command(c)}: {command_descriptions[c.name]}"
-                        for c in sorted_commands
-                    ]
-                )
+
+            # Combine formatted command names with newlines
+            commandList = "\n".join(
+                [
+                    f"\u200b ⋄ {mention_app_command(c)}: {commandDescriptions[c.name]}"
+                    for c in sortedCommands
+                ]
+            )
 
             # Create an entry tuple (category name as title, list of commands)
-            entry = (f"**Category: {category_name}**", f"{command_list}")
+            entry = (f"**Category: {categoryName}**", f"{commandList}")
             entries.append(entry)
 
-        source = FieldPageSource(
-            entries=entries, per_page=2
-        )  # Adjust per_page as needed
-        source.embed.title = f"{settings.bot_name} Commands list"
-        source.embed.colour = settings.default_embed_color
+        source = FieldPageSource(entries=entries, per_page=2)  # Adjust per_page as needed
+        source.embed.title = f"{settings.botName} Commands list"
+        source.embed.colour = settings.defaultEmbedColor
         pages = Pages(source=source, interaction=interaction, compact=True)
         await pages.start(ephemeral=True)
 
     @app_commands.command()
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
-    async def events(self, interaction: discord.Interaction, event: EventTransform):
+    async def events(self, interaction: discord.Interaction, event: EventEnabledTransform):
         """
         List the events inside the bot
 
@@ -195,107 +183,6 @@ class Info(commands.GroupCog, group_name=settings.info_group_name):
             The event u want to check info about!
         """
         await interaction.response.defer(thinking=True)
-        content, file = await event.prepare_for_message(interaction)
+        content, file = await event.prepareForMessage(interaction)
         await interaction.followup.send(content=content, file=file)
         file.close()
-
-    @app_commands.command()
-    @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
-    async def tutorial(
-        self,
-        interaction: discord.Interaction,
-    ) -> None:
-        """
-        Displays a simple tutorial on how to use the bot.
-
-        This command is a good starting point for new users who
-        are not sure how to use the bot.
-        """
-
-        if settings.profiles_emojis:
-            cars = await _get_10_cars_emojis(self)
-        else:
-            cars = []
-
-        embed = discord.Embed(
-            title="Tutorial",
-            description=(
-                f"{' '.join(str(x) for x in cars)}\n Tutorial on how to use the bot."
-            ),
-            color=settings.default_embed_color,
-        )
-
-        if self.bot.user:
-            embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-
-        embed.add_field(
-            name=f"What is {settings.bot_name}?",
-            value=(
-                f"{settings.bot_name} is a bot that allows you to collect {settings.collectible_name}s "
-                "by catching them, trading for them, and having fun with all of our commands!"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name=f"How can I catch a {settings.collectible_name}?",
-            value=(
-                f"To catch a {settings.collectible_name}, you can simply tap the blue `Catch me!` button "
-                f"when a {settings.collectible_name} spawns, type the name of it, and if you get "
-                "it right, it will be added to your showroom!"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name="How can I show my showroom?",
-            value=(
-                "To see the cars you have caught, you can\n"
-                f"use the `/{settings.cars_group_name}` command!"
-            ),
-            inline=False,
-        )
-        embed.add_field(
-            name=f"How can I get more {settings.cars_group_name}?",
-            value=(
-                f"To get more {settings.cars_group_name}, you can simply catch "
-                f"more {settings.cars_group_name}! The more {settings.cars_group_name} you catch, the "
-                f"rarer the {settings.cars_group_name} you will get. You can also trade with other users "
-                f"in order to get more {settings.cars_group_name}!"
-            ),
-            inline=False,
-        )
-
-        await interaction.response.send_message(embed=embed, ephemeral=True)
-
-    @app_commands.command()
-    @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
-    async def about(self, interaction: discord.Interaction):
-        """
-        Information about the bot (the reason it got created, and more coming soon!)
-        """
-
-        entries = []
-
-        assert self.bot.user
-        assert self.bot.application
-
-        description = ("Brief Description", settings.info_description)
-        entries.append(description)
-        descriptionblack = ("", "")
-        entries.append(descriptionblack)
-
-        history = ("History", settings.info_history)
-        entries.append(history)
-        historyblack = ("", "")
-        entries.append(historyblack)
-
-        source = FieldPageSource(entries=entries, per_page=2)
-        source.embed.title = f"About {settings.bot_name}"
-        source.embed.colour = settings.default_embed_color
-        source.embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-        v = sys.version_info
-        source.embed.set_footer(
-            text=f"Python {v.major}.{v.minor}.{v.micro} • discord.py {discord.__version__}"
-        )
-        pages = Pages(source=source, interaction=interaction, compact=True)
-        await pages.start(ephemeral=True)
-

@@ -8,35 +8,24 @@ from fastapi_admin.resources import Action, Field, Link, Model
 from fastapi_admin.widgets import displays, filters, inputs
 from starlette.requests import Request
 
-from carfigures.core.models import (
-    Car,
-    CarInstance,
-    BlacklistedGuild,
-    BlacklistedUser,
-    Country,
-    Exclusive,
-    GuildConfig,
-    Player,
-    CarType,
-    Event,
-    Admin,
-)
+from carfigures.core import models
 
 
 @app.register
 class Home(Link):
     label = "Home"
     icon = "fas fa-home"
-    url = "/admin"
+    url = "/home"
 
 
-upload = FileUpload(uploads_dir=os.path.join(".", "static", "uploads"))
+materialUpload = FileUpload(uploads_dir=os.path.join(".", "static", "materials"))
+entityUpload = FileUpload(uploads_dir=os.path.join(".", "static", "uploads"))
 
 
 @app.register
 class AdminResource(Model):
     label = "Admins"
-    model = Admin
+    model = models.Admin
     icon = "fas fa-user"
     page_pre_title = "The List of:"
     page_title = "Admins"
@@ -61,7 +50,7 @@ class AdminResource(Model):
             name="avatar",
             label="Avatar",
             display=displays.Image(width="40"),
-            input_=inputs.Image(null=True, upload=upload),
+            input_=inputs.Image(null=True, upload=materialUpload),
         ),
         "created_at",
     ]
@@ -73,9 +62,45 @@ class AdminResource(Model):
 
 
 @app.register
+class FontsPackResource(Model):
+    label = "FontsPacks"
+    model = models.FontsPack
+    icon = "fas fa-bag"
+    page_pre_title = "The List of:"
+    page_title = "Fonts Packs"
+    fields = [
+        Field(name="name", label="The name of the pack"),
+        Field(
+            name="titleFont",
+            label="The Font of the Title",
+            display=displays.Display(),
+            input_=inputs.File(upload=materialUpload, null=False),
+        ),
+        Field(
+            name="capacityNFont",
+            label="The Font of the Capacity Name",
+            display=displays.Display(),
+            input_=inputs.File(upload=materialUpload, null=False),
+        ),
+        Field(
+            name="capacityDFont",
+            label="The Font of the Capacity Description",
+            display=displays.Display(),
+            input_=inputs.File(upload=materialUpload, null=False),
+        ),
+        Field(
+            name="statsFont",
+            label="The Font of the Stats",
+            display=displays.Display(),
+            input_=inputs.File(upload=materialUpload, null=False),
+        ),
+    ]
+
+
+@app.register
 class EventResource(Model):
     label = "Events"
-    model = Event
+    model = models.Event
     icon = "fas fa-star"
     page_pre_title = "The List of:"
     page_title = "Events"
@@ -100,40 +125,37 @@ class EventResource(Model):
             display=displays.InputOnly(),
             input_=inputs.TextArea(),
         ),
+        "fontspack",
         Field(
             name="banner",
             label="The Event Banner!",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=upload, null=False),
+            input_=inputs.Image(upload=materialUpload, null=False),
         ),
         Field(
-            name="catch_phrase",
+            name="catchPhrase",
             label="Catch Phrase!",
             display=displays.InputOnly(),
             input_=inputs.Text(),
         ),
         Field(
-            name="start_date",
+            name="startDate",
             label="Start date of the event",
             display=displays.DateDisplay(),
-            input_=inputs.Date(
-                help_text="Date when special entities will start spawning"
-            ),
+            input_=inputs.Date(help_text="Date when special entities will start spawning"),
         ),
         Field(
-            name="end_date",
+            name="endDate",
             label="End date of the event",
             display=displays.DateDisplay(),
-            input_=inputs.Date(
-                help_text="Date when special entities will stop spawning"
-            ),
+            input_=inputs.Date(help_text="Date when special entities will stop spawning"),
         ),
         "rarity",
         Field(
             name="card",
             label="The Event Card",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=upload, null=True),
+            input_=inputs.Image(upload=materialUpload, null=True),
         ),
         "emoji",
         Field(
@@ -161,7 +183,7 @@ class EventResource(Model):
 @app.register
 class ExclusiveResource(Model):
     label = "Exclusives"
-    model = Exclusive
+    model = models.Exclusive
     icon = "fas fa-star"
     page_pre_title = "The List of:"
     page_title = "Exclusives"
@@ -171,18 +193,19 @@ class ExclusiveResource(Model):
             name="image",
             label="Card Image (1428x2000)",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=upload, null=True),
+            input_=inputs.Image(upload=materialUpload, null=True),
         ),
+        "fontspack",
         "rarity",
         Field(
-            name="rebirth_required",
+            name="rebirthRequired",
             label="The Amount of Rebirths Required to be able to Obtain this card",
             display=displays.Display(),
             input_=inputs.Number(),
         ),
         "emoji",
         Field(
-            name="catch_phrase",
+            name="catchPhrase",
             label="The Catch Phrase!",
             display=displays.InputOnly(),
             input_=inputs.Text(),
@@ -193,7 +216,7 @@ class ExclusiveResource(Model):
 @app.register
 class CardResource(Model):
     label = "Cards"
-    model = CarType
+    model = models.CarType
     icon = "fas fa-flag"
     page_pre_title = "The List of:"
     page_title = "Cards"
@@ -203,15 +226,16 @@ class CardResource(Model):
             name="image",
             label="Card Image (1428x2000)",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=upload, null=True),
+            input_=inputs.Image(upload=materialUpload, null=True),
         ),
+        "fontspack",
     ]
 
 
 @app.register
 class IconResource(Model):
     label = "Icons"
-    model = Country
+    model = models.Country
     icon = "fas fa-coins"
     page_pre_title = "The List of:"
     page_title = "Icons"
@@ -221,7 +245,7 @@ class IconResource(Model):
             name="image",
             label="Icon Image (512x512)",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=upload, null=True),
+            input_=inputs.Image(upload=materialUpload, null=True),
         ),
     ]
 
@@ -229,7 +253,7 @@ class IconResource(Model):
 @app.register
 class EntityResource(Model):
     label = "Entities"
-    model = Car
+    model = models.Car
     page_size = 50
     icon = "fas fa-globe"
     page_pre_title = "The List of:"
@@ -241,26 +265,26 @@ class EntityResource(Model):
             search_mode="icontains",
             placeholder="Search for cars",
         ),
-        filters.ForeignKey(model=CarType, name="cartype", label="Card"),
-        filters.ForeignKey(model=Country, name="country", label="Icon"),
+        filters.ForeignKey(model=models.CarType, name="cartype", label="Card"),
+        filters.ForeignKey(model=models.Country, name="country", label="Icon"),
         filters.Boolean(name="enabled", label="Enabled?"),
         filters.Boolean(name="tradeable", label="Tradeable?"),
     ]
     fields = [
         Field(
-            name="full_name",
+            name="fullName",
             label="Full Name",
             display=displays.Display(),
             input_=inputs.Text(),
         ),
         Field(
-            name="short_name",
+            name="shortName",
             label="Short Name",
             display=displays.Display(),
             input_=inputs.Text(),
         ),
-        "catch_names",
-        "created_at",
+        "catchNames",
+        "createdAt",
         "cartype",
         "country",
         "weight",
@@ -279,36 +303,32 @@ class EntityResource(Model):
             input_=inputs.Switch(),
         ),
         Field(
-            name="emoji_id",
+            name="emoji",
             label="Emoji ID",
         ),
         Field(
-            name="spawn_picture",
+            name="spawnPicture",
             label="Spawn Picture",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=upload, null=True),
+            input_=inputs.Image(upload=entityUpload, null=True),
         ),
         Field(
-            name="collection_picture",
+            name="collectionPicture",
             label="Collection Picture",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=upload, null=True),
+            input_=inputs.Image(upload=entityUpload, null=True),
         ),
         Field(
-            name="image_credits",
-            label="Image credits",
+            name="carCredits",
+            label="The Credits (artwork, suggester, etc)",
         ),
         Field(
-            name="car_suggester",
-            label="The Entity Suggester",
+            name="capacityName",
+            label="The Ability name of this Entity!",
         ),
         Field(
-            name="capacity_name",
-            label="Ability name",
-        ),
-        Field(
-            name="capacity_description",
-            label="Ability description",
+            name="capacityDescription",
+            label="The Description of this ability!",
         ),
     ]
 
@@ -329,7 +349,7 @@ class EntityResource(Model):
 @app.register
 class InstanceResource(Model):
     label = "Instances"
-    model = CarInstance
+    model = models.CarInstance
     icon = "fas fa-atlas"
     page_pre_title = "The List of:"
     page_title = "Instances"
@@ -339,10 +359,10 @@ class InstanceResource(Model):
             label="Car Instance ID",
             placeholder="Search for car IDs",
         ),
-        filters.ForeignKey(model=Car, name="car", label="Car"),
-        filters.ForeignKey(model=Event, name="event", label="Event"),
-        filters.Date(name="catch_date", label="Catch date"),
-        filters.Boolean(name="limited", label="Limited Edition?"),
+        filters.ForeignKey(model=models.Car, name="car", label="Car"),
+        filters.ForeignKey(model=models.Event, name="event", label="Event"),
+        filters.ForeignKey(model=models.Exclusive, name="exclusive", label="Exclusive"),
+        filters.Date(name="catchDate", label="Catch date"),
         filters.Boolean(name="favorite", label="Favorite?"),
         filters.Search(
             name="player__discord_id",
@@ -360,22 +380,26 @@ class InstanceResource(Model):
         "id",
         "car",
         "player",
-        "catch_date",
-        "server_id",
-        "limited",
+        "catchDate",
+        "serverId",
         "exclusive",
         "event",
         "favorite",
-        "weight_bonus",
-        "horsepower_bonus",
-        "tradeable",
+        "weightBonus",
+        "horsepowerBonus",
+        Field(
+            name="tradeable",
+            label="Tradeable?",
+            display=displays.Boolean(),
+            input_=inputs.Switch(),
+        ),
     ]
 
 
 @app.register
 class PlayerResource(Model):
     label = "Players"
-    model = Player
+    model = models.Player
     icon = "fas fa-user"
     page_pre_title = "The List of:"
     page_title = "Players"
@@ -391,15 +415,15 @@ class PlayerResource(Model):
         "discord_id",
         "cars",
         "rebirths",
-        "donation_policy",
-        "privacy_policy",
+        "donationPolicy",
+        "privacyPolicy",
     ]
 
 
 @app.register
 class ServerResource(Model):
     label = "Server Settings"
-    model = GuildConfig
+    model = models.GuildConfig
     icon = "fas fa-cog"
     page_pre_title = "The List of:"
     page_title = "Server Setups"
@@ -417,10 +441,10 @@ class ServerResource(Model):
             label="The Server ID",
         ),
         Field(
-            name="spawn_channel",
+            name="spawnChannel",
             label="The Channel Selected for Spawning",
         ),
-        Field(name="spawn_ping", label="The Role Selected for Pinging"),
+        Field(name="spawnRole", label="The Role Selected for Pinging"),
         Field(
             name="enabled",
             label="Is Spawning Enabled?",
@@ -433,7 +457,7 @@ class ServerResource(Model):
 @app.register
 class BlacklistedUserResource(Model):
     label = "Blacklisted Users"
-    model = BlacklistedUser
+    model = models.BlacklistedUser
     icon = "fas fa-user-lock"
     page_pre_title = "The List of:"
     page_title = "Blacklisted User"
@@ -466,7 +490,7 @@ class BlacklistedUserResource(Model):
 @app.register
 class BlacklistedGuildResource(Model):
     label = "Blacklisted Servers"
-    model = BlacklistedGuild
+    model = models.BlacklistedGuild
     icon = "fas fa-lock"
     page_pre_title = "The List of:"
     page_title = "Blacklisted Servers"
