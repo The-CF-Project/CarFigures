@@ -66,10 +66,10 @@ class CarFigureNamePrompt(Modal):
             )
 
             event = ""
-            if car.exclusivecard and car.exclusivecard.catchPhrase:
-                event += f"*{car.exclusivecard.catchPhrase}*\n"
-            if car.eventcard and car.eventcard.catchPhrase:
-                event += f"*{car.eventcard.catchPhrase}*\n"
+            if car.exclusiveCard and car.exclusiveCard.catchPhrase:
+                event += f"*{car.exclusiveCard.catchPhrase}*\n"
+            if car.eventCard and car.eventCard.catchPhrase:
+                event += f"*{car.eventCard.catchPhrase}*\n"
             if has_caught_before:
                 event += f"This is a **new {appearance.collectibleSingular}** "
                 f"that has been added to your {appearance.garageName}!"
@@ -90,8 +90,8 @@ class CarFigureNamePrompt(Modal):
         player, _ = await Player.get_or_create(discord_id=user.id)
 
         # stat may vary by +/- of base stat
-        bonusHorsepower = random.randint(settings.bonusRate[-1], settings.bonusRate[0])
-        bonusWeight = random.randint(settings.bonusRate[-1], settings.bonusRate[0])
+        bonusHorsepower = random.randint(*settings.bonusRate)
+        bonusWeight = random.randint(*settings.bonusRate)
 
         # check if we can spawn cards with the event card
         event: "Event | None" = None

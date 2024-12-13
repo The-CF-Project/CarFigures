@@ -13,7 +13,6 @@ import discord
 from carfigures.packages.carfigures.carfigure import CarFigure
 
 log = logging.getLogger("carfigures.packages.carfigures")
-
 CachedMessage = namedtuple("CachedMessage", ["content", "author_id"])
 
 
@@ -31,7 +30,7 @@ class SpawnCooldown:
         A number starting at 0, incrementing with the messages until reaching `chance`. At this
         point, a car will be spawned next.
     chance: int
-        The number `amount` has to reach for spawn. Determined randomly with `SPAWN_CHANCE_RANGE`
+        The number `amount` has to reach for spawn. Determined randomly.
     lock: asyncio.Lock
         Used to rate-limit messages and ignore fast spam
     message_cache: ~collections.deque[CachedMessage]
@@ -41,18 +40,14 @@ class SpawnCooldown:
 
     time: datetime
     # initialize partially started, to reduce the dead time after starting the bot
-    amount: float = field(default=settings.spawnChanceRange[0] // 2)
-    chance: int = field(
-        default_factory=lambda: random.randint(
-            settings.spawnChanceRange[0], settings.spawnChanceRange[-1]
-        )
-    )
+    amount: float = field(default_factory=lambda: float(settings.spawnChanceRange[0] // 2))
+    chance: int = field(default_factory=lambda: random.randint(*settings.spawnChanceRange))
     lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False)
     message_cache: deque[CachedMessage] = field(default_factory=lambda: deque(maxlen=100))
 
     def reset(self, time: datetime):
         self.amount = 1.0
-        self.chance = random.randint(settings.spawnChanceRange[0], settings.spawnChanceRange[-1])
+        self.chance = random.randint(*settings.spawnChanceRange)
         try:
             self.lock.release()
         except RuntimeError:  # lock is not acquired

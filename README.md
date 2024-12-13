@@ -47,7 +47,7 @@ Now since all this is done, let's start!
 clone the project using git, preferrably also cloning into a new folder with the name of ur bot, like:
 ```bash
     git clone https://github.com/thecfproject/CarFigures showerdex
-
+```
 
 > **Note:** The config.toml isn't updated by default when updating the bot files, you are required to check if any changes happened to the toml file by yourself, it's your responsibility.
  
@@ -91,7 +91,7 @@ maxFavorites = 50
 spawnAlert = true
 minimalProfile = true
 defaultEmbedColor = "5865F2"
-spawnRate = [22, 55]
+spawnChangeRange = [22, 55]
 bonusRate = [50, -50]
 exclusivityChance = 0.05 # 1 being 100% chance and 0 being 0% chance
 
@@ -189,17 +189,17 @@ Start by getting docker desktop up and running, then open your file explorer and
 <summary><strong>For Windows Users</strong></summary>
 
 To access the command prompt pointed to this bot folder, go to the navigation bar and edit it (you can do that by click the empty part once) to type `cmd` or `powershell` then press enter, this will open a new command prompt instance that is pointed to the bot place:
-![demo4](assets/demos/demo1.png)
-![demo5](assets/demos/demo2.png)
+![demo1](assets/demos/demo1.png)
+![demo2](assets/demos/demo2.png)
 
 After opening the terminal or command prompt, its time for you to build the project image (the image the contains your database which stores all your bot's progress, the code and more) using `docker compose build`.
-![demo7](assets/demos/demo3.png)
+![demo3](assets/demos/demo3.png)
 Start by getting the Docker desktop up and running, then open your file explorer and head to the bot files. ![demo4](assets/demos/demo3.png)
 
 And now, it is time to start up your bot!\
 Using `docker compose up` will make the docker start all the containers and functions, creating connections to the discord's APIs, and allowing the bot to be alive!
 And after doing it, the final results should be like this, with the end line saying "(your bot name) is now operational!"
-![demo8](assets/demos/demo5.png)
+![demo4](assets/demos/demo4.png)
 
 </details>
 
@@ -209,12 +209,12 @@ And after doing it, the final results should be like this, with the end line say
 You should just cd to the place, open a terminal and cd to the folder, if your bot folder is in the documents folder, usually you do `cd ~/Documents/(your bot folder name)`.
 
 After opening the terminal, its time for you to build the project image (the image the contains your database which stores all your bot's progress, the code and more) using `docker compose build`.
-![demo7](assets/demos/demo7.png)
+![demo3](assets/demos/demo3.png)
 
 And now, its time to start up your bot!\
 Using `docker compose up` will make the docker starts all the containers and functions to start making connections to the discord's apis, allowing the bot to be alive!
 And after doing it, the final results should be like this, with the end line saying "(your bot name) is now operational!"
-![demo8](assets/demos/demo8.png)
+![demo4](assets/demos/demo4.png)
 </details>
 
 That's it! You are all set to rock and roll with CarFigures, If you run into any trouble, don't hesitate to ask for help. We're here to make sure you have a smooth ride.
@@ -281,19 +281,12 @@ To make sure your PR can be checked out and merged smoothly, please follow these
 - Make sure your code follows the project's coding standards and style because code that doesn't correlate with the project's style makes it weird for me to review, and I end up formatting it to look like the rest of the codebase, so please save me some time.
 - Go with the least amount of line changes and commits as possible, this will be easier to track and validate, which allows me to review it fast and give small comments if necessary.
 
-### Code of Conduct
-
-I'm all about creating a welcoming and chill community.
-Everyone who contributes is expected to stick to the [Code of Conduct](./assets/CODE_OF_CONDUCT.md) when getting involved with the project and its community members.
-
 ### Help and Feedback
 
 If you need help, have questions, or want to share your thoughts, don't hesitate to open an issue or ask about it in the dev category inside the CarFigures Discord server.\
 I'm here to support you every step of the way.
 
-I'm stoked about every contribution from the community. Let's join forces and make the project even more rad!\
-
-> **Note:** For access to the dev category in the CarFigures Discord server, inform me that you are making a bot using CF, and I will assign you the forker role.
+I'm stoked about every contribution from the community. Let's join forces and make the project even more rad!
 
 <h2>
      <sub>
@@ -304,7 +297,8 @@ I'm stoked about every contribution from the community. Let's join forces and ma
      Roadmap
 </h2>
 
-I'm excited about the future of the project and all the bots that use it! Here are some features and improvements I have planned:
+I'm excited about the future of the project and all the bots that use it! \
+Here are some features and improvements I have planned:
 
 ### Future Plans
 

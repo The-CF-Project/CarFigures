@@ -15,7 +15,7 @@ from carfigures.core import models
 class Home(Link):
     label = "Home"
     icon = "fas fa-home"
-    url = "/home"
+    url = "/admin"
 
 
 materialUpload = FileUpload(uploads_dir=os.path.join(".", "static", "materials"))
@@ -71,25 +71,25 @@ class FontsPackResource(Model):
     fields = [
         Field(name="name", label="The name of the pack"),
         Field(
-            name="titleFont",
+            name="title",
             label="The Font of the Title",
             display=displays.Display(),
             input_=inputs.File(upload=materialUpload, null=False),
         ),
         Field(
-            name="capacityNFont",
+            name="capacityn",
             label="The Font of the Capacity Name",
             display=displays.Display(),
             input_=inputs.File(upload=materialUpload, null=False),
         ),
         Field(
-            name="capacityDFont",
+            name="capacityd",
             label="The Font of the Capacity Description",
             display=displays.Display(),
             input_=inputs.File(upload=materialUpload, null=False),
         ),
         Field(
-            name="statsFont",
+            name="stats",
             label="The Font of the Stats",
             display=displays.Display(),
             input_=inputs.File(upload=materialUpload, null=False),
@@ -125,7 +125,7 @@ class EventResource(Model):
             display=displays.InputOnly(),
             input_=inputs.TextArea(),
         ),
-        "fontspack",
+        "fontsPack",
         Field(
             name="banner",
             label="The Event Banner!",
@@ -195,7 +195,7 @@ class ExclusiveResource(Model):
             display=displays.Image(width="40"),
             input_=inputs.Image(upload=materialUpload, null=True),
         ),
-        "fontspack",
+        "fontsPack",
         "rarity",
         Field(
             name="rebirthRequired",
@@ -228,7 +228,7 @@ class CardResource(Model):
             display=displays.Image(width="40"),
             input_=inputs.Image(upload=materialUpload, null=True),
         ),
-        "fontspack",
+        "fontsPack",
     ]
 
 
@@ -260,7 +260,7 @@ class EntityResource(Model):
     page_title = "Entities"
     filters = [
         filters.Search(
-            name="full_name",
+            name="fullName",
             label="Full Name",
             search_mode="icontains",
             placeholder="Search for cars",
@@ -370,7 +370,7 @@ class InstanceResource(Model):
             placeholder="Search for Discord user ID",
         ),
         filters.Search(
-            name="server_id",
+            name="server",
             label="Server ID",
             placeholder="Search for Discord server ID",
         ),

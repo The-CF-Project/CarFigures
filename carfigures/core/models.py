@@ -72,10 +72,10 @@ class GuildConfig(models.Model):
 
 class FontsPack(models.Model):
     name = fields.CharField(max_length=64)
-    titleFont = fields.CharField(max_length=200)
-    capacityNFont = fields.CharField(max_length=200)
-    capacityDFont = fields.CharField(max_length=200)
-    statsFont = fields.CharField(max_length=200)
+    title = fields.CharField(max_length=200)
+    capacityn = fields.CharField(max_length=200)
+    capacityd = fields.CharField(max_length=200)
+    stats = fields.CharField(max_length=200)
 
     def __str__(self):
         return self.name

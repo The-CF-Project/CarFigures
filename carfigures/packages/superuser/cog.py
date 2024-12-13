@@ -705,9 +705,15 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                 car=car,
                 player=player,
                 horsepowerBonus=(
-                    horsepowerbonus if horsepowerbonus is not None else random.randint(-50, 50)
+                    horsepowerbonus
+                    if horsepowerbonus is not None
+                    else random.randint(*settings.bonusRate[-1], *settings.bonusRate[0])
                 ),
-                weightBonus=(weightbonus if weightbonus is not None else random.randint(-50, 50)),
+                weightBonus=(
+                    weightbonus
+                    if weightbonus is not None
+                    else random.randint(*settings.bonusRate[-1], *settings.bonusRate[0])
+                ),
                 event=event,
                 exclusive=exclusive,
             )
