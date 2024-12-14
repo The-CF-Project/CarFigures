@@ -71,8 +71,7 @@ class CarFigureNamePrompt(Modal):
             if car.eventCard and car.eventCard.catchPhrase:
                 event += f"*{car.eventCard.catchPhrase}*\n"
             if has_caught_before:
-                event += f"This is a **new {appearance.collectibleSingular}** "
-                f"that has been added to your {appearance.garageName}!"
+                event += f"This is a **new {appearance.collectibleSingular}** that has been added to your {appearance.garageName}!"
 
             await interaction.followup.send(
                 f"{interaction.user.mention} You caught **{self.car.name}!** "

@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
 
 # Needed for the setup.py script
-__version__ = "1.0.0-a"
+__version__ = "2.1.3"
 
 # consistency with the `discord` namespaced logging
 log = logging.getLogger(__name__)

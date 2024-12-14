@@ -57,12 +57,16 @@ class My(commands.GroupCog):
         Set your privacy policy.
         """
         if policy == PrivacyPolicy.SAME_SERVER and not self.bot.intents.members:
-            await interaction.response.send_message("I need the `members` intent to use this policy.", ephemeral=True)
+            await interaction.response.send_message(
+                "I need the `members` intent to use this policy.", ephemeral=True
+            )
             return
         user, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
         user.privacy_policy = policy
         await user.save()
-        await interaction.response.send_message(f"Your privacy policy has been set to **{policy.name}**.", ephemeral=True)
+        await interaction.response.send_message(
+            f"Your privacy policy has been set to **{policy.name}**.", ephemeral=True
+        )
 
     @app_commands.choices(
         policy=[
@@ -89,7 +93,8 @@ class My(commands.GroupCog):
         match policy.value:
             case DonationPolicy.ALWAYS_ACCEPT:
                 await interaction.response.send_message(
-                    f"Setting updated, you will now receive all donated {appearance.collectiblePlural} " "immediately.",
+                    f"Setting updated, you will now receive all donated {appearance.collectiblePlural} "
+                    "immediately.",
                     ephemeral=True,
                 )
             case DonationPolicy.REQUEST_APPROVAL:
@@ -128,6 +133,7 @@ class My(commands.GroupCog):
             title=f" ❖ {interaction.user.display_name}'s Profile",
             color=settings.defaultEmbedColor,
         )
+        privacy = ""
         match player.privacyPolicy:
             case PrivacyPolicy.ALLOW:
                 privacy = "Open Inventory"
@@ -136,6 +142,7 @@ class My(commands.GroupCog):
             case PrivacyPolicy.SAME_SERVER:
                 privacy = "Partially Open Inventory"
 
+        donation = ""
         match player.donationPolicy:
             case DonationPolicy.ALWAYS_ACCEPT:
                 donation = "All Accepted"
@@ -150,7 +157,7 @@ class My(commands.GroupCog):
             f"\u200b **⋄ Privacy Policy:** {privacy}\n"
             f"\u200b **⋄ Donation Policy:** {donation}\n\n"
             f"**Ⅲ Player Info\n**"
-            f"\u200b **⋄ Cars Collected:** {await player.cars.filter().count()}\n"
+            f"\u200b **⋄ {appearance.collectiblePlural} Collected:** {await player.cars.filter().count()}\n"
             f"\u200b **⋄ Rebirths Done:** {player.rebirths}\n"
         )
 
@@ -202,10 +209,18 @@ class My(commands.GroupCog):
         await CarInstance.filter(player=player).delete()
 
         ordinal_rebirth = (
-            "1st" if player.rebirths == 1 else "2nd" if player.rebirths == 2 else "3rd" if player.rebirths == 3 else f"{player.rebirths}th"
+            "1st"
+            if player.rebirths == 1
+            else "2nd"
+            if player.rebirths == 2
+            else "3rd"
+            if player.rebirths == 3
+            else f"{player.rebirths}th"
         )
 
-        await interaction.followup.send(f"Congratulations! this is your {ordinal_rebirth} Rebirth, hopefully u get even more!")
+        await interaction.followup.send(
+            f"Congratulations! this is your {ordinal_rebirth} Rebirth, hopefully u get even more!"
+        )
 
     @server.command()
     async def spawnchannel(
@@ -242,7 +257,9 @@ class My(commands.GroupCog):
                 ephemeral=True,
             )
             return
-        await interaction.response.send_message(embed=activation_embed, view=AcceptTOSView(interaction, channel))
+        await interaction.response.send_message(
+            embed=activation_embed, view=AcceptTOSView(interaction, channel)
+        )
 
     @server.command()
     async def spawnstate(self, interaction: discord.Interaction):
@@ -297,7 +314,9 @@ class My(commands.GroupCog):
             )
             return
         if not settings.spawnAlert:
-            await interaction.response.send_message("The bot owner has disabled this feature from the bot.", ephemeral=True)
+            await interaction.response.send_message(
+                "The bot owner has disabled this feature from the bot.", ephemeral=True
+            )
             return
         config = await GuildConfig.get(guild_id=interaction.guild_id)
         if role:
@@ -350,7 +369,7 @@ class My(commands.GroupCog):
             f"\u200b **⋄ Server Owner:** <@{guild.owner_id}>\n"
             f"\u200b **⋄ Member Count:** {guild.member_count}\n"
             f"\u200b **⋄ Created Since:** {format_dt(guild.created_at, style='R')}\n\n"
-            f"\u200b **⋄ Cars Caught Here:** {await CarInstance.filter(server=guild.id).count()}"
+            f"\u200b **⋄ {appearance.collectiblePlural} Caught Here:** {await CarInstance.filter(server=guild.id).count()}"
         )
         embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
         await interaction.response.send_message(embed=embed)

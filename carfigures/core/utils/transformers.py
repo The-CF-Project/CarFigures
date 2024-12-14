@@ -103,31 +103,41 @@ class ModelTransformer(app_commands.Transformer, Generic[T]):
         """
         return await self.model.get(pk=value)
 
-    async def get_options(self, interaction: discord.Interaction["CarFiguresBot"], value: str) -> list[app_commands.Choice[int]]:
+    async def get_options(
+        self, interaction: discord.Interaction["CarFiguresBot"], value: str
+    ) -> list[app_commands.Choice[int]]:
         """
         Generate the list of options for autocompletion
         """
         raise NotImplementedError()
 
-    async def autocomplete(self, interaction: Interaction["CarFiguresBot"], value: str) -> list[app_commands.Choice[int]]:
+    async def autocomplete(
+        self, interaction: Interaction["CarFiguresBot"], value: str
+    ) -> list[app_commands.Choice[int]]:
         t1 = time.time()
         choices: list[app_commands.Choice[int]] = []
         for option in await self.get_options(interaction, value):
             choices.append(option)
         t2 = time.time()
-        log.debug(f"{self.name.title()} autocompletion took " f"{round((t2-t1)*1000)}ms, {len(choices)} results")
+        log.debug(
+            f"{self.name.title()} autocompletion took "
+            f"{round((t2-t1)*1000)}ms, {len(choices)} results"
+        )
         return choices
 
     async def transform(self, interaction: Interaction["CarFiguresBot"], value: str) -> T | None:
         if not value:
-            await interaction.response.send_message("You need to use the autocomplete function for the economy selection.")
+            await interaction.response.send_message(
+                "You need to use the autocomplete function for the economy selection."
+            )
             return None
         try:
             instance = await self.get_from_pk(int(value))
             await self.validate(interaction, instance)
         except (DoesNotExist, KeyError, ValueError):
             await interaction.response.send_message(
-                f"The {self.name} could not be found. Make sure to use the autocomplete " "function on this command.",
+                f"The {self.name} could not be found. Make sure to use the autocomplete "
+                "function on this command.",
                 ephemeral=True,
             )
             return None
@@ -150,28 +160,44 @@ class CarInstanceTransformer(ModelTransformer[CarInstance]):
         if item.player.discord_id != interaction.user.id:
             raise ValidationError(f"That {appearance.collectibleSingular} doesn't belong to you.")
 
-    async def get_options(self, interaction: Interaction["CarFiguresBot"], value: str) -> list[app_commands.Choice[int]]:
+    async def get_options(
+        self, interaction: Interaction["CarFiguresBot"], value: str
+    ) -> list[app_commands.Choice[int]]:
         cars_queryset = CarInstance.filter(player__discord_id=interaction.user.id)
 
         if (event := getattr(interaction.namespace, "event", None)) and event.isdigit():
             cars_queryset = cars_queryset.filter(event_id=int(event))
-        if (exclusive := getattr(interaction.namespace, "exclusive", None)) and exclusive.isdigit():
+        if (
+            exclusive := getattr(interaction.namespace, "exclusive", None)
+        ) and exclusive.isdigit():
             cars_queryset = cars_queryset.filter(exclusive_id=int(exclusive))
 
         if interaction.command and (trade_type := interaction.command.extras.get("trade", None)):
             if trade_type == TradeCommandType.PICK:
-                cars_queryset = cars_queryset.filter(Q(Q(locked__isnull=True) | Q(locked__lt=tortoise_now() + timedelta(minutes=30))))
+                cars_queryset = cars_queryset.filter(
+                    Q(
+                        Q(locked__isnull=True)
+                        | Q(locked__lt=tortoise_now() + timedelta(minutes=30))
+                    )
+                )
             else:
-                cars_queryset = cars_queryset.filter(locked__isnull=False, locked__gt=tortoise_now() - timedelta(minutes=30))
+                cars_queryset = cars_queryset.filter(
+                    locked__isnull=False, locked__gt=tortoise_now() - timedelta(minutes=30)
+                )
         cars_queryset = (
             cars_queryset.select_related("car")
-            .annotate(searchable=RawSQL("to_hex(carinstance.car_id) || carinstance__car.fullName || " "carinstance__car.catchNames"))
+            .annotate(
+                searchable=RawSQL(
+                    'to_hex(carinstance.car_id) || "carinstance__car"."fullName" || " "carinstance__car"."catchNames"'
+                )
+            )
             .filter(searchable__icontains=value.replace(".", ""))
             .limit(25)
         )
 
         choices: list[app_commands.Choice] = [
-            app_commands.Choice(name=x.description(bot=interaction.client), value=str(x.pk)) for x in await cars_queryset
+            app_commands.Choice(name=x.description(bot=interaction.client), value=str(x.pk))
+            for x in await cars_queryset
         ]
         return choices
 
@@ -210,7 +236,9 @@ class TTLModelTransformer(ModelTransformer[T]):
             self.last_refresh = t
             self.search_map = {x: self.key(x).lower() for x in self.items.values()}
 
-    async def get_options(self, interaction: Interaction["CarFiguresBot"], value: str) -> list[app_commands.Choice[str]]:
+    async def get_options(
+        self, interaction: Interaction["CarFiguresBot"], value: str
+    ) -> list[app_commands.Choice[str]]:
         await self.maybe_refresh()
 
         i = 0

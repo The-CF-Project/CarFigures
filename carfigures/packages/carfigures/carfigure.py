@@ -61,7 +61,7 @@ class CarFigure:
         fileLocation = "." + self.model.spawnPicture
         filename = f"nt_{generate_random_name()}.{extension}"
         guild = await GuildConfig.get(guild_id=channel.guild.id)
-        spawnrole = " <@&{guild.spawnRole}>" if guild.spawnRole else None
+        spawnrole = f" <@&{guild.spawnRole}>" if guild.spawnRole else None
         try:
             permissions = channel.permissions_for(channel.guild.me)
             if permissions.attach_files and permissions.send_messages:

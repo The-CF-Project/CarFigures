@@ -100,7 +100,7 @@ class Info(commands.GroupCog):
             value=f"\u200b **⋄ {appearance.collectiblePlural.title()}s Count: ** {cars_count:,} • {cars_instances_count:,} **Caught**\n"
             f"\u200b **⋄ Player Count: ** {players_count:,}\n"
             f"\u200b **⋄ Server Count: ** {len(self.bot.guilds):,}\n"
-            f"\u200b **⋄  Operating Version: [v2.1.0]({information.repositoryLink})**\n\n",
+            f"\u200b **⋄  Operating Version: [v2.1.2]({information.repositoryLink})**\n\n",
             inline=False,
         )
         # ⋋

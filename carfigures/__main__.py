@@ -70,7 +70,7 @@ def print_welcome():
             "Discord.py version:", discord.__version__
         )
     )
-    print(" [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format("CF Version:", "v2.1"))
+    print(" [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format("CF Version:", "v2.1.2"))
     print("")
 
 
