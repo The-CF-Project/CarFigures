@@ -27,10 +27,10 @@ def drawCard(instance: "CarInstance"):
     image = image.convert("RGBA")
     icon = Image.open("." + car.cachedCountry.image).convert("RGBA") if car.cachedCountry else None
 
-    titlefont = ImageFont.truetype(fonts.title, 140)
-    capacitynfont = ImageFont.truetype(fonts.capacityn, 110)
-    capacitydfont = ImageFont.truetype(fonts.capacityd, 75)
-    statsfont = ImageFont.truetype(fonts.stats, 130)
+    titlefont = ImageFont.truetype(str("." + fonts.title), 140)
+    capacitynfont = ImageFont.truetype(str("." + fonts.capacityn), 110)
+    capacitydfont = ImageFont.truetype(str("." + fonts.capacityd), 75)
+    statsfont = ImageFont.truetype(str("." + fonts.stats), 130)
 
     draw = ImageDraw.Draw(image)
     draw.text(
@@ -105,10 +105,10 @@ def drawBanner(event: "Event"):
     fonts = event.cachedFontsPack
 
     # Dynamically Resize the text based on the banner size
-    titlefont = ImageFont.truetype(fonts.title, int(imageWidth * 0.03))
-    descriptionfont = ImageFont.truetype(fonts.capacityd, int(imageWidth * 0.025))
-    statusfont = ImageFont.truetype(fonts.capacityn, int(imageWidth * 0.02))
-    creditsfont = ImageFont.truetype(fonts.stats, int(imageWidth * 0.015))
+    titlefont = ImageFont.truetype(str("." + fonts.title), int(imageWidth * 0.03))
+    descriptionfont = ImageFont.truetype(str("." + fonts.capacityd), int(imageWidth * 0.025))
+    statusfont = ImageFont.truetype(str("." + fonts.capacityn), int(imageWidth * 0.02))
+    creditsfont = ImageFont.truetype(str("." + fonts.stats), int(imageWidth * 0.015))
 
     # Dynamically position the text
     titleposition = (int(imageWidth * 0.015), int(imageHeight * 0.01))
