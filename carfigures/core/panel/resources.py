@@ -18,8 +18,7 @@ class Home(Link):
     url = "/admin"
 
 
-materialUpload = FileUpload(uploads_dir=os.path.join(".", "static", "materials"))
-entityUpload = FileUpload(uploads_dir=os.path.join(".", "static", "uploads"))
+upload = FileUpload(uploads_dir=os.path.join(".", "static", "uploads"))
 
 
 @app.register
@@ -50,7 +49,7 @@ class AdminResource(Model):
             name="avatar",
             label="Avatar",
             display=displays.Image(width="40"),
-            input_=inputs.Image(null=True, upload=materialUpload),
+            input_=inputs.Image(null=True, upload=upload),
         ),
         "created_at",
     ]
@@ -74,25 +73,25 @@ class FontsPackResource(Model):
             name="title",
             label="The Font of the Title",
             display=displays.Display(),
-            input_=inputs.File(upload=materialUpload, null=False),
+            input_=inputs.File(upload=upload, null=False),
         ),
         Field(
             name="capacityn",
             label="The Font of the Capacity Name",
             display=displays.Display(),
-            input_=inputs.File(upload=materialUpload, null=False),
+            input_=inputs.File(upload=upload, null=False),
         ),
         Field(
             name="capacityd",
             label="The Font of the Capacity Description",
             display=displays.Display(),
-            input_=inputs.File(upload=materialUpload, null=False),
+            input_=inputs.File(upload=upload, null=False),
         ),
         Field(
             name="stats",
             label="The Font of the Stats",
             display=displays.Display(),
-            input_=inputs.File(upload=materialUpload, null=False),
+            input_=inputs.File(upload=upload, null=False),
         ),
     ]
 
@@ -130,7 +129,7 @@ class EventResource(Model):
             name="banner",
             label="The Event Banner!",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=materialUpload, null=False),
+            input_=inputs.Image(upload=upload, null=False),
         ),
         Field(
             name="catchPhrase",
@@ -155,7 +154,7 @@ class EventResource(Model):
             name="card",
             label="The Event Card",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=materialUpload, null=True),
+            input_=inputs.Image(upload=upload, null=True),
         ),
         "emoji",
         Field(
@@ -193,7 +192,7 @@ class ExclusiveResource(Model):
             name="image",
             label="Card Image (1428x2000)",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=materialUpload, null=True),
+            input_=inputs.Image(upload=upload, null=True),
         ),
         "fontsPack",
         "rarity",
@@ -226,7 +225,7 @@ class CardResource(Model):
             name="image",
             label="Card Image (1428x2000)",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=materialUpload, null=True),
+            input_=inputs.Image(upload=upload, null=True),
         ),
         "fontsPack",
     ]
@@ -245,7 +244,7 @@ class IconResource(Model):
             name="image",
             label="Icon Image (512x512)",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=materialUpload, null=True),
+            input_=inputs.Image(upload=upload, null=True),
         ),
     ]
 
@@ -310,13 +309,13 @@ class EntityResource(Model):
             name="spawnPicture",
             label="Spawn Picture",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=entityUpload, null=True),
+            input_=inputs.Image(upload=upload, null=True),
         ),
         Field(
             name="collectionPicture",
             label="Collection Picture",
             display=displays.Image(width="40"),
-            input_=inputs.Image(upload=entityUpload, null=True),
+            input_=inputs.Image(upload=upload, null=True),
         ),
         Field(
             name="carCredits",

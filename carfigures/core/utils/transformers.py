@@ -276,11 +276,6 @@ class ExclusiveTransformer(TTLModelTransformer[Exclusive]):
         return model.name
 
 
-class ExclusiveEnabledTransformer(ExclusiveTransformer):
-    async def load_items(self) -> Iterable[Exclusive]:
-        return await Exclusive.filter(hidden=False).all()
-
-
 class EventTransformer(TTLModelTransformer[Event]):
     name = "event"
     model = Event()
@@ -323,5 +318,4 @@ ExclusiveTransform = app_commands.Transform[Exclusive, ExclusiveTransformer]
 CarTypeTransform = app_commands.Transform[CarType, CarTypeTransformer]
 CountryTransform = app_commands.Transform[Country, CountryTransformer]
 EventEnabledTransform = app_commands.Transform[Event, EventEnabledTransformer]
-ExclusiveEnabledTransform = app_commands.Transform[Exclusive, ExclusiveEnabledTransformer]
 CarEnabledTransform = app_commands.Transform[Car, CarEnabledTransformer]

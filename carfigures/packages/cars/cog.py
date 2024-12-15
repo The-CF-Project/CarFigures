@@ -18,7 +18,7 @@ from carfigures.core.utils.paginator import FieldPageSource, Pages
 from carfigures.core.utils.transformers import (
     CarEnabledTransform,
     CarInstanceTransform,
-    ExclusiveEnabledTransform,
+    ExclusiveTransform,
     EventEnabledTransform,
 )
 from carfigures.packages.cars.components import (
@@ -151,7 +151,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         interaction: discord.Interaction["CarFiguresBot"],
         user: discord.User | None = None,
         event: EventEnabledTransform | None = None,
-        exclusive: ExclusiveEnabledTransform | None = None,
+        exclusive: ExclusiveTransform | None = None,
     ):
         """
         Show your showroom in the bot.
@@ -504,7 +504,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         interaction: discord.Interaction,
         carfigure: CarEnabledTransform | None = None,
         event: EventEnabledTransform | None = None,
-        exclusive: ExclusiveEnabledTransform | None = None,
+        exclusive: ExclusiveTransform | None = None,
         spawnedhere: bool = False,
     ):
         """
