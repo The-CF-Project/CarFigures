@@ -38,6 +38,7 @@ from carfigures.core.utils.transformers import (
     EventTransform,
     ExclusiveTransform,
 )
+from carfigures.core.bot import CarFiguresBot
 from carfigures.packages.carfigures.carfigure import CarFigure
 from carfigures.packages.trade.display import TradeViewFormat, fill_trade_embed_fields
 from carfigures.packages.trade.trade_user import TradingUser

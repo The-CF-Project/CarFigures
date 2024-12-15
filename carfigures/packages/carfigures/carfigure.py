@@ -61,12 +61,12 @@ class CarFigure:
         fileLocation = "." + self.model.spawnPicture
         filename = f"nt_{generate_random_name()}.{extension}"
         guild = await GuildConfig.get(guild_id=channel.guild.id)
-        spawnrole = f" <@&{guild.spawnRole}>" if guild.spawnRole else None
+        spawnrole = f" <@&{guild.spawnRole}>" or None
         try:
             permissions = channel.permissions_for(channel.guild.me)
             if permissions.attach_files and permissions.send_messages:
                 self.message = await channel.send(
-                    f"A wild {appearance.collectibleSingular} has appeared!{spawnrole}",
+                    f"A wild {appearance.collectibleSingular} has appeared!{spawnrole or None}",
                     view=CatchView(self),
                     file=discord.File(fileLocation, filename=filename),
                 )
