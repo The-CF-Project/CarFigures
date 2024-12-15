@@ -16,7 +16,7 @@ from carfigures.core.utils.transformers import (
     CarEnabledTransform,
     CarInstanceTransform,
     EventEnabledTransform,
-    ExclusiveEnabledTransform,
+    ExclusiveTransform,
     TradeCommandType,
 )
 from carfigures.packages.trade.display import TradeViewFormat
@@ -149,7 +149,7 @@ class Trade(commands.GroupCog):
         interaction: discord.Interaction,
         carfigure: CarInstanceTransform,
         event: EventEnabledTransform | None = None,
-        exclusive: ExclusiveEnabledTransform | None = None,
+        exclusive: ExclusiveTransform | None = None,
     ):
         """
         Add a carfigure to the ongoing trade.
