@@ -27,10 +27,10 @@ def drawCard(instance: "CarInstance"):
     image = image.convert("RGBA")
     icon = Image.open("." + car.cachedCountry.image).convert("RGBA") if car.cachedCountry else None
 
-    titlefont = ImageFont.truetype(fonts.title, 140)
-    capacitynfont = ImageFont.truetype(fonts.capacityn, 110)
-    capacitydfont = ImageFont.truetype(fonts.capacityd, 75)
-    statsfont = ImageFont.truetype(fonts.stats, 130)
+    titlefont = ImageFont.truetype("." + fonts.title, 140)
+    capacitynfont = ImageFont.truetype("." + fonts.capacityn, 110)
+    capacitydfont = ImageFont.truetype("." + fonts.capacityd, 75)
+    statsfont = ImageFont.truetype("." + fonts.stats, 130)
 
     draw = ImageDraw.Draw(image)
     draw.text(
