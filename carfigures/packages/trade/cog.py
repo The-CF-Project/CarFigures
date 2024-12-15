@@ -165,7 +165,7 @@ class Trade(commands.GroupCog):
         """
         if not carfigure:
             return
-        if not carfigure.is_tradeable:
+        if not carfigure.isTradeable:
             await interaction.response.send_message(
                 "You cannot trade this carfigure.", ephemeral=True
             )

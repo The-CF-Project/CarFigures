@@ -30,7 +30,6 @@ from carfigures.core.models import (
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
 from carfigures.core.utils.enums import DONATION_POLICY_MAP, PRIVATE_POLICY_MAP
-from carfigures.core.utils.logging import log_action
 from carfigures.core.utils.paginator import FieldPageSource, Pages, TextPageSource
 from carfigures.core.utils.transformers import (
     CarTransform,
@@ -50,6 +49,20 @@ if TYPE_CHECKING:
 
 log = logging.getLogger("carfigures.packages.superuser.cog")
 FILENAME_RE = re.compile(r"^(.+)(\.\S+)$")
+
+
+async def log_action(message: str, bot: CarFiguresBot, console_log: bool = False):
+    if settings.logChannel:
+        channel = bot.get_channel(settings.logChannel)
+        if not channel:
+            log.warning(f"Channel {settings.logChannel} not found")
+            return
+        if not isinstance(channel, discord.TextChannel):
+            log.warning(f"Channel {channel.name} is not a text channel")  # type: ignore
+            return
+        await channel.send(message)
+    if console_log:
+        log.info(message)
 
 
 async def save_file(attachment: discord.Attachment) -> Path:
@@ -659,7 +672,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         interaction: discord.Interaction,
         car: CarTransform,
         user: discord.User,
-        amount: int | None = 1,
+        amount: int,
         event: EventTransform | None = None,
         exclusive: ExclusiveTransform | None = None,
         weightbonus: int | None = None,
@@ -1302,7 +1315,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         capacityname: app_commands.Range[str, None, 64],
         capacitydescription: app_commands.Range[str, None, 256],
         collectionpicture: discord.Attachment,
-        credits: str,
+        carcredits: str,
         country: CountryTransform | None = None,
         rarity: float = 0.0,
         enabled: bool = False,
@@ -1328,11 +1341,11 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             An emoji ID, the bot will check if it can access the custom emote
         capacityName: str
             The name of the carfigure's capacity
-        capacityDescription: str
+        capacitydescription: str
             The description of the carfigure's capacity
-        collectionPicture: discord.Attachment
+        collectionpicture: discord.Attachment
             Artwork used to show the carfigure in the collection
-        credits: str
+        carcredits: str
             The name of the person who created the artwork
         rarity: float
             Value defining the rarity of this carfigure, if enabled
@@ -1340,7 +1353,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             If true, the carfigure can spawn and will show up in global completion
         tradeable: bool
             If false, all instances are untradeable
-        spawnPicture: discord.Attachment
+        spawnpicture: discord.Attachment
             Artwork used to spawn the carfigure, with a default
         """
         if cartype is None or interaction.response.is_done():  # country autocomplete failed
@@ -1402,7 +1415,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                 emoji=emoji_id,
                 spawn_image="/" + str(spawn_image_path),
                 collection_image="/" + str(collection_image_path),
-                credits=credits,
+                carCredits=carcredits,
                 capacityName=capacityname,
                 capacityDescription=capacitydescription,
             )
@@ -1807,7 +1820,8 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             ephemeral=True,
         )
         await log_action(
-            f"{interaction.user} changed the privacy policy of {user.name} to {policy.name}."
+            f"{interaction.user} changed the privacy policy of {user.name} to {policy.name}.",
+            self.bot,
         )
 
     @player.command()
@@ -1846,7 +1860,8 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             ephemeral=True,
         )
         await log_action(
-            f"{interaction.user} changed the donation policy of {user.name} to {policy.name}."
+            f"{interaction.user} changed the donation policy of {user.name} to {policy.name}.",
+            self.bot,
         )
 
     @player.command()
@@ -1889,7 +1904,9 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         await interaction.followup.send(
             f"Successfully added {amount} rebirth{plural} to {user.name}."
         )
-        await log_action(f"{interaction.user} added {amount} rebirth{plural} to {user.name}.")
+        await log_action(
+            f"{interaction.user} added {amount} rebirth{plural} to {user.name}.", self.bot
+        )
 
     @player.command()
     async def rebirth_remove(
@@ -1938,4 +1955,6 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         await interaction.followup.send(
             f"Successfully removed {amount} rebirth{plural} from {user.name}."
         )
-        await log_action(f"{interaction.user} removed {amount} rebirth{plural} from {user.name}.")
+        await log_action(
+            f"{interaction.user} removed {amount} rebirth{plural} from {user.name}.", self.bot
+        )

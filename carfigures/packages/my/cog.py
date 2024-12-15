@@ -154,8 +154,13 @@ class My(commands.GroupCog):
         """
 
         bot_carfigures = {x: y.pk for x, y in cars.items() if y.enabled}
-        filters = {"player__discord_id": interaction.user.id, "car__enabled": True}
-
+        filters = {
+            "player__discord_id": interaction.user.id,
+            "car__enabled": True,
+            "favorite": False,
+            "exclusive": None,
+            "event": None,
+        }
         if not bot_carfigures:
             await interaction.response.send_message(
                 f"There are no {appearance.collectiblePlural} registered on this bot yet.",
@@ -191,18 +196,18 @@ class My(commands.GroupCog):
         await player.save()
         await CarInstance.filter(player=player).delete()
 
-        ordinal_rebirth = (
-            "1st"
-            if player.rebirths == 1
-            else "2nd"
-            if player.rebirths == 2
-            else "3rd"
-            if player.rebirths == 3
-            else f"{player.rebirths}th"
-        )
+        match player.rebirths:
+            case 1:
+                number = "1st Rebirth"
+            case 2:
+                number = "2nd Rebirth"
+            case 3:
+                number = "3rd Rebirth"
+            case _:
+                number = f"{player.rebirths}th Rebirth"
 
         await interaction.followup.send(
-            f"Congratulations! this is your {ordinal_rebirth} Rebirth, hopefully u get even more!"
+            f"Congratulations! this is your {number}, hopefully u get even more!"
         )
 
     @server.command()

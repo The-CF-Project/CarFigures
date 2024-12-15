@@ -18,6 +18,7 @@ from carfigures.core.utils.paginator import FieldPageSource, Pages
 from carfigures.core.utils.transformers import (
     CarEnabledTransform,
     CarInstanceTransform,
+    ExclusiveEnabledTransform,
     EventEnabledTransform,
 )
 from carfigures.packages.cars.components import (
@@ -292,7 +293,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             The carfigure you want to inspect
         """
         await interaction.response.defer(thinking=True)
-        content, file = await carfigure.prepare_for_message(interaction)
+        content, file = await carfigure.prepareForMessage(interaction)
         await interaction.followup.send(content=content, file=file)
         file.close()
 
@@ -316,7 +317,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
                 f"**⋄ Short Name:** {carfigure.shortName}\n"
                 f"**⋄ Catch Names:** {''.join(carfigure.catchNames)}\n"
                 f"**⋄ {appearance.cartype}:** {carfigure.cachedCartype.name}\n"
-                f"**⋄ {appearance.country}:** {carfigure.cachedCountry.name or 'None'}\n"
+                f"**⋄ {appearance.country}:** {carfigure.cachedCountry.name if carfigure.cachedCountry else 'None'}\n"
                 f"**⋄ Rarity:** {carfigure.rarity}\n"
                 f"**⋄ {appearance.horsepower}:** {carfigure.horsepower}\n"
                 f"**⋄ {appearance.weight}:** {carfigure.weight}\n"

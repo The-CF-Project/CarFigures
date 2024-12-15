@@ -38,7 +38,9 @@ class DonationRequest(View):
 
     async def interaction_check(self, interaction: discord.Interaction, /) -> bool:
         if interaction.user.id != self.new_player.discord_id:
-            await interaction.response.send_message("You are not allowed to interact with this menu.", ephemeral=True)
+            await interaction.response.send_message(
+                "You are not allowed to interact with this menu.", ephemeral=True
+            )
             return False
         return True
 
@@ -67,7 +69,9 @@ class DonationRequest(View):
         self.carfigure.player = self.new_player
         await self.carfigure.save()
         trade = await Trade.create(user1=self.carfigure.trade_player, user2=self.new_player)
-        await TradeObject.create(trade=trade, carinstance=self.carfigure, player=self.carfigure.trade_player)
+        await TradeObject.create(
+            trade=trade, carinstance=self.carfigure, player=self.carfigure.trade_player
+        )
         await interaction.response.edit_message(
             content=interaction.message.content  # type: ignore
             + "\n\N{WHITE HEAVY CHECK MARK} The donation was accepted!",
@@ -169,28 +173,36 @@ async def inventory_privacy(
     player: Player,
     player_obj: Union[discord.User, discord.Member],
 ):
-    privacyPolicy = player.privacyPolicy
     if interaction.guild and interaction.guild.id in settings.superGuilds:
         roles = settings.superUsers
         if any(role.id in roles for role in interaction.user.roles):  # type: ignore
             return True
-    if privacyPolicy == PrivacyPolicy.DENY:
-        if interaction.user.id != player_obj.id:
-            await interaction.followup.send("This user has set their inventory to private.", ephemeral=True)
-            return False
-        else:
+    match player.privacyPolicy:
+        case PrivacyPolicy.ALLOW:
             return True
-    elif privacyPolicy == PrivacyPolicy.SAME_SERVER:
-        if not bot.intents.members:
-            await interaction.followup.send(
-                "This user has their policy set to `Same Server`, " "however I do not have the `members` intent to check this.",
-                ephemeral=True,
-            )
-            return False
-        if interaction.guild is None:
-            await interaction.followup.send("This user has set their inventory to private.", ephemeral=True)
-            return False
-        elif interaction.guild.get_member(player_obj.id) is None:
-            await interaction.followup.send("This user is not in the server.", ephemeral=True)
-            return False
-    return True
+        case PrivacyPolicy.DENY:
+            if interaction.user.id != player_obj.id:
+                await interaction.followup.send(
+                    "This user has set their inventory to private.", ephemeral=True
+                )
+                return False
+            else:
+                return True
+        case PrivacyPolicy.SAME_SERVER:
+            if not bot.intents.members:
+                await interaction.followup.send(
+                    "This user has their policy set to `Same Server`, "
+                    "however I do not have the `members` intent to check this.",
+                    ephemeral=True,
+                )
+                return False
+            elif interaction.guild is None:
+                await interaction.followup.send(
+                    "This user has set their inventory to private.", ephemeral=True
+                )
+                return False
+            elif interaction.guild.get_member(player_obj.id) is None:
+                await interaction.followup.send("This user is not in the server.", ephemeral=True)
+                return False
+            else:
+                return True
