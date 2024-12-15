@@ -38,11 +38,13 @@ from carfigures.core.models import (
     CarType,
     Event,
     Exclusive,
+    FontsPack,
     cars,
     countries,
     cartypes,
     events,
     exclusives,
+    fontspacks,
 )
 from carfigures.settings import settings, appearance, information
 
@@ -211,6 +213,16 @@ class CarFiguresBot(commands.AutoShardedBot):
         table.add_column("Model", style="cyan")
         table.add_column("Count", justify="right", style="green")
 
+        self.blacklist_user = set()
+        for blacklisted_id in await BlacklistedUser.all().only("discord_id"):
+            self.blacklist_user.add(blacklisted_id.discord_id)
+        table.add_row("Blacklisted users", str(len(self.blacklist_user)))
+
+        self.blacklist_guild = set()
+        for blacklisted_id in await BlacklistedGuild.all().only("discord_id"):
+            self.blacklist_guild.add(blacklisted_id.discord_id)
+        table.add_row("Blacklisted guilds", str(len(self.blacklist_guild)))
+
         cars.clear()
         for car in await Car.all():
             cars[car.pk] = car
@@ -236,16 +248,10 @@ class CarFiguresBot(commands.AutoShardedBot):
             exclusives[exclusive.pk] = exclusive
         table.add_row(f"{appearance.exclusive}s", str(len(exclusives)))
 
-        self.blacklist_user = set()
-        for blacklisted_id in await BlacklistedUser.all().only("discord_id"):
-            self.blacklist_user.add(blacklisted_id.discord_id)
-        table.add_row("Blacklisted users", str(len(self.blacklist_user)))
-
-        self.blacklist_guild = set()
-        for blacklisted_id in await BlacklistedGuild.all().only("discord_id"):
-            self.blacklist_guild.add(blacklisted_id.discord_id)
-        table.add_row("Blacklisted guilds", str(len(self.blacklist_guild)))
-
+        fontspacks.clear()
+        for fontspack in await FontsPack.all():
+            fontspacks[fontspack.pk] = fontspack
+        table.add_row("FontsPacks", str(len(fontspacks)))
         log.info("Cache loaded, summary displayed below")
         console = Console()
         console.print(table)

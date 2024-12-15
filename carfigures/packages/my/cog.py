@@ -16,6 +16,7 @@ from carfigures.core.models import (
     cars,
 )
 from carfigures.core.utils.buttons import ConfirmChoiceView
+from carfigures.core.utils import enums
 from carfigures.packages.my.components import (
     _get_10_cars_emojis,
     AcceptTOSView,
@@ -133,29 +134,11 @@ class My(commands.GroupCog):
             title=f" ❖ {interaction.user.display_name}'s Profile",
             color=settings.defaultEmbedColor,
         )
-        privacy = ""
-        match player.privacyPolicy:
-            case PrivacyPolicy.ALLOW:
-                privacy = "Open Inventory"
-            case PrivacyPolicy.DENY:
-                privacy = "Private Inventory"
-            case PrivacyPolicy.SAME_SERVER:
-                privacy = "Partially Open Inventory"
-
-        donation = ""
-        match player.donationPolicy:
-            case DonationPolicy.ALWAYS_ACCEPT:
-                donation = "All Accepted"
-            case DonationPolicy.REQUEST_APPROVAL:
-                donation = "Approval Required"
-            case DonationPolicy.ALWAYS_DENY:
-                donation = "All Denied"
-
         embed.description = (
             f"{emojis}\n"
             f"**Ⅲ Player Settings**\n"
-            f"\u200b **⋄ Privacy Policy:** {privacy}\n"
-            f"\u200b **⋄ Donation Policy:** {donation}\n\n"
+            f"\u200b **⋄ Privacy Policy:** {enums.PRIVATE_POLICY_MAP[player.privacyPolicy]}\n"
+            f"\u200b **⋄ Donation Policy:** {enums.DONATION_POLICY_MAP[player.donationPolicy]}\n\n"
             f"**Ⅲ Player Info\n**"
             f"\u200b **⋄ {appearance.collectiblePlural} Collected:** {await player.cars.filter().count()}\n"
             f"\u200b **⋄ Rebirths Done:** {player.rebirths}\n"

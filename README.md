@@ -91,8 +91,8 @@ maxFavorites = 50
 spawnAlert = true
 minimalProfile = true
 defaultEmbedColor = "5865F2"
-spawnChangeRange = [22, 55]
-bonusRate = [50, -50]
+spawnChanceRange = [22, 55]
+bonusRate = [-50, 50]
 exclusivityChance = 0.05 # 1 being 100% chance and 0 being 0% chance
 
 [team]

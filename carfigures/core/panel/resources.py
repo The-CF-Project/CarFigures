@@ -381,7 +381,7 @@ class InstanceResource(Model):
         "car",
         "player",
         "catchDate",
-        "serverId",
+        "server",
         "exclusive",
         "event",
         "favorite",

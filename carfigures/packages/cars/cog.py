@@ -150,7 +150,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         interaction: discord.Interaction["CarFiguresBot"],
         user: discord.User | None = None,
         event: EventEnabledTransform | None = None,
-        limited: bool | None = None,
+        exclusive: ExclusiveEnabledTransform | None = None,
     ):
         """
         Show your showroom in the bot.
@@ -161,8 +161,8 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             The user whose showroom you want to view, if not yours.
         event: Event
             The event you want to see the showroom of
-        limited: bool
-            Whether you want to see the showroom of limited carfigures
+        exclusive: Exclusive
+            The exclusive you want to see the showroom of
         """
         # checking if the user is selected or Nothing
         # also Verify if the player's exhibit is private
@@ -198,8 +198,8 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             return
         await interaction.response.defer(thinking=True)
 
-        if limited is not None:
-            filters["limited"] = limited
+        if exclusive:
+            filters["exclusive"] = exclusive
         owned_carfigures = set(
             carfigures[0]
             for carfigures in await CarInstance.filter(**filters)
@@ -262,10 +262,10 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             )  # force empty field value
         # Running a pager to navigate between pages of Emoji IDs
         source = FieldPageSource(entries, per_page=5, inline=False, clear_description=False)
-        event_str = f" ({event.name})" if event else ""
-        limited_str = " limited" if limited else ""
+        event_str = f" | {event.name}" if event else ""
+        exclusive_str = f" {exclusive.name}" if exclusive else ""
         source.embed.description = (
-            f"**⊾ {settings.botName}{event_str}{limited_str} Progression: "
+            f"**⊾ {settings.botName}{event_str}{exclusive_str} Progression: "
             f"{round(len(owned_carfigures) / len(bot_carfigures) * 100, 1)}% | {len(owned_carfigures)}/{len(bot_carfigures)}**"
         )
         source.embed.colour = settings.defaultEmbedColor
@@ -290,10 +290,6 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         ----------
         carfigure: CarInstance
             The carfigure you want to inspect
-        event: Event
-            The event you want to inspect
-        limited: bool
-            Whether you want to inspect limited carfigures
         """
         await interaction.response.defer(thinking=True)
         content, file = await carfigure.prepare_for_message(interaction)
@@ -389,10 +385,6 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         ----------
         carfigure: CarInstance
             The carfigure you want to set/unset as favorite
-        event: Event
-            Filter the results of autocompletion to an event. Ignored afterwards.
-        limited: bool
-            Filter the results of autocompletion to limiteds. Ignored afterwards.
         """
         # Checks if the car is not favorited
         if not carfigure.favorite:
@@ -511,7 +503,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         interaction: discord.Interaction,
         carfigure: CarEnabledTransform | None = None,
         event: EventEnabledTransform | None = None,
-        limited: bool | None = None,
+        exclusive: ExclusiveEnabledTransform | None = None,
         spawnedhere: bool = False,
     ):
         """
@@ -523,8 +515,8 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             The carfigure you want to count
         event: Event
             The event you want to count
-        limited: bool
-            Whether you want to count limited carfigures
+        exclusive: Exclusive
+            The exclusive you want to count
         spawnedhere: bool
             Only count carfigures caught in the current server
         """
@@ -537,8 +529,8 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         filters = {}
         if carfigure:
             filters["car"] = carfigure
-        if limited is not None:
-            filters["limited"] = limited
+        if exclusive:
+            filters["exclusive"] = exclusive
         if event:
             filters["event"] = event
         if spawnedhere:
@@ -549,11 +541,11 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         # Entering the filter selected in the bot then give back info based on it
         cars = await CarInstance.filter(**filters).count()
         fullName = f"{carfigure.fullName} " if carfigure else ""
-        limited_str = "limited " if limited else ""
+        exclusive_str = f"{exclusive.name} " if exclusive else ""
         event_str = f"{event.name} " if event else ""
         guild = f" caught in {interaction.guild.name}" if spawnedhere else ""
         await interaction.followup.send(
-            f"You have {cars} {event_str}{limited_str}" f"{fullName}{guild}."
+            f"You have {cars} {event_str}{exclusive_str}" f"{fullName}{guild}."
         )
 
     @app_commands.command()

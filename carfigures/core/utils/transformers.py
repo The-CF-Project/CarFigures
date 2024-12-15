@@ -188,7 +188,7 @@ class CarInstanceTransformer(ModelTransformer[CarInstance]):
             cars_queryset.select_related("car")
             .annotate(
                 searchable=RawSQL(
-                    'to_hex(carinstance.car_id) || "carinstance__car"."fullName" || " "carinstance__car"."catchNames"'
+                    'to_hex(carinstance.car_id) || "carinstance__car"."fullName" || "carinstance__car"."catchNames"'
                 )
             )
             .filter(searchable__icontains=value.replace(".", ""))

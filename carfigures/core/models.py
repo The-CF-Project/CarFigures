@@ -364,7 +364,7 @@ class CarInstance(models.Model):
             emotes += "🔒"
         if self.favorite:
             emotes += "❤️"
-        if self.limited:
+        if self.exclusiveCard:
             emotes += self.exclusiveEmoji(bot)
         if emotes:
             emotes += " "
