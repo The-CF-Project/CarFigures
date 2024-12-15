@@ -31,6 +31,7 @@ def drawCard(instance: "CarInstance"):
     capacitynfont = ImageFont.truetype("." + fonts.capacityn, 110)
     capacitydfont = ImageFont.truetype("." + fonts.capacityd, 75)
     statsfont = ImageFont.truetype("." + fonts.stats, 130)
+    creditsfont = ImageFont.truetype("." + fonts.credits, 40)
 
     draw = ImageDraw.Draw(image)
     draw.text(
@@ -77,8 +78,8 @@ def drawCard(instance: "CarInstance"):
     )
     draw.text(
         (30, 1870),
-        f"Image Credits: {car.carCredits}\n",
-        font=statsfont,
+        f"Credits:\n{car.carCredits}\n",
+        font=creditsfont,
         fill=(255, 255, 255, 255),
         stroke_width=2,
         stroke_fill=(0, 0, 0, 255),

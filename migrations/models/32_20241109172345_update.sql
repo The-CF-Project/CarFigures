@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS "fontspack" (
   "title" VARCHAR(200) NOT NULL,
   "capacityn" VARCHAR(200) NOT NULL,
   "capacityd" VARCHAR(200) NOT NULL,
-  "stats" VARCHAR(200) NOT NULL
+  "stats" VARCHAR(200) NOT NULL,
+  "credits" VARCHAR(200) NOT NULL
 );
 ALTER TABLE "cartype" ADD CONSTRAINT "fk_cartype_fontspack_2dt54ef5" FOREIGN KEY ("fontsPack_id") REFERENCES "fontspack" (id)
 ON DELETE CASCADE;

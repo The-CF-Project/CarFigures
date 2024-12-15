@@ -93,6 +93,12 @@ class FontsPackResource(Model):
             display=displays.Display(),
             input_=inputs.File(upload=upload, null=False),
         ),
+        Field(
+            name="credits",
+            label="The Font of The Credits",
+            display=displays.Display(),
+            input_=inputs.File(upload=upload, null=False),
+        ),
     ]
 
 

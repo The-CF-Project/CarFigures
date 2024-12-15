@@ -76,6 +76,7 @@ class FontsPack(models.Model):
     capacityn = fields.CharField(max_length=200)
     capacityd = fields.CharField(max_length=200)
     stats = fields.CharField(max_length=200)
+    credits = fields.CharField(max_length=200)
 
     def __str__(self):
         return self.name
