@@ -61,28 +61,7 @@ services:
       - internal
     volumes:  # Persist the db data
       - database-data:/var/lib/postgresql/data
-
-      #  postgres-backup:
-      #    image: prodrigestivill/postgres-backup-local
-      #    restart: always
-      #    user: postgres:postgres
-      #    volumes:
-      #      - /var/opt/pgbackups:/backups
-      #    depends_on:
-      #      - postgres-db
-      #    networks:
-      #      - internal
-      #    environment:
-      #      - *postgres-db
-      #      - *postgres-user
-      #      - POSTGRES_PASSWORD
-      #      - POSTGRES_HOST=postgres
-      #      - SCHEDULE=@daily
-      #      - BACKUP_KEEP_DAYS=7
-      #      - BACKUP_KEEP_WEEKS=4
-      #      - BACKUP_KEEP_MONTHS=6
-      #      - HEALTHCHECK_PORT=3928
-
+  
   redis-cache:
     image: redis:latest
     restart: always

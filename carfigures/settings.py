@@ -41,13 +41,17 @@ class Settings:
     gatewayUrl: str | None = None
     shardCount: int | None = None
     prefix: str = ""
-    spawnAlert: bool = False
-    minimalProfile: bool = False
     maxFavorites: int = 50
     defaultEmbedColor: int = 0
-    exclusivityChance: float = 0.05
-    spawnChanceRange: list[int] = field(default_factory=list)
-    bonusRate: list[int] = field(default_factory=list)
+
+    spawnMessages: list[dict[str, str]] = field(default_factory=list[dict[str, str]])
+    requiredMessageRange: list[int] = field(default_factory=list)
+    catchBonusRate: list[int] = field(default_factory=list)
+    alreadyCaughtMessage: str = ""
+    catchButtonText: str = ""
+    coolDownTime: int = 0
+    minimumMembersRequired: int = 0
+
     superGuilds: list[int] = field(default_factory=list)
     superUsers: list[int] = field(default_factory=list)
     logChannel: int | None = None
@@ -137,12 +141,16 @@ def read_settings(path: "Path"):
     settings.botToken = config["settings"]["botToken"]
     settings.botName = config["settings"]["botName"]
     settings.prefix = config["settings"]["prefix"]
-    settings.minimalProfile = config["settings"]["minimalProfile"]
-    settings.spawnAlert = config["settings"]["spawnAlert"]
     settings.defaultEmbedColor = int(config["settings"]["defaultEmbedColor"], 16)
-    settings.spawnChanceRange = config["settings"]["spawnChanceRange"]
-    settings.bonusRate = config["settings"]["bonusRate"]
-    settings.exclusivityChance = config["settings"]["exclusivityChance"]
+
+    settings.requiredMessageRange = config["spawn-manager"]["requiredMessageRange"]
+    settings.catchBonusRate = config["spawn-manager"]["catchBonusRate"]
+    settings.alreadyCaughtMessage = config["spawn-manager"]["alreadyCaughtMessage"]
+    settings.spawnMessages = config["spawn-manager"]["spawnMessages"]
+    settings.catchButtonText = config["spawn-manager"]["catchButtonText"]
+    settings.coolDownTime = config["spawn-manager"]["cooldownTime"]
+    settings.minimumMembersRequired = config["spawn-manager"]["minimumMembersRequired"]
+
     settings.superGuilds = config["team"]["superGuilds"]
     settings.teamMembersAreOwners = config["team"]["teamMembersAreOwners"]
     settings.co_owners = config["team"]["co-owners"]

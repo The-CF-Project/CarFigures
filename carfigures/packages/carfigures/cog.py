@@ -16,7 +16,7 @@ log = logging.getLogger("carfigures.packages.carfigures")
 
 class CarFiguresSpawner(commands.Cog):
     def __init__(self, bot: "CarFiguresBot"):
-        self.spawn_manager = SpawnManager()
+        self.spawnManager = SpawnManager()
         self.bot = bot
 
     async def load_cache(self):
@@ -26,7 +26,7 @@ class CarFiguresSpawner(commands.Cog):
                 continue
             if not config.spawnChannel:
                 continue
-            self.spawn_manager.cache[config.guild_id] = config.spawnChannel
+            self.spawnManager.cache[config.guild_id] = config.spawnChannel
             i += 1
         log.info(f"Loaded {i} guilds in cache")
 
@@ -37,11 +37,11 @@ class CarFiguresSpawner(commands.Cog):
         guild = message.guild
         if not guild:
             return
-        if guild.id not in self.spawn_manager.cache:
+        if guild.id not in self.spawnManager.cache:
             return
-        if guild.id in self.bot.blacklist_guild:
+        if guild.id in self.bot.blacklistedServers:
             return
-        await self.spawn_manager.handle_message(message)
+        await self.spawnManager.handleMessage(message)
 
     @commands.Cog.listener()
     async def on_carfigures_settings_change(
@@ -49,24 +49,21 @@ class CarFiguresSpawner(commands.Cog):
         guild: discord.Guild,
         channel: Optional[discord.TextChannel] = None,
         enabled: Optional[bool] = None,
-        role: Optional[discord.Role] = None,
     ):
-        if guild.id not in self.spawn_manager.cache:
+        if guild.id not in self.spawnManager.cache:
             if enabled is False:
                 return  # do nothing
             if channel:
-                self.spawn_manager.cache[guild.id] = channel.id
-            if role:
-                self.spawn_manager.cache[role.id] = role.id
+                self.spawnManager.cache[guild.id] = channel.id
             else:
                 try:
                     config = await GuildConfig.get(guild_id=guild.id)
                 except DoesNotExist:
                     return
                 else:
-                    self.spawn_manager.cache[guild.id] = config.spawnChannel
+                    self.spawnManager.cache[guild.id] = config.spawnChannel
         else:
             if enabled is False:
-                del self.spawn_manager.cache[guild.id]
+                del self.spawnManager.cache[guild.id]
             elif channel:
-                self.spawn_manager.cache[guild.id] = channel.id
+                self.spawnManager.cache[guild.id] = channel.id

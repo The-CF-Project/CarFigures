@@ -1,4 +1,5 @@
 import datetime
+from cachetools import TTLCache
 from collections import defaultdict
 from typing import TYPE_CHECKING, cast
 
@@ -11,7 +12,7 @@ from tortoise.expressions import Q
 from carfigures.core.models import Player
 from carfigures.core.models import Trade as TradeModel
 from carfigures.core.utils.buttons import ConfirmChoiceView
-from carfigures.core.utils.paginator import Pages
+from carfigures.core.utils.paginators import Pages
 from carfigures.core.utils.transformers import (
     CarEnabledTransform,
     CarInstanceTransform,
@@ -35,7 +36,7 @@ class Trade(commands.GroupCog):
 
     def __init__(self, bot: "CarFiguresBot"):
         self.bot = bot
-        self.trades: dict[int, dict[int, list[TradeMenu]]] = defaultdict(lambda: defaultdict(list))
+        self.trades: TTLCache[int, dict[int, list[TradeMenu]]] = TTLCache(maxsize=999999, ttl=1800)
 
     def get_trade(
         self,
@@ -68,7 +69,7 @@ class Trade(commands.GroupCog):
             raise TypeError("Missing interaction or channel")
 
         if guild.id not in self.trades:
-            return (None, None)
+            self.trades[guild.id] = defaultdict(list)
         if channel.id not in self.trades[guild.id]:
             return (None, None)
         to_remove: list[TradeMenu] = []
@@ -130,7 +131,7 @@ class Trade(commands.GroupCog):
 
         player1, _ = await Player.get_or_create(discord_id=interaction.user.id)
         player2, _ = await Player.get_or_create(discord_id=user.id)
-        if player2.discord_id in self.bot.blacklist_user:
+        if player2.discord_id in self.bot.blacklistedUsers:
             await interaction.response.send_message(
                 "You cannot trade with a blacklisted user.", ephemeral=True
             )

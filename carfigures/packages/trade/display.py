@@ -4,7 +4,7 @@ import discord
 
 from carfigures.core.models import Trade as TradeModel
 from carfigures.core.utils import menus
-from carfigures.core.utils.paginator import Pages
+from carfigures.core.utils.paginators import Pages
 from carfigures.packages.trade.trade_user import TradingUser
 from carfigures.settings import settings
 
@@ -25,7 +25,9 @@ class TradeViewFormat(menus.ListPageSource):
             colour=settings.defaultEmbedColor,
             timestamp=trade.date,
         )
-        embed.set_footer(text=f"Trade {menu.current_page + 1 }/{menu.source.get_max_pages()} | Trade date: ")
+        embed.set_footer(
+            text=f"Trade {menu.current_page + 1 }/{menu.source.get_max_pages()} | Trade date: "
+        )
         fill_trade_embed_fields(
             embed,
             self.bot,
@@ -46,7 +48,9 @@ def _get_prefix_emote(trader: TradingUser) -> str:
         return ""
 
 
-def _build_list_of_strings(trader: TradingUser, bot: "CarFiguresBot", short: bool = False) -> list[str]:
+def _build_list_of_strings(
+    trader: TradingUser, bot: "CarFiguresBot", short: bool = False
+) -> list[str]:
     # this builds a list of strings always lower than 1024 characters
     # while not cutting in the middle of a line
     proposal: list[str] = [""]

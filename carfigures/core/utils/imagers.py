@@ -27,17 +27,18 @@ def drawCard(instance: "CarInstance"):
     image = image.convert("RGBA")
     icon = Image.open("." + car.cachedCountry.image).convert("RGBA") if car.cachedCountry else None
 
-    titlefont = ImageFont.truetype("." + fonts.title, 140)
-    capacitynfont = ImageFont.truetype("." + fonts.capacityn, 110)
-    capacitydfont = ImageFont.truetype("." + fonts.capacityd, 75)
-    statsfont = ImageFont.truetype("." + fonts.stats, 130)
-    creditsfont = ImageFont.truetype("." + fonts.credits, 40)
+    # Load fonts with dynamic sizes
+    titleFont = ImageFont.truetype("." + fonts.title, 140)
+    capacityNFont = ImageFont.truetype("." + fonts.capacityn, 110)
+    capacityDFont = ImageFont.truetype("." + fonts.capacityd, 75)
+    statsFont = ImageFont.truetype("." + fonts.stats, 130)
+    creditsFont = ImageFont.truetype("." + fonts.credits, 40)
 
     draw = ImageDraw.Draw(image)
     draw.text(
         (30, 0),
         car.shortName or car.fullName,
-        font=titlefont,
+        font=titleFont,
         fill=(255, 255, 255, 255),
         stroke_width=2,
         stroke_fill=(0, 0, 0, 255),
@@ -46,7 +47,7 @@ def drawCard(instance: "CarInstance"):
         draw.text(
             (100, 1050 + 100 * i),
             line,
-            font=capacitynfont,
+            font=capacityNFont,
             fill=(255, 255, 255, 255),
             stroke_width=2,
             stroke_fill=(0, 0, 0, 255),
@@ -55,14 +56,14 @@ def drawCard(instance: "CarInstance"):
         draw.text(
             (60, 1300 + 60 * i),
             line,
-            font=capacitydfont,
+            font=capacityDFont,
             stroke_width=1,
             stroke_fill=(0, 0, 0, 255),
         )
     draw.text(
         (320, 1660),
         str(instance.weight),
-        font=statsfont,
+        font=statsFont,
         fill=car_weight,
         stroke_width=1,
         stroke_fill=(0, 0, 0, 255),
@@ -70,7 +71,7 @@ def drawCard(instance: "CarInstance"):
     draw.text(
         (1120, 1660),
         str(instance.horsepower),
-        font=statsfont,
+        font=statsFont,
         fill=(255, 255, 255, 255),
         stroke_width=1,
         stroke_fill=(0, 0, 0, 255),
@@ -79,7 +80,7 @@ def drawCard(instance: "CarInstance"):
     draw.text(
         (30, 1870),
         f"Credits:\n{car.carCredits}\n",
-        font=creditsfont,
+        font=creditsFont,
         fill=(255, 255, 255, 255),
         stroke_width=2,
         stroke_fill=(0, 0, 0, 255),

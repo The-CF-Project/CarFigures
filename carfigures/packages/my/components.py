@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import random
 import discord
 from discord.ui import Button, View, button
 
-from carfigures.core.models import GuildConfig, Car, cars as carfigures
+from carfigures.core import models
 from carfigures.settings import settings, information, appearance
 
 
@@ -50,13 +49,16 @@ class AcceptTOSView(View):
         emoji="\N{HEAVY CHECK MARK}\N{VARIATION SELECTOR-16}",
     )
     async def accept_button(self, interaction: discord.Interaction, item: discord.ui.Button):
-        config, created = await GuildConfig.get_or_create(guild_id=interaction.guild_id)
-        config.spawn_channel = self.channel.id  # type: ignore
+        config, _ = await models.GuildConfig.get_or_create(guild_id=interaction.guild_id)
+        config.spawnChannel = self.channel.id  # type: ignore
         await config.save()
-        interaction.client.dispatch("carfigures_settings_change", interaction.guild, channel=self.channel)
+        interaction.client.dispatch(
+            "carfigures_settings_change", interaction.guild, channel=self.channel
+        )
         self.stop()
         await interaction.response.send_message(
-            f"{appearance.collectiblePlural.title()} will start spawning as" " users talk unless the bot is disabled."
+            f"{appearance.collectiblePlural.title()} will start spawning as"
+            " users talk unless the bot is disabled."
         )
 
         self.accept_button.disabled = True
@@ -81,15 +83,3 @@ class AcceptTOSView(View):
                 )
             except discord.HTTPException:
                 pass
-
-
-async def _get_10_cars_emojis(self) -> list[discord.Emoji]:
-    """
-    Return a list of up to 10 Discord emojis representing cars.
-    """
-    cars: list[Car] = random.choices([x for x in carfigures.values() if x.enabled], k=min(10, len(carfigures)))
-    emotes: list[discord.Emoji] = []
-    for car in cars:
-        if emoji := self.bot.get_emoji(car.emoji):
-            emotes.append(emoji)
-    return emotes

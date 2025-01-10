@@ -30,22 +30,7 @@ from rich.table import Table
 from carfigures.core.commands import Core
 from carfigures.core.dev import Dev
 from carfigures.core.metrics import PrometheusServer
-from carfigures.core.models import (
-    Car,
-    BlacklistedGuild,
-    BlacklistedUser,
-    Country,
-    CarType,
-    Event,
-    Exclusive,
-    FontsPack,
-    cars,
-    countries,
-    cartypes,
-    events,
-    exclusives,
-    fontspacks,
-)
+from carfigures.core import models
 from carfigures.settings import settings, appearance, information
 
 if TYPE_CHECKING:
@@ -166,10 +151,8 @@ class CarFiguresBot(commands.AutoShardedBot):
         self.add_check(owner_check)  # Only owners are able to use text commands
 
         self._shutdown = 0
-        self.blacklist_user: set[int] = set()
-        self.blacklist_guild: set[int] = set()
-        self.catch_log: set[int] = set()
-        self.command_log: set[int] = set()
+        self.blacklistedUsers: set[int] = set()
+        self.blacklistedServers: set[int] = set()
         self.locked_cars = TTLCache(maxsize=99999, ttl=60 * 30)
 
         self.owner_ids: set
@@ -208,50 +191,50 @@ class CarFiguresBot(commands.AutoShardedBot):
                     cast(list[app_commands.AppCommandGroup], synced_command.options),
                 )
 
-    async def load_cache(self):
+    async def reloadCache(self):
         table = Table(box=box.SIMPLE)
         table.add_column("Model", style="cyan")
         table.add_column("Count", justify="right", style="green")
 
-        self.blacklist_user = set()
-        for blacklisted_id in await BlacklistedUser.all().only("discord_id"):
-            self.blacklist_user.add(blacklisted_id.discord_id)
-        table.add_row("Blacklisted users", str(len(self.blacklist_user)))
+        self.blacklistedUsers = set()
+        for blacklistedUser in await models.BlacklistedUser.all().only("discord_id"):
+            self.blacklistedUsers.add(blacklistedUser.discord_id)
+        table.add_row("Blacklisted users", str(len(self.blacklistedUsers)))
 
-        self.blacklist_guild = set()
-        for blacklisted_id in await BlacklistedGuild.all().only("discord_id"):
-            self.blacklist_guild.add(blacklisted_id.discord_id)
-        table.add_row("Blacklisted guilds", str(len(self.blacklist_guild)))
+        self.blacklistedServers = set()
+        for blacklistedServer in await models.BlacklistedGuild.all().only("discord_id"):
+            self.blacklistedServers.add(blacklistedServer.discord_id)
+        table.add_row("Blacklisted guilds", str(len(self.blacklistedServers)))
 
-        cars.clear()
-        for car in await Car.all():
-            cars[car.pk] = car
-        table.add_row(appearance.collectiblePlural.title(), str(len(cars)))
+        models.cars.clear()
+        for car in await models.Car.all():
+            models.cars[car.pk] = car
+        table.add_row(appearance.collectiblePlural.title(), str(len(models.cars)))
 
-        cartypes.clear()
-        for cartype in await CarType.all():
-            cartypes[cartype.pk] = cartype
-        table.add_row(f"{appearance.cartype}s", str(len(cartypes)))
+        models.cartypes.clear()
+        for cartype in await models.CarType.all():
+            models.cartypes[cartype.pk] = cartype
+        table.add_row(f"{appearance.cartype}s", str(len(models.cartypes)))
 
-        countries.clear()
-        for country in await Country.all():
-            countries[country.pk] = country
-        table.add_row(f"{appearance.country}s", str(len(countries)))
+        models.countries.clear()
+        for country in await models.Country.all():
+            models.countries[country.pk] = country
+        table.add_row(f"{appearance.country}s", str(len(models.countries)))
 
-        events.clear()
-        for event in await Event.all():
-            events[event.pk] = event
-        table.add_row("Events", str(len(events)))
+        models.events.clear()
+        for event in await models.Event.all():
+            models.events[event.pk] = event
+        table.add_row("Events", str(len(models.events)))
 
-        exclusives.clear()
-        for exclusive in await Exclusive.all():
-            exclusives[exclusive.pk] = exclusive
-        table.add_row(f"{appearance.exclusive}s", str(len(exclusives)))
+        models.exclusives.clear()
+        for exclusive in await models.Exclusive.all():
+            models.exclusives[exclusive.pk] = exclusive
+        table.add_row(f"{appearance.exclusive}s", str(len(models.exclusives)))
 
-        fontspacks.clear()
-        for fontspack in await FontsPack.all():
-            fontspacks[fontspack.pk] = fontspack
-        table.add_row("FontsPacks", str(len(fontspacks)))
+        models.fontspacks.clear()
+        for fontspack in await models.FontsPack.all():
+            models.fontspacks[fontspack.pk] = fontspack
+        table.add_row("FontsPacks", str(len(models.fontspacks)))
         log.info("Cache loaded, summary displayed below")
         console = Console()
         console.print(table)
@@ -311,9 +294,9 @@ class CarFiguresBot(commands.AutoShardedBot):
                 f"{await self.fetch_user(next(iter(self.owner_ids)))} is the owner of this bot."
             )
 
-        await self.load_cache()
-        if self.blacklist_user:
-            log.info(f"{len(self.blacklist_user)} blacklisted users.")
+        await self.reloadCache()
+        if self.blacklistedUsers:
+            log.info(f"{len(self.blacklistedUsers)} blacklisted users.")
 
         log.info("Loading packages...")
         await self.add_cog(Core(self))
@@ -365,7 +348,7 @@ class CarFiguresBot(commands.AutoShardedBot):
         )
 
     async def blacklist_check(self, interaction: discord.Interaction) -> bool:
-        if interaction.user.id in self.blacklist_user:
+        if interaction.user.id in self.blacklistedUsers:
             if interaction.type != discord.InteractionType.autocomplete:
                 await interaction.response.send_message(
                     "You are blacklisted from the bot."
@@ -375,7 +358,7 @@ class CarFiguresBot(commands.AutoShardedBot):
                     ephemeral=True,
                 )
             return False
-        if interaction.guild_id and interaction.guild_id in self.blacklist_guild:
+        if interaction.guild_id and interaction.guild_id in self.blacklistedServers:
             if interaction.type != discord.InteractionType.autocomplete:
                 await interaction.response.send_message(
                     "This server is blacklisted from the bot."
@@ -385,11 +368,6 @@ class CarFiguresBot(commands.AutoShardedBot):
                     ephemeral=True,
                 )
             return False
-        if interaction.command and interaction.user.id in self.command_log:
-            log.info(
-                f'{interaction.user} ({interaction.user.id}) used "{interaction.command.name}" in '
-                f"{interaction.guild} ({interaction.guild_id})"
-            )
         return True
 
     async def on_command_error(

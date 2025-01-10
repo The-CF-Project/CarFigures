@@ -8,7 +8,7 @@ from tortoise import Tortoise
 from tortoise.exceptions import DoesNotExist
 
 from carfigures.packages.carfigures.carfigure import CarFigure
-from carfigures.core.models import Car
+from carfigures.core.models import Car, CarInstance, Player
 from carfigures.settings import appearance
 
 log = logging.getLogger("carfigures.core.commands")
@@ -70,7 +70,7 @@ class Core(commands.Cog):
         This is needed each time the database is updated, otherwise changes won't reflect until
         next start.
         """
-        await self.bot.load_cache()
+        await self.bot.reloadCache()
         await ctx.send("Database models cache have been reloaded.")
 
     @commands.command()
@@ -91,21 +91,45 @@ class Core(commands.Cog):
         self,
         ctx: commands.Context,
         channel: discord.TextChannel | None = None,
-        amount: int | None = 1,
+        amount: int = 1,
         *,
         car: str | None = None,
     ):
         """
         Spawn an entity.
         """
-        for i in range(amount):
+        for _ in range(amount):
             if not car:
-                carfigure = await CarFigure.get_random()
+                carfigure = await CarFigure.getRandom()
             else:
                 try:
-                    car_model = await Car.get(full_name__iexact=car.lower())
+                    car_model = await Car.get(fullName__iexact=car.lower())
                 except DoesNotExist:
                     await ctx.send(f"No such {appearance.collectibleSingular} exists.")
                     return
                 carfigure = CarFigure(car_model)
             await carfigure.spawn(channel or ctx.channel)
+
+    @commands.command()
+    @commands.is_owner()
+    async def transfer(
+        self,
+        ctx: commands.Context,
+        gifter: discord.User,
+        receiver: discord.User,
+    ):
+        """
+        Transfer someone's inventory to someone else
+        """
+        oldPlayer = await Player.get(discord_id=gifter.id)
+
+        newPlayer = await Player.get(discord_id=receiver.id)
+
+        cars = await CarInstance.filter(player=oldPlayer)
+        for car in cars:
+            car.player = newPlayer
+            await car.save()
+
+        await ctx.send(
+            f"The {appearance.garageName} of {gifter.display_name} has been transferred to {receiver.display_name}"
+        )

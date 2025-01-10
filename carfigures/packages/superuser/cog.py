@@ -1,45 +1,21 @@
-import asyncio
 import datetime
 import logging
 import random
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, cast
 
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord.ui import Button
 from discord.utils import format_dt
-from tortoise.exceptions import BaseORMException, DoesNotExist, IntegrityError
+from tortoise.exceptions import BaseORMException, DoesNotExist
 from tortoise.expressions import Q
 
-from carfigures.core.models import (
-    Car,
-    CarInstance,
-    BlacklistedGuild,
-    BlacklistedUser,
-    GuildConfig,
-    Player,
-    Trade,
-    TradeObject,
-    PrivacyPolicy,
-    DonationPolicy,
-    Player as PlayerModel,
-)
-from carfigures.core.utils.buttons import ConfirmChoiceView
-from carfigures.core.utils.enums import DONATION_POLICY_MAP, PRIVATE_POLICY_MAP
-from carfigures.core.utils.paginator import FieldPageSource, Pages, TextPageSource
-from carfigures.core.utils.transformers import (
-    CarTransform,
-    CarTypeTransform,
-    CountryTransform,
-    EventTransform,
-    ExclusiveTransform,
-)
+from carfigures.core import models
+from carfigures.core.utils import buttons, paginators, transformers
 from carfigures.core.bot import CarFiguresBot
-from carfigures.packages.carfigures.carfigure import CarFigure
 from carfigures.packages.trade.display import TradeViewFormat, fill_trade_embed_fields
 from carfigures.packages.trade.trade_user import TradingUser
 from carfigures.settings import settings, appearance
@@ -52,7 +28,7 @@ log = logging.getLogger("carfigures.packages.superuser.cog")
 FILENAME_RE = re.compile(r"^(.+)(\.\S+)$")
 
 
-async def log_action(message: str, bot: CarFiguresBot, console_log: bool = False):
+async def log_action(message: str, bot: CarFiguresBot):
     if settings.logChannel:
         channel = bot.get_channel(settings.logChannel)
         if not channel:
@@ -62,8 +38,6 @@ async def log_action(message: str, bot: CarFiguresBot, console_log: bool = False
             log.warning(f"Channel {channel.name} is not a text channel")  # type: ignore
             return
         await channel.send(message)
-    if console_log:
-        log.info(message)
 
 
 async def save_file(attachment: discord.Attachment) -> Path:
@@ -80,6 +54,7 @@ async def save_file(attachment: discord.Attachment) -> Path:
 
 
 @app_commands.guilds(*settings.superGuilds)
+@app_commands.checks.has_any_role(*settings.superUsers)
 @app_commands.default_permissions(administrator=True)
 class SuperUser(commands.GroupCog, group_name=appearance.sudo):
     """
@@ -88,23 +63,12 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
 
     def __init__(self, bot: "CarFiguresBot"):
         self.bot = bot
-        self.blacklist_user.parent = self.__cog_app_commands_group__
         self.cars.parent = self.__cog_app_commands_group__
 
-    blacklist_user = app_commands.Group(
-        name="blacklistuser", description="User blacklist management"
-    )
-    blacklist_guild = app_commands.Group(
-        name="blacklistguild", description="Guild blacklist management"
-    )
     cars = app_commands.Group(name=appearance.cars, description="s management")
-    logs = app_commands.Group(name="logs", description="Bot logs management")
-    history = app_commands.Group(name="history", description="Trade history management")
-    info = app_commands.Group(name="info", description="Information commands")
     player = app_commands.Group(name="player", description="Player commands")
 
     @app_commands.command()
-    @app_commands.checks.has_any_role(*settings.superUsers)
     async def status(
         self,
         interaction: discord.Interaction,
@@ -154,7 +118,6 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         await interaction.response.send_message("Status updated.", ephemeral=True)
 
     @app_commands.command()
-    @app_commands.checks.has_any_role(*settings.superUsers)
     async def rarity(
         self,
         interaction: discord.Interaction["CarFiguresBot"],
@@ -172,13 +135,13 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             Include the carfigures that are disabled or with a rarity of 0.
         """
         text = ""
-        cars_queryset = Car.all().order_by("rarity")
+        cars_queryset = models.Car.all().order_by("rarity")
         if not include_disabled:
             cars_queryset = cars_queryset.filter(rarity__gt=0, enabled=True)
         sorted_cars = await cars_queryset
 
         if chunked:
-            indexes: dict[float, list[Car]] = defaultdict(list)
+            indexes: dict[float, list[models.Car]] = defaultdict(list)
             for car in sorted_cars:
                 indexes[car.rarity].append(car)
             i = 1
@@ -190,13 +153,12 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             for i, car in enumerate(sorted_cars, start=1):
                 text += f"{i}. {car.fullName}\n"
 
-        source = TextPageSource(text, prefix="```md\n", suffix="```")
-        pages = Pages(source=source, interaction=interaction, compact=True)
+        source = paginators.TextPageSource(text, prefix="```md\n", suffix="```")
+        pages = paginators.Pages(source=source, interaction=interaction, compact=True)
         pages.remove_item(pages.stop_pages)
         await pages.start(ephemeral=True)
 
     @app_commands.command()
-    @app_commands.checks.has_any_role(*settings.superUsers)
     async def cooldown(
         self,
         interaction: discord.Interaction,
@@ -226,10 +188,10 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             )
             return
 
-        spawn_manager = cast(
+        spawnManager = cast(
             "CarFiguresSpawner", self.bot.get_cog("CarFiguresSpawner")
-        ).spawn_manager
-        cooldown = spawn_manager.cooldowns.get(guild.id)
+        ).spawnManager
+        cooldown = spawnManager.cooldowns.get(guild.id)
         if not cooldown:
             await interaction.response.send_message(
                 "No spawn manager could be found for that guild. Spawn may have been disabled.",
@@ -244,10 +206,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         delta = (interaction.created_at - cooldown.time).total_seconds()
         # change how the threshold varies according to the member count
         # while nuking farm servers
-        if guild.member_count < 5:
-            multiplier = 0.1
-            range = "1-4"
-        elif guild.member_count < 100:
+        if guild.member_count < 100:
             multiplier = 0.8
             range = "5-99"
         elif guild.member_count < 1000:
@@ -260,16 +219,16 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         penalties: list[str] = []
         if guild.member_count < 5 or guild.member_count > 1000:
             penalties.append("Server has less than 5 or more than 1000 members")
-        if any(len(x.content) < 5 for x in cooldown.message_cache):
+        if any(len(x.content) < 5 for x in cooldown.messageCache):
             penalties.append("Some cached messages are less than 5 characters long")
 
-        authors_set = set(x.author_id for x in cooldown.message_cache)
+        authors_set = set(x.author_id for x in cooldown.messageCache)
         low_chatters = len(authors_set) < 4
         # check if one author has more than 40% of messages in cache
         major_chatter = any(
             (
-                len(list(filter(lambda x: x.author_id == author, cooldown.message_cache)))
-                / cooldown.message_cache.maxlen  # type: ignore
+                len(list(filter(lambda x: x.author_id == author, cooldown.messageCache)))
+                / cooldown.messageCache.maxlen  # type: ignore
                 > 0.4
             )
             for author in authors_set
@@ -299,12 +258,12 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         embed.description = (
             f"Manager initiated **{format_dt(cooldown.time, style='R')}**\n"
             f"Initial number of points to reach: **{cooldown.chance}**\n"
-            f"Message cache length: **{len(cooldown.message_cache)}**\n\n"
+            f"Message cache length: **{len(cooldown.messageCache)}**\n\n"
             f"Time-based multiplier: **x{multiplier}** *({range} members)*\n"
             "*This affects how much the number of points to reach reduces over time*\n"
             f"Penalty multiplier: **x{penality_multiplier}**\n"
             "*This affects how much a message sent increases the number of points*\n\n"
-            f"__Current count: **{cooldown.amount}/{chance}**__\n\n"
+            f"__Current count: **{cooldown.scaledMessageCount}/{chance}**__\n\n"
         )
 
         information: list[str] = []
@@ -323,7 +282,6 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command()
-    @app_commands.checks.has_any_role(*settings.superUsers)
     async def guilds(
         self,
         interaction: discord.Interaction["CarFiguresBot"],
@@ -382,7 +340,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
 
         entries: list[tuple[str, str]] = []
         for guild in guilds:
-            if config := await GuildConfig.get_or_none(guild_id=guild.id):
+            if config := await models.GuildConfig.get_or_none(guild_id=guild.id):
                 spawn_enabled = config.enabled and config.guild_id
             else:
                 spawn_enabled = False
@@ -410,7 +368,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
 
             entries.append((field_name, field_value))
 
-        source = FieldPageSource(entries, per_page=25, inline=True)
+        source = paginators.FieldPageSource(entries, per_page=25, inline=True)
         source.embed.set_author(name=f"{user} ({user.id})", icon_url=user.display_avatar.url)
 
         if len(guilds) > 1:
@@ -424,9 +382,9 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                 "presence in servers, it is only aware of server ownerships."
             )
 
-        pages = Pages(source=source, interaction=interaction, compact=True)
+        pages = paginators.Pages(source=source, interaction=interaction, compact=True)
         pages.add_item(
-            Button(
+            buttons.Button(
                 style=discord.ButtonStyle.link,
                 label="View profile",
                 url=f"discord://-/users/{user.id}",
@@ -436,246 +394,489 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         await pages.start(ephemeral=True)
 
     @app_commands.command()
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def farms(
+    @app_commands.choices(
+        entity=[
+            app_commands.Choice(name="User", value="user"),
+            app_commands.Choice(name="Server", value="server"),
+        ],
+        action=[
+            app_commands.Choice(name="Add", value="add"),
+            app_commands.Choice(name="Remove", value="remove"),
+            app_commands.Choice(name="Info", value="info"),
+        ],
+    )
+    async def blacklist(
         self,
-        interaction: discord.Interaction["CarFiguresBot"],
-        user: discord.User | None = None,
-        user_id: str | None = None,
+        interaction: discord.Interaction,
+        entity: app_commands.Choice[str],
+        action: app_commands.Choice[str],
+        id: app_commands.Range[str, 17, 21],
+        reason: str | None = None,
     ):
         """
-        Shows the farm servers each user has, provide either user or user_id
+        Add a user to the blacklist. No reload is needed.
 
         Parameters
         ----------
         user: discord.User | None
-            The user you want to check, if available in the current server.
+            The user you want to blacklist, if available in the current server.
         user_id: str | None
-            The ID of the user you want to check, if it's not in the current server.
+            The ID of the user you want to blacklist, if it's not in the current server.
+        reason: str | None
         """
-        if (user and user_id) or (not user and not user_id):
-            await interaction.response.send_message(
-                "You must provide either `user` or `user_id`.", ephemeral=True
-            )
-            return
 
-        if not user:
-            try:
-                user = await self.bot.fetch_user(int(user_id))  # type: ignore
-            except ValueError:
-                await interaction.response.send_message(
-                    "The user ID you gave is not valid.", ephemeral=True
-                )
-                return
-            except discord.NotFound:
-                await interaction.response.send_message(
-                    "The given user ID could not be found.", ephemeral=True
-                )
-                return
-
-        if self.bot.intents.members:
-            guilds = user.mutual_guilds
-        else:
-            guilds = [x for x in self.bot.guilds if x.owner_id == user.id and x.member_count <= 15]
-
-        if not guilds:
-            if self.bot.intents.members:
-                await interaction.response.send_message(
-                    f"The user does not own any farm server with {settings.botName}.",
-                    ephemeral=True,
-                )
-            else:
-                await interaction.response.send_message(
-                    f"The user does not own any server with {settings.botName}.\n"
-                    ":warning: *The bot cannot be aware of the member's presence in servers, "
-                    "it is only aware of server ownerships.*",
-                    ephemeral=True,
-                )
-            return
-
-        entries: list[tuple[str, str]] = []
-        for guild in guilds:
-            config = await GuildConfig.get_or_none(guild_id=guild.id)
-            spawn_enabled = False
-            if config and guild.member_count <= 15:
-                spawn_enabled = config.enabled and config.guild_id
-
-            field_name = f"`{guild.id}`"
-            field_value = ""
-
-            # highlight suspicious server names
-            if any(x in guild.name.lower() for x in ("farm", "grind", "spam")):
-                field_value += f"- :warning: **{guild.name}**\n"
-            else:
-                field_value += f"- {guild.name}\n"
-
-            # highlight low member count
-            if guild.member_count <= 15:  # type: ignore
-                field_value += f"- :warning: **{guild.member_count} members**\n"
-
-            # highlight if spawning is enabled
-            if spawn_enabled:
-                field_value += "- :warning: **Spawn is enabled**"
-
-            entries.append((field_name, field_value))
-
-        source = FieldPageSource(entries, per_page=25, inline=True)
-        source.embed.set_author(name=f"{user} ({user.id})", icon_url=user.display_avatar.url)
-
-        if len(guilds) > 1:
-            source.embed.title = f"{len(guilds)} farm servers owned"
-        else:
-            source.embed.title = "1 farm server owned"
-
-        if not self.bot.intents.members:
-            source.embed.set_footer(
-                text="\N{WARNING SIGN} The bot cannot be aware of the member's "
-                "presence in servers, it is only aware of server ownerships."
-            )
-
-        pages = Pages(source=source, interaction=interaction, compact=True)
-        pages.add_item(
-            Button(
-                style=discord.ButtonStyle.link,
-                label="View profile",
-                url=f"discord://-/users/{user.id}",
-                emoji="\N{LEFT-POINTING MAGNIFYING GLASS}",
-            )
-        )
-        await pages.start(ephemeral=True)
-
-    async def _spawn_bomb(
-        self,
-        interaction: discord.Interaction,
-        carfigure: Car | None,
-        channel: discord.TextChannel,
-        amount: int,
-    ):
-        spawned = 0
-
-        async def update_message_loop():
-            nonlocal spawned
-            for i in range(5 * 12 * 10):  # timeout progress after 10 minutes
-                await interaction.followup.edit_message(
-                    "@original",  # type: ignore
-                    content=f"Spawn bomb in progress in {channel.mention}, "
-                    f"{appearance.collectibleSingular.title()}: {carfigure or 'Random'}\n"
-                    f"{spawned}/{amount} spawned ({round((spawned/amount)*100)}%)",
-                )
-                await asyncio.sleep(5)
-            await interaction.followup.edit_message(
-                "@original",  # type: ignore
-                content="Spawn bomb seems to have timed out.",  # type: ignore
-            )
-
-        await interaction.response.send_message(
-            f"Starting spawn bomb in {channel.mention}...", ephemeral=True
-        )
-        task = self.bot.loop.create_task(update_message_loop())
-        try:
-            for i in range(amount):
-                if not carfigure:
-                    car = await CarFigure.get_random()
-                else:
-                    car = CarFigure(carfigure)
-                result = await car.spawn(channel)
-                if not result:
-                    task.cancel()
-                    await interaction.followup.edit_message(
-                        "@original",  # type: ignore
-                        content=f"A {appearance.collectibleSingular} failed to spawn, probably "
-                        "indicating a lack of permissions to send messages "
-                        f"or upload files in {channel.mention}.",
+        final_reason = f"{reason}\nBy: {interaction.user} ({interaction.user.id})"
+        match entity.value:
+            case "user":
+                try:
+                    user = await self.bot.fetch_user(int(id))  # type: ignore
+                except ValueError:
+                    await interaction.response.send_message(
+                        "The user ID you gave is not valid.", ephemeral=True
                     )
                     return
-                spawned += 1
-            task.cancel()
-            await interaction.followup.edit_message(
-                "@original",  # type: ignore
-                content=f"Successfully spawned {spawned} {appearance.collectiblePlural} in {channel.mention}!",
-            )
-        finally:
-            task.cancel()
+                except discord.NotFound:
+                    await interaction.response.send_message(
+                        "The given user ID could not be found.", ephemeral=True
+                    )
+                    return
+                match action.value:
+                    case "add":
+                        if await models.BlacklistedUser.filter(discord_id=user.id).exists():
+                            await interaction.response.send_message(
+                                f"{user.display_name} was already blacklisted.", ephemeral=True
+                            )
+                            return
+                        else:
+                            await models.BlacklistedUser.create(
+                                discord_id=user.id, reason=final_reason
+                            )
+                            self.bot.blacklistedUsers.add(user.id)
+                        await interaction.response.send_message(
+                            f"{user.display_name} is now blacklisted.", ephemeral=True
+                        )
 
-    @cars.command()
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def spawn(
+                        await log_action(
+                            f"{interaction.user} blacklisted {user} ({user.id})"
+                            f" for the following reason: {reason}",
+                            self.bot,
+                        )
+                    case "remove":
+                        if not await models.BlacklistedUser.get_or_none(discord_id=user.id):
+                            await interaction.response.send_message(
+                                f"{user.display_name} isn't blacklisted.", ephemeral=True
+                            )
+                            return
+                        else:
+                            await models.BlacklistedUser.filter(discord_id=user.id).delete()
+                            self.bot.blacklistedUsers.remove(user.id)
+                            await interaction.response.send_message(
+                                f"{user.display_name} is now removed from blacklist.",
+                                ephemeral=True,
+                            )
+                            await log_action(
+                                f"{interaction.user} removed blacklist from {user.display_name} ({user.id})"
+                                f" for the following reason: {reason}",
+                                self.bot,
+                            )
+                    case "info":
+                        if not await models.BlacklistedUser.get_or_none(discord_id=user.id):
+                            await interaction.response.send_message(
+                                f"{user.display_name} isn't blacklisted.", ephemeral=True
+                            )
+                            return
+
+                        blacklisted = await models.BlacklistedUser.get(discord_id=user.id)
+                        if blacklisted.date:
+                            await interaction.response.send_message(
+                                f"`{user.display_name}` (`{user.id}`) was blacklisted on {format_dt(blacklisted.date)}"
+                                f"({format_dt(blacklisted.date, style='R')}) for the following reason:\n"
+                                f"{blacklisted.reason}",
+                                ephemeral=True,
+                            )
+                            return
+                        else:
+                            await interaction.response.send_message(
+                                f"`{user.display_name}` (`{user.id}`) is currently blacklisted (date unknown)"
+                                " for the following reason:\n"
+                                f"{blacklisted.reason}",
+                                ephemeral=True,
+                            )
+                            return
+
+            case "server":
+                try:
+                    server = await self.bot.fetch_guild(int(id))
+                except ValueError:
+                    await interaction.response.send_message(
+                        "The guild ID you gave is not valid.", ephemeral=True
+                    )
+                    return
+                except discord.NotFound:
+                    await interaction.response.send_message(
+                        "The given guild ID could not be found.", ephemeral=True
+                    )
+                    return
+                match action.value:
+                    case "add":
+                        if await models.BlacklistedGuild.filter(discord_id=server.id).exists():
+                            await interaction.response.send_message(
+                                f"{server.name} was already blacklisted.", ephemeral=True
+                            )
+                        else:
+                            self.bot.blacklistedServers.add(server.id)
+                            await models.BlacklistedGuild.create(guild_id=server.id)
+                            await interaction.response.send_message(
+                                f"{server.name} is now blacklisted.", ephemeral=True
+                            )
+                            await log_action(
+                                f"{interaction.user} blacklisted the guild {server.name}({server.id}) "
+                                f"for the following reason: {reason}",
+                                self.bot,
+                            )
+                    case "remove":
+                        if not await models.BlacklistedGuild.get_or_none(discord_id=server.id):
+                            await interaction.response.send_message(
+                                f"{server.name} isn't blacklisted.", ephemeral=True
+                            )
+                        else:
+                            await models.BlacklistedGuild.filter(guild_id=server.id).delete()
+                            self.bot.blacklistedServers.remove(server.id)
+                            await interaction.response.send_message(
+                                f"{server.name} is now removed from blacklist.", ephemeral=True
+                            )
+                            await log_action(
+                                f"{interaction.user} removed blacklist for guild {server.name} ({server.id})",
+                                self.bot,
+                            )
+                    case "info":
+                        if not await models.BlacklistedGuild.get_or_none(discord_id=server.id):
+                            await interaction.response.send_message(
+                                "That guild isn't blacklisted.", ephemeral=True
+                            )
+                            return
+
+                        blacklisted = await models.BlacklistedGuild.get(discord_id=server.id)
+                        if blacklisted.date:
+                            await interaction.response.send_message(
+                                f"`{server.name}` (`{server.id}`) was blacklisted on {format_dt(blacklisted.date)}"
+                                f"({format_dt(blacklisted.date, style='R')}) for the following reason:\n"
+                                f"{blacklisted.reason}",
+                                ephemeral=True,
+                            )
+
+                        else:
+                            await interaction.response.send_message(
+                                f"`{server.name}` (`{server.id}`) is currently blacklisted (date unknown)"
+                                " for the following reason:\n"
+                                f"{blacklisted.reason}",
+                                ephemeral=True,
+                            )
+
+    @app_commands.command()
+    @app_commands.choices(
+        entity=[
+            app_commands.Choice(name="User", value="user"),
+            app_commands.Choice(name="Trade", value="trade"),
+            app_commands.Choice(name=appearance.collectibleSingular.title(), value="car"),
+        ],
+        sorting=[
+            app_commands.Choice(name="Most Recent", value="-date"),
+            app_commands.Choice(name="Oldest", value="date"),
+        ],
+    )
+    async def history(
         self,
-        interaction: discord.Interaction,
-        carfigure: CarTransform | None = None,
-        channel: discord.TextChannel | None = None,
-        amount: int = 1,
+        interaction: discord.Interaction["CarFiguresBot"],
+        entity: app_commands.Choice[str],
+        sorting: app_commands.Choice[str],
+        id: str,
     ):
         """
-        Force spawn a random or specified car.
+        Show the history of a user.
 
         Parameters
         ----------
-        carfigure: Car | None
-            The carfigure you want to spawn. Random according to rarities if not specified.
-        channel: discord.TextChannel | None
-            The channel you want to spawn the carfigure in. Current channel if not specified.
-        amount: int
-            The number of carfigures to spawn. If no carfigure was specified, it's random
-            every time.
+        user: discord.User
+            The user you want to check the history of.
+        sorting: str
+            The sorting method you want to use.
         """
-        # the transformer triggered a response, meaning user tried an incorrect input
-        if interaction.response.is_done():
-            return
-
-        if amount < 1:
-            await interaction.response.send_message(
-                "The `amount` must be superior or equal to 1.", ephemeral=True
-            )
-            return
-        if amount > 100:
-            await interaction.response.send_message(
-                f"That doesn't seem reasonable to spawn {amount} times, "
-                "the bot will be rate-limited. Try something lower than 100.",
-                ephemeral=True,
-            )
-            return
-
-        if amount > 1:
-            await self._spawn_bomb(
-                interaction,
-                carfigure,
-                channel or interaction.channel,  # type: ignore
-                amount,  # type: ignore
-            )
-            await log_action(
-                f"{interaction.user} spawned {carfigure or 'random'} {amount} times in {channel or interaction.channel}.",
-                self.bot,
-            )
-            return
-
         await interaction.response.defer(ephemeral=True, thinking=True)
-        if not carfigure:
-            car = await CarFigure.get_random()
-        else:
-            car = CarFigure(carfigure)
-        result = await car.spawn(channel or interaction.channel)  # type: ignore
+        match entity.value:
+            case "user":
+                try:
+                    user = await self.bot.fetch_user(int(id))  # type: ignore
+                except ValueError:
+                    await interaction.followup.send(
+                        "The user ID you gave is not valid.", ephemeral=True
+                    )
+                    return
+                except discord.NotFound:
+                    await interaction.followup.send(
+                        "The given user ID could not be found.", ephemeral=True
+                    )
+                    return
 
-        if result:
-            await interaction.followup.send(
-                f"{appearance.collectibleSingular.title()} spawned.", ephemeral=True
-            )
-            await log_action(
-                f"{interaction.user} spawned {appearance.collectibleSingular} {car.name} "
-                f"in {channel or interaction.channel}.",
-                self.bot,
-            )
+                history = (
+                    await models.Trade.filter(
+                        Q(player1__discord_id=user.id) | Q(player2__discord_id=user.id)
+                    )
+                    .order_by(sorting.value)
+                    .prefetch_related("player1", "player2")
+                )
+
+                if not history:
+                    await interaction.followup.send("No history found.", ephemeral=True)
+                    return
+
+                pages = paginators.Pages(
+                    source=TradeViewFormat(history, user.display_name, self.bot),
+                    interaction=interaction,
+                )
+                await pages.start(ephemeral=True)
+            case "car":
+                try:
+                    pk = int(id, 16)
+                except ValueError:
+                    await interaction.followup.send(
+                        f"The {appearance.collectibleSingular} ID you gave is not valid.",
+                        ephemeral=True,
+                    )
+                    return
+
+                car = await models.CarInstance.get_or_none(id=pk)
+                if not car:
+                    await interaction.followup.send(
+                        f"The {appearance.collectibleSingular} ID you gave does not exist.",
+                        ephemeral=True,
+                    )
+                    return
+                history = await models.TradeObject.filter(carinstance__id=pk).prefetch_related(
+                    "trade", "carinstance__player"
+                )
+                if not history:
+                    await interaction.followup.send("No history found.", ephemeral=True)
+                    return
+                trades = (
+                    await models.Trade.filter(id__in=[x.trade_id for x in history])
+                    .order_by(sorting.value)
+                    .prefetch_related("player1", "player2")
+                )
+                pages = paginators.Pages(
+                    source=TradeViewFormat(
+                        trades, f"{appearance.collectibleSingular} {car}", self.bot
+                    ),
+                    interaction=interaction,
+                )
+                await pages.start(ephemeral=True)
+            case "trade":
+                try:
+                    pk = int(id, 16)
+                except ValueError:
+                    await interaction.followup.send(
+                        "The trade ID you gave is not valid.", ephemeral=True
+                    )
+                    return
+                trade = await models.Trade.get_or_none(id=pk).prefetch_related(
+                    "player1", "player2"
+                )
+                if not trade:
+                    await interaction.followup.send(
+                        "The trade ID you gave does not exist.", ephemeral=True
+                    )
+                    return
+                embed = discord.Embed(
+                    title=f"Trade {trade.pk:0X}",
+                    description=f"Trade ID: {trade.pk:0X}",
+                    timestamp=trade.date,
+                )
+                embed.set_footer(text="Trade date: ")
+                fill_trade_embed_fields(
+                    embed,
+                    self.bot,
+                    await TradingUser.from_trade_model(trade, trade.player1, self.bot),
+                    await TradingUser.from_trade_model(trade, trade.player2, self.bot),
+                )
+                await interaction.followup.send(embed=embed, ephemeral=True)
+
+    @app_commands.command()
+    @app_commands.choices(
+        entity=[
+            app_commands.Choice(name="User", value="user"),
+            app_commands.Choice(name="Server", value="server"),
+            app_commands.Choice(name="Instance", value="instance"),
+        ]
+    )
+    async def info(
+        self,
+        interaction: discord.Interaction,
+        entity: app_commands.Choice[str],
+        id: str,
+        days: int = 7,
+    ):
+        """
+        Show information about the server provided
+
+        Parameters
+        ----------
+        entity: str
+            The type of entity you want to get information about.
+        id: str
+            The ID of the entity you want to get information about.
+        days: int
+            The amount of days to look back for the amount of cars caught. (not used when not selecting user/server as entity)
+        """
+        await interaction.response.defer(ephemeral=True, thinking=True)
+        match entity.value:
+            case "user":
+                try:
+                    user = await self.bot.fetch_user(int(id))  # type: ignore
+                except ValueError:
+                    await interaction.followup.send(
+                        "The user ID you gave is not valid.", ephemeral=True
+                    )
+                    return
+                except discord.NotFound:
+                    await interaction.followup.send(
+                        "The given user ID could not be found.", ephemeral=True
+                    )
+                    return
+
+                player = await models.Player.get_or_none(discord_id=user.id)
+                if not player:
+                    await interaction.followup.send(
+                        "The user you gave does not exist.", ephemeral=True
+                    )
+                    return
+                total_user_cars = await models.CarInstance.filter(
+                    catchDate__gte=datetime.datetime.now() - datetime.timedelta(days=days),
+                    player=player,
+                )
+                embed = discord.Embed(
+                    title=f"Information on {user} | {user.id}",
+                    description=(
+                        f"**Ⅲ Player Settings**\n"
+                        f"\u200b **⋄ Privacy Policy:** {player.privacyPolicy.name}\n"
+                        f"\u200b **⋄ Donation Policy:** {player.donationPolicy.name}\n\n"
+                        f"**Ⅲ Player Info\n**"
+                        f"\u200b **⋄ {appearance.collectiblePlural.title()} Collected in {days} days/in Total:** "
+                        f"{len(total_user_cars)} | {await player.cars.all().count()}\n"
+                        f"\u200b **⋄ Servers with {appearance.collectiblePlural.title()} caught in {days} days/in Total:**"
+                        f"{set([x.server for x in total_user_cars])}/{len(set([x.server for x in total_user_cars]))}\n"
+                        # f"\u200b **⋄ "
+                        f"\u200b **⋄ Rebirths Done:** {player.rebirths}\n"
+                    ),
+                    color=settings.defaultEmbedColor,
+                )
+                embed.set_thumbnail(url=user.display_avatar.url)  # type: ignore
+                await interaction.followup.send(embed=embed, ephemeral=True)
+
+            case "server":
+                try:
+                    guild = await self.bot.fetch_guild(int(id))  # type: ignore
+                except ValueError:
+                    await interaction.followup.send(
+                        "The guild ID you gave is not valid.", ephemeral=True
+                    )
+                    return
+                except discord.NotFound:
+                    await interaction.followup.send(
+                        "The given guild ID could not be found.", ephemeral=True
+                    )
+                    return
+
+                if config := await models.GuildConfig.get_or_none(guild_id=guild.id):
+                    spawn_enabled = config.enabled and config.guild_id
+                else:
+                    spawn_enabled = False
+
+                total_server_cars = await models.CarInstance.filter(
+                    catchDate__gte=datetime.datetime.now() - datetime.timedelta(days=days),
+                    server=guild.id,
+                ).prefetch_related("player")
+                if guild.owner_id:
+                    owner = await self.bot.fetch_user(guild.owner_id)
+                    embed = discord.Embed(
+                        title=f"{guild.name} ({guild.id})",
+                        description=f"Owner: {owner} ({guild.owner_id})",
+                        color=settings.defaultEmbedColor,
+                    )
+                else:
+                    embed = discord.Embed(
+                        title=f"{guild.name} ({guild.id})",
+                        color=settings.defaultEmbedColor,
+                    )
+                embed.add_field(name="Members", value=guild.member_count)
+                embed.add_field(name="Spawn Enabled", value=spawn_enabled)
+                embed.add_field(name="Created at", value=format_dt(guild.created_at, style="R"))
+                embed.add_field(
+                    name=f"{appearance.collectiblePlural.title()} Caught ({days} days)",
+                    value=len(total_server_cars),
+                )
+                embed.add_field(
+                    name=f"Amount of Users who caught {appearance.collectiblePlural} ({days} days)",
+                    value=len(set([x.player.discord_id for x in total_server_cars])),
+                )
+
+                if guild.icon:
+                    embed.set_thumbnail(url=guild.icon.url)
+
+                await interaction.followup.send(embed=embed, ephemeral=True)
+            case "instance":
+                assert self.bot.user
+                try:
+                    pk = int(id, 16)
+                except ValueError:
+                    await interaction.followup.send(
+                        f"The {appearance.collectibleSingular} ID you gave is not valid.",
+                        ephemeral=True,
+                    )
+                    return
+                car = await models.CarInstance.get_or_none(id=pk).prefetch_related(
+                    "player", "trade_player", "event"
+                )
+                if not car:
+                    await interaction.followup.send(
+                        f"The {appearance.collectibleSingular} ID you gave does not exist.",
+                        ephemeral=True,
+                    )
+                    return
+                spawned_time = format_dt(car.spawnedTime, style="R") if car.spawnedTime else "N/A"
+                catch_time = (
+                    (car.catchDate - car.spawnedTime).total_seconds()
+                    if car.catchDate and car.spawnedTime
+                    else "N/A"
+                )
+                embed = discord.Embed(
+                    title="{}",
+                    description=f"**{appearance.collectibleSingular.title()} ID:** {car.pk}\n"
+                    f"**Player:** {car.player}\n"
+                    f"**Name:** {car.carfigure}\n"
+                    f"**{appearance.horsepower} bonus:** {car.horsepowerBonus}\n"
+                    f"**{appearance.weight} bonus:** {car.weightBonus}\n"
+                    f"**{appearance.exclusive}:** {car.exclusive.name if car.exclusive else None}\n"
+                    f"**Event:** {car.event.name if car.event else None}\n"
+                    f"**Caught at:** {format_dt(car.catchDate, style='R')}\n"
+                    f"**Spawned at:** {spawned_time}\n"
+                    f"**Catch time:** {catch_time} seconds\n"
+                    f"**Caught in:** {car.server if car.server else 'N/A'}\n"
+                    f"**Traded:** {car.trade_player}\n",
+                    color=settings.defaultEmbedColor,
+                )
+                embed.set_thumbnail(url=self.bot.user.display_avatar.url)
+                await interaction.followup.send(embed=embed, ephemeral=True)
+                await log_action(f"{interaction.user} got info for {car} ({car.pk})", self.bot)
 
     @cars.command()
-    @app_commands.checks.has_any_role(*settings.superUsers)
     async def give(
         self,
         interaction: discord.Interaction,
-        car: CarTransform,
+        car: transformers.CarTransform,
         user: discord.User,
-        amount: int,
-        event: EventTransform | None = None,
-        exclusive: ExclusiveTransform | None = None,
+        amount: app_commands.Range[int, 1, 100],
+        event: transformers.EventTransform | None = None,
+        exclusive: transformers.ExclusiveTransform | None = None,
         weightbonus: int | None = None,
         horsepowerbonus: int | None = None,
     ):
@@ -691,43 +892,24 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         limited: bool
             Omit this to make it random.
         weight_bonus: int | None
-            Omit this to make it random (-50/+50%).
+            Omit this to make it random.
         horsepower_bonus: int | None
-            Omit this to make it random (-50/+50%).
+            Omit this to make it random.
         """
         # the transformers triggered a response, meaning user tried an incorrect input
         if interaction.response.is_done():
             return
         await interaction.response.defer(ephemeral=True, thinking=True)
 
-        if amount < 1:
-            await interaction.followup.send(
-                "The `amount` must be superior or equal to 1.", ephemeral=True
-            )
-            return
-        if amount > 1000:
-            await interaction.followup.send(
-                f"It is not reasonable to give {amount} {appearance.collectiblePlural}, "
-                "try an amount that is lower than 1000.",
-                ephemeral=True,
-            )
-            return
-
-        player, _ = await Player.get_or_create(discord_id=user.id)
-        for i in range(amount):
-            instance = await CarInstance.create(
+        player, _ = await models.Player.get_or_create(discord_id=user.id)
+        hpBonus = horsepowerbonus or random.randint(*settings.catchBonusRate)
+        kgBonus = weightbonus or random.randint(*settings.catchBonusRate)
+        for _ in range(amount):
+            await models.CarInstance.create(
                 car=car,
                 player=player,
-                horsepowerBonus=(
-                    horsepowerbonus
-                    if horsepowerbonus is not None
-                    else random.randint(*settings.bonusRate[-1], *settings.bonusRate[0])
-                ),
-                weightBonus=(
-                    weightbonus
-                    if weightbonus is not None
-                    else random.randint(*settings.bonusRate[-1], *settings.bonusRate[0])
-                ),
+                horsepowerBonus=hpBonus,
+                weightBonus=kgBonus,
                 event=event,
                 exclusive=exclusive,
             )
@@ -735,386 +917,21 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             f"`{amount}` `{car.fullName + 's' if amount > 1 else car.fullName}` was successfully given to `{user}`.\n"
             f"Event: `{event.name if event else None}` "
             f"• {appearance.exclusive}: `{exclusive.name if exclusive else None}` "
-            f"• `{appearance.hp}`:`{instance.horsepowerBonus:+d}` • "
-            f"{appearance.kg}:`{instance.weightBonus:+d}`"
+            f"• `{appearance.hp}`:`{hpBonus:+d}` • "
+            f"{appearance.kg}:`{kgBonus:+d}`"
         )
         await log_action(
             f"{interaction.user} gave {amount} "
             f"{car.fullName + 's' if amount > 1 else car.fullName} to {user}. "
             f"Event={event.name if event else None} "
             f"• {appearance.exclusive}: `{exclusive.name if exclusive else None}` "
-            f"{appearance.hp}={instance.horsepowerBonus:+d} "
-            f"{appearance.kg}={instance.weightBonus:+d}",
+            f"{appearance.hp}={hpBonus:+d} "
+            f"{appearance.kg}={kgBonus:+d}",
             self.bot,
         )
 
-    @blacklist_user.command(name="add")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def blacklist_add(
-        self,
-        interaction: discord.Interaction,
-        user: discord.User | None = None,
-        user_id: str | None = None,
-        reason: str | None = None,
-    ):
-        """
-        Add a user to the blacklist. No reload is needed.
-
-        Parameters
-        ----------
-        user: discord.User | None
-            The user you want to blacklist, if available in the current server.
-        user_id: str | None
-            The ID of the user you want to blacklist, if it's not in the current server.
-        reason: str | None
-        """
-        if (user and user_id) or (not user and not user_id):
-            await interaction.response.send_message(
-                "You must provide either `user` or `user_id`.", ephemeral=True
-            )
-            return
-
-        if not user:
-            try:
-                user = await self.bot.fetch_user(int(user_id))  # type: ignore
-            except ValueError:
-                await interaction.response.send_message(
-                    "The user ID you gave is not valid.", ephemeral=True
-                )
-                return
-            except discord.NotFound:
-                await interaction.response.send_message(
-                    "The given user ID could not be found.", ephemeral=True
-                )
-                return
-
-        final_reason = (
-            f"{reason}\nDone through the bot by {interaction.user} ({interaction.user.id})"
-        )
-
-        try:
-            await BlacklistedUser.create(discord_id=user.id, reason=final_reason)
-        except IntegrityError:
-            await interaction.response.send_message(
-                "That user was already blacklisted.", ephemeral=True
-            )
-        else:
-            self.bot.blacklist_user.add(user.id)
-            await interaction.response.send_message("User is now blacklisted.", ephemeral=True)
-        await log_action(
-            f"{interaction.user} blacklisted {user} ({user.id})"
-            f" for the following reason: {reason}",
-            self.bot,
-        )
-
-    @blacklist_user.command(name="remove")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def blacklist_remove(
-        self,
-        interaction: discord.Interaction,
-        user: discord.User | None = None,
-        user_id: str | None = None,
-    ):
-        """
-        Remove a user from the blacklist. No reload is needed.
-
-        Parameters
-        ----------
-        user: discord.User | None
-            The user you want to unblacklist, if available in the current server.
-        user_id: str | None
-            The ID of the user you want to unblacklist, if it's not in the current server.
-        """
-        if (user and user_id) or (not user and not user_id):
-            await interaction.response.send_message(
-                "You must provide either `user` or `user_id`.", ephemeral=True
-            )
-            return
-
-        if not user:
-            try:
-                user = await self.bot.fetch_user(int(user_id))  # type: ignore
-            except ValueError:
-                await interaction.response.send_message(
-                    "The user ID you gave is not valid.", ephemeral=True
-                )
-                return
-            except discord.NotFound:
-                await interaction.response.send_message(
-                    "The given user ID could not be found.", ephemeral=True
-                )
-                return
-
-        try:
-            blacklisted = await BlacklistedUser.get(discord_id=user.id)
-        except DoesNotExist:
-            await interaction.response.send_message("That user isn't blacklisted.", ephemeral=True)
-        else:
-            await blacklisted.delete()
-            self.bot.blacklist_user.remove(user.id)
-            await interaction.response.send_message(
-                "User is now removed from blacklist.", ephemeral=True
-            )
-        await log_action(
-            f"{interaction.user} removed blacklist for user {user} ({user.id})",
-            self.bot,
-        )
-
-    @blacklist_user.command(name="info")
-    async def blacklist_info(
-        self,
-        interaction: discord.Interaction,
-        user: discord.User | None = None,
-        user_id: str | None = None,
-    ):
-        """
-        Check if a user is blacklisted and show the corresponding reason.
-
-        Parameters
-        ----------
-        user: discord.User | None
-            The user you want to check, if available in the current server.
-        user_id: str | None
-            The ID of the user you want to check, if it's not in the current server.
-        """
-        if (user and user_id) or (not user and not user_id):
-            await interaction.response.send_message(
-                "You must provide either `user` or `user_id`.", ephemeral=True
-            )
-            return
-
-        if not user:
-            try:
-                user = await self.bot.fetch_user(int(user_id))  # type: ignore
-            except ValueError:
-                await interaction.response.send_message(
-                    "The user ID you gave is not valid.", ephemeral=True
-                )
-                return
-            except discord.NotFound:
-                await interaction.response.send_message(
-                    "The given user ID could not be found.", ephemeral=True
-                )
-                return
-        # We assume that we have a valid discord.User object at this point.
-
-        try:
-            blacklisted = await BlacklistedUser.get(discord_id=user.id)
-        except DoesNotExist:
-            await interaction.response.send_message("That user isn't blacklisted.", ephemeral=True)
-        else:
-            if blacklisted.date:
-                await interaction.response.send_message(
-                    f"`{user}` (`{user.id}`) was blacklisted on {format_dt(blacklisted.date)}"
-                    f"({format_dt(blacklisted.date, style='R')}) for the following reason:\n"
-                    f"{blacklisted.reason}",
-                    ephemeral=True,
-                )
-            else:
-                await interaction.response.send_message(
-                    f"`{user}` (`{user.id}`) is currently blacklisted (date unknown)"
-                    " for the following reason:\n"
-                    f"{blacklisted.reason}",
-                    ephemeral=True,
-                )
-
-    @blacklist_guild.command(name="add")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def blacklist_add_guild(
-        self,
-        interaction: discord.Interaction,
-        guild_id: str,
-        reason: str,
-    ):
-        """
-        Add a guild to the blacklist. No reload is needed.
-
-        Parameters
-        ----------
-        guild_id: str
-            The ID of the guild you want to blacklist.
-        reason: str
-        """
-
-        try:
-            guild = await self.bot.fetch_guild(int(guild_id))  # type: ignore
-        except ValueError:
-            await interaction.response.send_message(
-                "The guild ID you gave is not valid.", ephemeral=True
-            )
-            return
-        except discord.NotFound:
-            await interaction.response.send_message(
-                "The given guild ID could not be found.", ephemeral=True
-            )
-            return
-
-        final_reason = f"{reason}\nBy: {interaction.user} ({interaction.user.id})"
-
-        try:
-            await BlacklistedGuild.create(discord_id=guild.id, reason=final_reason)
-        except IntegrityError:
-            await interaction.response.send_message(
-                "That guild was already blacklisted.", ephemeral=True
-            )
-        else:
-            self.bot.blacklist_guild.add(guild.id)
-            await interaction.response.send_message("Guild is now blacklisted.", ephemeral=True)
-        await log_action(
-            f"{interaction.user} blacklisted the guild {guild}({guild.id}) "
-            f"for the following reason: {reason}",
-            self.bot,
-        )
-
-    @blacklist_guild.command(name="remove")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def blacklist_remove_guild(
-        self,
-        interaction: discord.Interaction,
-        guild_id: str,
-    ):
-        """
-        Remove a guild from the blacklist. No reload is needed.
-
-        Parameters
-        ----------
-        guild_id: str
-            The ID of the guild you want to unblacklist.
-        """
-
-        try:
-            guild = await self.bot.fetch_guild(int(guild_id))  # type: ignore
-        except ValueError:
-            await interaction.response.send_message(
-                "The guild ID you gave is not valid.", ephemeral=True
-            )
-            return
-        except discord.NotFound:
-            await interaction.response.send_message(
-                "The given guild ID could not be found.", ephemeral=True
-            )
-            return
-
-        try:
-            blacklisted = await BlacklistedGuild.get(discord_id=guild.id)
-        except DoesNotExist:
-            await interaction.response.send_message(
-                "That guild isn't blacklisted.", ephemeral=True
-            )
-        else:
-            await blacklisted.delete()
-            self.bot.blacklist_guild.remove(guild.id)
-            await interaction.response.send_message(
-                "Guild is now removed from blacklist.", ephemeral=True
-            )
-            await log_action(
-                f"{interaction.user} removed blacklist for guild {guild} ({guild.id})",
-                self.bot,
-            )
-
-    @blacklist_guild.command(name="info")
-    async def blacklist_info_guild(
-        self,
-        interaction: discord.Interaction,
-        guild_id: str,
-    ):
-        """
-        Check if a guild is blacklisted and show the corresponding reason.
-
-        Parameters
-        ----------
-        guild_id: str
-            The ID of the guild you want to check.
-        """
-
-        try:
-            guild = await self.bot.fetch_guild(int(guild_id))  # type: ignore
-        except ValueError:
-            await interaction.response.send_message(
-                "The guild ID you gave is not valid.", ephemeral=True
-            )
-            return
-        except discord.NotFound:
-            await interaction.response.send_message(
-                "The given guild ID could not be found.", ephemeral=True
-            )
-            return
-
-        try:
-            blacklisted = await BlacklistedGuild.get(discord_id=guild.id)
-        except DoesNotExist:
-            await interaction.response.send_message(
-                "That guild isn't blacklisted.", ephemeral=True
-            )
-        else:
-            if blacklisted.date:
-                await interaction.response.send_message(
-                    f"`{guild}` (`{guild.id}`) was blacklisted on {format_dt(blacklisted.date)}"
-                    f"({format_dt(blacklisted.date, style='R')}) for the following reason:\n"
-                    f"{blacklisted.reason}",
-                    ephemeral=True,
-                )
-            else:
-                await interaction.response.send_message(
-                    f"`{guild}` (`{guild.id}`) is currently blacklisted (date unknown)"
-                    " for the following reason:\n"
-                    f"{blacklisted.reason}",
-                    ephemeral=True,
-                )
-
-    @cars.command(name="info")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def cars_info(self, interaction: discord.Interaction, car_id: str):
-        """
-        Show information about a car.
-
-        Parameters
-        ----------
-        car_id: str
-            The ID of the car you want to get information about.
-        """
-        try:
-            pk = int(car_id, 16)
-        except ValueError:
-            await interaction.response.send_message(
-                f"The {appearance.collectibleSingular} ID you gave is not valid.",
-                ephemeral=True,
-            )
-            return
-        try:
-            car = await CarInstance.get(id=pk).prefetch_related("player", "trade_player", "event")
-        except DoesNotExist:
-            await interaction.response.send_message(
-                f"The {appearance.collectibleSingular} ID you gave does not exist.",
-                ephemeral=True,
-            )
-            return
-        spawned_time = format_dt(car.spawnedTime, style="R") if car.spawnedTime else "N/A"
-        catch_time = (
-            (car.catchDate - car.spawnedTime).total_seconds()
-            if car.catchDate and car.spawnedTime
-            else "N/A"
-        )
-        await interaction.response.send_message(
-            f"**{appearance.collectibleSingular.title()} ID:** {car.pk}\n"
-            f"**Player:** {car.player}\n"
-            f"**Name:** {car.carfigure}\n"
-            f"**{appearance.horsepower} bonus:** {car.horsepowerBonus}\n"
-            f"**{appearance.weight} bonus:** {car.weightBonus}\n"
-            f"**{appearance.exclusive}:** {car.exclusive.name if car.exclusive else None}\n"
-            f"**Event:** {car.event.name if car.event else None}\n"
-            f"**Caught at:** {format_dt(car.catchDate, style='R')}\n"
-            f"**Spawned at:** {spawned_time}\n"
-            f"**Catch time:** {catch_time} seconds\n"
-            f"**Caught in:** {car.server if car.server else 'N/A'}\n"
-            f"**Traded:** {car.trade_player}\n",
-            ephemeral=True,
-        )
-        await log_action(f"{interaction.user} got info for {car} ({car.pk})", self.bot)
-
-    @cars.command(name="delete")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def cars_delete(self, interaction: discord.Interaction, car_id: str):
+    @cars.command()
+    async def delete(self, interaction: discord.Interaction, car_id: str):
         """
         Delete a car.
 
@@ -1132,7 +949,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             )
             return
         try:
-            car = await CarInstance.get(id=carIdConverted)
+            car = await models.CarInstance.get(id=carIdConverted)
         except DoesNotExist:
             await interaction.response.send_message(
                 f"The {appearance.collectibleSingular} ID you gave does not exist.",
@@ -1145,11 +962,8 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         )
         await log_action(f"{interaction.user} deleted {car} ({car.pk})", self.bot)
 
-    @cars.command(name="transfer")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def cars_transfer(
-        self, interaction: discord.Interaction, car_id: str, user: discord.User
-    ):
+    @cars.command()
+    async def transfer(self, interaction: discord.Interaction, car_id: str, user: discord.User):
         """
         Transfer a car to another user.
 
@@ -1169,7 +983,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             )
             return
         try:
-            car = await CarInstance.get(id=carIdConverted).prefetch_related("player")
+            car = await models.CarInstance.get(id=carIdConverted).prefetch_related("player")
             original_player = car.player
         except DoesNotExist:
             await interaction.response.send_message(
@@ -1177,12 +991,10 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                 ephemeral=True,
             )
             return
-        player, _ = await Player.get_or_create(discord_id=user.id)
+        player, _ = await models.Player.get_or_create(discord_id=user.id)
         car.player = player
         await car.save()
 
-        trade = await Trade.create(player1=original_player, player2=player)
-        await TradeObject.create(trade=trade, carinstance=car, player=original_player)
         await interaction.response.send_message(
             f"Transfered {car} ({car.pk}) from {original_player} to {user}.",
             ephemeral=True,
@@ -1192,9 +1004,8 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             self.bot,
         )
 
-    @cars.command(name="reset")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def cars_reset(
+    @cars.command()
+    async def reset(
         self,
         interaction: discord.Interaction,
         user: discord.User,
@@ -1210,7 +1021,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         percentage: int | None
             The percentage of cars to delete, if not all. Used for sanctions.
         """
-        player = await Player.get(discord_id=user.id)
+        player = await models.Player.get(discord_id=user.id)
         if not player:
             await interaction.response.send_message(
                 "The user you gave does not exist.", ephemeral=True
@@ -1230,7 +1041,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                 f"Are you sure you want to delete {percentage}% of "
                 f"{user}'s {appearance.collectiblePlural}?"
             )
-        view = ConfirmChoiceView(interaction)
+        view = buttons.ConfirmChoiceView(interaction)
         await interaction.followup.send(
             text,
             view=view,
@@ -1240,13 +1051,13 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         if not view.value:
             return
         if percentage:
-            cars = await CarInstance.filter(player=player)
+            cars = await models.CarInstance.filter(player=player)
             to_delete = random.sample(cars, int(len(cars) * (percentage / 100)))
             for car in to_delete:
                 await car.delete()
             count = len(to_delete)
         else:
-            count = await CarInstance.filter(player=player).delete()
+            count = await models.CarInstance.filter(player=player).delete()
         await interaction.followup.send(
             f"{count} {appearance.collectiblePlural} from {user} have been reset.",
             ephemeral=True,
@@ -1256,15 +1067,14 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             self.bot,
         )
 
-    @cars.command(name="count")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def cars_count(
+    @cars.command()
+    async def count(
         self,
         interaction: discord.Interaction,
         user: discord.User | None = None,
-        car: CarTransform | None = None,
-        exclusive: ExclusiveTransform | None = None,
-        event: EventTransform | None = None,
+        car: transformers.CarTransform | None = None,
+        exclusive: transformers.ExclusiveTransform | None = None,
+        event: transformers.EventTransform | None = None,
     ):
         """
         Count the number of cars that a player has or how many exist in total.
@@ -1289,7 +1099,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         if user:
             filters["player__discord_id"] = user.id
         await interaction.response.defer(ephemeral=True, thinking=True)
-        cars = await CarInstance.filter(**filters).count()
+        cars = await models.CarInstance.filter(**filters).count()
         full_name = f"{car.fullName} " if car else f"{appearance.collectiblePlural}"
         event_str = f"{event.name} " if event else ""
         exclusive_str = f"{exclusive.name} " if exclusive else ""
@@ -1302,14 +1112,13 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                 f"There are {cars} {event_str}{exclusive_str} {full_name}."
             )
 
-    @cars.command(name="create")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def cars_create(
+    @cars.command()
+    async def create(
         self,
         interaction: discord.Interaction,
         *,
         fullname: app_commands.Range[str, None, 48],
-        cartype: CarTypeTransform,
+        cartype: transformers.CarTypeTransform,
         weight: int,
         horsepower: int,
         emoji_id: app_commands.Range[str, 17, 21],
@@ -1317,11 +1126,11 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         capacitydescription: app_commands.Range[str, None, 256],
         collectionpicture: discord.Attachment,
         carcredits: str,
-        country: CountryTransform | None = None,
         rarity: float = 0.0,
         enabled: bool = False,
         tradeable: bool = False,
         spawnpicture: discord.Attachment | None = None,
+        country: transformers.CountryTransform | None = None,
     ):
         """
         Shortcut command for creating carfigures. They are disabled by default.
@@ -1373,14 +1182,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             return
         await interaction.response.defer(ephemeral=True, thinking=True)
 
-        default_path = Path("./carfigures/core/image_generator/src/default.png")
-        missing_default = ""
-        if not spawnpicture and not default_path.exists():
-            missing_default = (
-                "**Warning:** The default spawn image is not set. This will result in errors when "
-                f"attempting to spawn this {appearance.collectibleSingular}. You can edit this on the "
-                "web panel or add an image at `./carfigures/core/image_generator/src/default.png`.\n"
-            )
+        default_path = Path("./static/uploads/default.png")
 
         try:
             collection_image_path = await save_file(collectionpicture)
@@ -1404,7 +1206,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             return
 
         try:
-            car = await Car.create(
+            car = await models.Car.create(
                 fullName=fullname,
                 cartype=cartype,
                 country=country,
@@ -1414,8 +1216,8 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                 enabled=enabled,
                 tradeable=tradeable,
                 emoji=emoji_id,
-                spawn_image="/" + str(spawn_image_path),
-                collection_image="/" + str(collection_image_path),
+                spawnPicture="/" + str(spawn_image_path),
+                collectionPicture="/" + str(collection_image_path),
                 carCredits=carcredits,
                 capacityName=capacityname,
                 capacityDescription=capacitydescription,
@@ -1428,449 +1230,41 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                 "The full error is in the bot logs."
             )
         else:
+            message = (
+                f"Successfully created a {appearance.collectibleSingular} with ID {car.pk}! "
+                "The internal cache was reloaded.\n"
+                f"{fullname=} {appearance.cartype}={cartype.name} "
+                f"{appearance.country}={country.name if country else None} "
+                f"{weight=} {horsepower=} {rarity=} {enabled=} {tradeable=} emoji={emoji}"
+            )
+            if not spawnpicture and not default_path.exists():
+                message += (
+                    "**Warning:** The default spawn image is not set. This will result in errors when "
+                    f"attempting to spawn this {appearance.collectibleSingular}. You can edit this on the "
+                    "web panel or add an image at static/uploads called default.png.\n"
+                )
             files = [await collectionpicture.to_file()]
             if spawnpicture:
                 files.append(await spawnpicture.to_file())
-            await self.bot.load_cache()
+            await self.bot.reloadCache()
             await interaction.followup.send(
-                f"Successfully created a {appearance.collectibleSingular} with ID {car.pk}! "
-                "The internal cache was reloaded.\n"
-                f"{missing_default}\n"
-                f"{fullname=} {appearance.cartype}={cartype.name} "
-                f"{appearance.country}={country.name if country else None} "
-                f"{weight=} {horsepower=} {rarity=} {enabled=} {tradeable=} emoji={emoji}",
+                message,
                 files=files,
             )
 
-    @logs.command(name="catchlogs")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def logs_add(
-        self,
-        interaction: discord.Interaction,
-        user: discord.User,
-    ):
-        """
-        Add or remove a user from catch logs.
-
-        Parameters
-        ----------
-        user: discord.User
-            The user you want to add or remove to the logs.
-        """
-        if user.id in self.bot.catch_log:
-            self.bot.catch_log.remove(user.id)
-            await interaction.response.send_message(
-                f"{user} removed from catch logs.", ephemeral=True
-            )
-        else:
-            self.bot.catch_log.add(user.id)
-            await interaction.response.send_message(f"{user} added to catch logs.", ephemeral=True)
-
-    @logs.command(name="commandlogs")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def commandlogs_add(
-        self,
-        interaction: discord.Interaction,
-        user: discord.User,
-    ):
-        """
-        Add or remove a user from command logs.
-
-        Parameters
-        ----------
-        user: discord.User
-            The user you want to add or remove to the logs.
-        """
-        if user.id in self.bot.command_log:
-            self.bot.command_log.remove(user.id)
-            await interaction.response.send_message(
-                f"{user} removed from command logs.", ephemeral=True
-            )
-        else:
-            self.bot.command_log.add(user.id)
-            await interaction.response.send_message(
-                f"{user} added to command logs.", ephemeral=True
-            )
-
-    @history.command(name="user")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    @app_commands.choices(
-        sorting=[
-            app_commands.Choice(name="Most Recent", value="-date"),
-            app_commands.Choice(name="Oldest", value="date"),
-        ]
-    )
-    async def history_user(
-        self,
-        interaction: discord.Interaction["CarFiguresBot"],
-        user: discord.User,
-        sorting: app_commands.Choice[str],
-        user2: Optional[discord.User] = None,
-    ):
-        """
-        Show the history of a user.
-
-        Parameters
-        ----------
-        user: discord.User
-            The user you want to check the history of.
-        sorting: str
-            The sorting method you want to use.
-        user2: discord.User | None
-            The second user you want to check the history of.
-        """
-        await interaction.response.defer(ephemeral=True, thinking=True)
-
-        if user2:
-            history = (
-                await Trade.filter(
-                    (Q(player1__discord_id=user.id) & Q(player2__discord_id=user2.id))
-                    | (Q(player1__discord_id=user2.id) & Q(player2__discord_id=user.id))
-                )
-                .order_by(sorting.value)
-                .prefetch_related("player1", "player2")
-            )
-
-            if not history:
-                await interaction.followup.send("No history found.", ephemeral=True)
-                return
-
-            source = TradeViewFormat(
-                history, f"{user.display_name} and {user2.display_name}", self.bot
-            )
-        else:
-            history = (
-                await Trade.filter(Q(player1__discord_id=user.id) | Q(player2__discord_id=user.id))
-                .order_by(sorting.value)
-                .prefetch_related("player1", "player2")
-            )
-
-            if not history:
-                await interaction.followup.send("No history found.", ephemeral=True)
-                return
-
-            source = TradeViewFormat(history, user.display_name, self.bot)
-
-        pages = Pages(source=source, interaction=interaction)
-        await pages.start(ephemeral=True)
-
-    @history.command(name="car")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    @app_commands.choices(
-        sorting=[
-            app_commands.Choice(name="Most Recent", value="-date"),
-            app_commands.Choice(name="Oldest", value="date"),
-        ]
-    )
-    async def history_car(
-        self,
-        interaction: discord.Interaction["CarFiguresBot"],
-        carid: str,
-        sorting: app_commands.Choice[str],
-    ):
-        """
-        Show the history of a car.
-
-        Parameters
-        ----------
-        carid: str
-            The ID of the car you want to check the history of.
-        sorting: str
-            The sorting method you want to use.
-        """
-
-        try:
-            pk = int(carid, 16)
-        except ValueError:
-            await interaction.response.send_message(
-                f"The {appearance.collectibleSingular} ID you gave is not valid.",
-                ephemeral=True,
-            )
-            return
-
-        car = await CarInstance.get(id=pk)
-        if not car:
-            await interaction.response.send_message(
-                f"The {appearance.collectibleSingular} ID you gave does not exist.",
-                ephemeral=True,
-            )
-            return
-
-        await interaction.response.defer(ephemeral=True, thinking=True)
-        history = await TradeObject.filter(carinstance__id=pk).prefetch_related(
-            "trade", "carinstance__player"
-        )
-        if not history:
-            await interaction.followup.send("No history found.", ephemeral=True)
-            return
-        trades = (
-            await Trade.filter(id__in=[x.trade_id for x in history])
-            .order_by(sorting.value)
-            .prefetch_related("player1", "player2")
-        )
-        source = TradeViewFormat(trades, f"{appearance.collectibleSingular} {car}", self.bot)
-        pages = Pages(source=source, interaction=interaction)
-        await pages.start(ephemeral=True)
-
-    @history.command(name="trade")
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    async def trade_info(
-        self,
-        interaction: discord.Interaction["CarFiguresBot"],
-        tradeid: str,
-    ):
-        """
-        Show the contents of a certain trade.
-
-        Parameters
-        ----------
-        tradeid: str
-            The ID of the trade you want to check the history of.
-        """
-        try:
-            pk = int(tradeid, 16)
-        except ValueError:
-            await interaction.response.send_message(
-                "The trade ID you gave is not valid.", ephemeral=True
-            )
-            return
-        trade = await Trade.get(id=pk).prefetch_related("player1", "player2")
-        if not trade:
-            await interaction.response.send_message(
-                "The trade ID you gave does not exist.", ephemeral=True
-            )
-            return
-        embed = discord.Embed(
-            title=f"Trade {trade.pk:0X}",
-            description=f"Trade ID: {trade.pk:0X}",
-            timestamp=trade.date,
-        )
-        embed.set_footer(text="Trade date: ")
-        fill_trade_embed_fields(
-            embed,
-            self.bot,
-            await TradingUser.from_trade_model(trade, trade.player1, self.bot),
-            await TradingUser.from_trade_model(trade, trade.player2, self.bot),
-        )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
-
-    @info.command()
-    async def guild(
-        self,
-        interaction: discord.Interaction,
-        guild_id: str,
-        days: int = 7,
-    ):
-        """
-        Show information about the server provided
-
-        Parameters
-        ----------
-        guild: discord.Guild | None
-            The guild you want to get information about.
-        guild_id: str | None
-            The ID of the guild you want to get information about.
-        days: int
-            The amount of days to look back for the amount of cars caught.
-        """
-        await interaction.response.defer(ephemeral=True, thinking=True)
-        guild = self.bot.get_guild(int(guild_id))
-
-        if not guild:
-            try:
-                guild = await self.bot.fetch_guild(int(guild_id))  # type: ignore
-            except ValueError:
-                await interaction.followup.send(
-                    "The guild ID you gave is not valid.", ephemeral=True
-                )
-                return
-            except discord.NotFound:
-                await interaction.followup.send(
-                    "The given guild ID could not be found.", ephemeral=True
-                )
-                return
-
-        if config := await GuildConfig.get_or_none(guild_id=guild.id):
-            spawn_enabled = config.enabled and config.guild_id
-        else:
-            spawn_enabled = False
-
-        total_server_cars = await CarInstance.filter(
-            catch_date__gte=datetime.datetime.now() - datetime.timedelta(days=days),
-            server_id=guild.id,
-        ).prefetch_related("player")
-        if guild.owner_id:
-            owner = await self.bot.fetch_user(guild.owner_id)
-            embed = discord.Embed(
-                title=f"{guild.name} ({guild.id})",
-                description=f"Owner: {owner} ({guild.owner_id})",
-                color=settings.defaultEmbedColor,
-            )
-        else:
-            embed = discord.Embed(
-                title=f"{guild.name} ({guild.id})",
-                color=settings.defaultEmbedColor,
-            )
-        embed.add_field(name="Members", value=guild.member_count)
-        embed.add_field(name="Spawn Enabled", value=spawn_enabled)
-        embed.add_field(name="Created at", value=format_dt(guild.created_at, style="R"))
-        embed.add_field(
-            name=f"{appearance.collectiblePlural.title()} Caught ({days} days)",
-            value=len(total_server_cars),
-        )
-        embed.add_field(
-            name=f"Amount of Users who caught {appearance.collectiblePlural} ({days} days)",
-            value=len(set([x.player.discord_id for x in total_server_cars])),
-        )
-
-        if guild.icon:
-            embed.set_thumbnail(url=guild.icon.url)
-        await interaction.followup.send(embed=embed, ephemeral=True)
-
-    @info.command()
-    async def user(
-        self,
-        interaction: discord.Interaction,
-        user: discord.User,
-        days: int = 7,
-    ):
-        """
-        Show information about the user provided
-
-        Parameters
-        ----------
-        user: discord.User | None
-            The user you want to get information about.
-        days: int
-            The amount of days to look back for the amount of cars caught.
-        """
-        await interaction.response.defer(ephemeral=True, thinking=True)
-        player = await Player.get_or_none(discord_id=user.id)
-        if not player:
-            await interaction.followup.send("The user you gave does not exist.", ephemeral=True)
-            return
-        total_user_cars = await CarInstance.filter(
-            catch_date__gte=datetime.datetime.now() - datetime.timedelta(days=days),
-            player=player,
-        )
-        embed = discord.Embed(
-            title=f"{user} ({user.id})",
-            description=(
-                f"Privacy Policy: {PRIVATE_POLICY_MAP[player.privacyPolicy]}\n"
-                f"Donation Policy: {DONATION_POLICY_MAP[player.donationPolicy]}"
-            ),
-            color=settings.defaultEmbedColor,
-        )
-        embed.add_field(
-            name=f"{appearance.collectiblePlural.title()} Caught ({days} days)",
-            value=len(total_user_cars),
-        )
-        embed.add_field(
-            name=f"{appearance.collectiblePlural.title()} Caught (Unique - ({days} days))",
-            value=len(set(total_user_cars)),
-        )
-        embed.add_field(
-            name=f"Total Servers with {appearance.collectiblePlural} caught ({days} days))",
-            value=len(set([x.server for x in total_user_cars])),
-        )
-        embed.add_field(
-            name=f"Total {appearance.collectiblePlural.title()} Caught",
-            value=await CarInstance.filter(player__discord_id=user.id).count(),
-        )
-        embed.add_field(
-            name=f"Total Unique {appearance.collectiblePlural.title()} Caught",
-            value=len(set([x.carfigure for x in total_user_cars])),
-        )
-        embed.add_field(
-            name=f"Total Servers with {appearance.collectiblePlural.title()} Caught",
-            value=len(set([x.server for x in total_user_cars])),
-        )
-        embed.set_thumbnail(url=user.display_avatar)  # type: ignore
-        await interaction.followup.send(embed=embed, ephemeral=True)
-
     @player.command()
-    @app_commands.checks.has_any_role(*settings.superUsers)
     @app_commands.choices(
-        policy=[
-            app_commands.Choice(name="Open Inventory", value=PrivacyPolicy.ALLOW),
-            app_commands.Choice(name="Private Inventory", value=PrivacyPolicy.DENY),
-            app_commands.Choice(name="Same Server", value=PrivacyPolicy.SAME_SERVER),
+        action=[
+            app_commands.Choice(name="add", value="add"),
+            app_commands.Choice(name="remove", value="remove"),
         ]
     )
-    async def privacy_policy(
+    async def rebirth(
         self,
         interaction: discord.Interaction,
         user: discord.User,
-        policy: PrivacyPolicy,
-    ):
-        """
-        Change the privacy policy of a user.
-
-        Parameters
-        ----------
-        user: discord.User
-            The user you want to do the changes on.
-        policy: PrivacyPolicy
-            How you want to change the user's privacy policy.
-        """
-        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
-        player.privacy_policy = policy
-        await player.save()
-        await interaction.response.send_message(
-            f"Changed the privacy policy of {user.name} to **{policy.name}**.",
-            ephemeral=True,
-        )
-        await log_action(
-            f"{interaction.user} changed the privacy policy of {user.name} to {policy.name}.",
-            self.bot,
-        )
-
-    @player.command()
-    @app_commands.checks.has_any_role(*settings.superUsers)
-    @app_commands.choices(
-        policy=[
-            app_commands.Choice(name="Accept all donations", value=DonationPolicy.ALWAYS_ACCEPT),
-            app_commands.Choice(
-                name="Request your approval first",
-                value=DonationPolicy.REQUEST_APPROVAL,
-            ),
-            app_commands.Choice(name="Deny all donations", value=DonationPolicy.ALWAYS_DENY),
-        ]
-    )
-    async def donation_policy(
-        self,
-        interaction: discord.Interaction,
-        user: discord.User,
-        policy: DonationPolicy,
-    ):
-        """
-        Change the donation policy of a user.
-
-        Parameters
-        ----------
-        user: discord.User
-            The user you want to do the changes on.
-        policy: DonationPolicy
-            How you want to change the user's donation policy.
-        """
-        player, _ = await PlayerModel.get_or_create(discord_id=interaction.user.id)
-        player.donation_policy = policy
-        await player.save()
-        await interaction.response.send_message(
-            f"Changed the donation policy of {user.name} to **{policy.name}**.",
-            ephemeral=True,
-        )
-        await log_action(
-            f"{interaction.user} changed the donation policy of {user.name} to {policy.name}.",
-            self.bot,
-        )
-
-    @player.command()
-    async def rebirth_add(
-        self,
-        interaction: discord.Interaction,
-        user: discord.User,
-        amount: int = 1,
+        action: app_commands.Choice[str],
+        amount: app_commands.Range[int, 1, 100],
     ):
         """
         Add an amount of rebirths to a user.
@@ -1884,78 +1278,27 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         """
         await interaction.response.defer(thinking=True, ephemeral=True)
 
-        if amount < 1:
-            await interaction.followup.send(
-                "The `amount` must be superior or equal to 1.", ephemeral=True
-            )
-            return
-        if amount > 100:
-            await interaction.followup.send(
-                f"That doesn't seem reasonable to add {amount} rebirths, "
-                "the bot will be overloaded. Try something lower than 100.",
-                ephemeral=True,
-            )
-            return
-
-        player, _ = await PlayerModel.get_or_create(discord_id=user.id)
-        player.rebirths += amount
-        await player.save()
-        plural = "s" if amount > 1 else ""
-
-        await interaction.followup.send(
-            f"Successfully added {amount} rebirth{plural} to {user.name}."
-        )
-        await log_action(
-            f"{interaction.user} added {amount} rebirth{plural} to {user.name}.", self.bot
-        )
-
-    @player.command()
-    async def rebirth_remove(
-        self,
-        interaction: discord.Interaction,
-        user: discord.User,
-        amount: int = 1,
-    ):
-        """
-        Remove an amount of rebirths from a user.
-
-        Parameters
-        ----------
-        user: discord.User
-            The user you want to remove the rebirths from.
-        amount: int
-            The amount of rebirths you want to remove from the user.
-        """
-        await interaction.response.defer(thinking=True, ephemeral=True)
-
-        if amount < 1:
-            await interaction.followup.send(
-                "The `amount` must be superior or equal to 1.", ephemeral=True
-            )
-            return
-        if amount > 100:
-            await interaction.followup.send(
-                f"Removing {amount} rebirths doesn't seem reasonable, "
-                "the bot will be overloaded. Try an amount that is 100 or lower.",
-                ephemeral=True,
-            )
-            return
-
-        player, _ = await PlayerModel.get_or_create(discord_id=user.id)
-        if amount > player.rebirths:
+        player, _ = await models.Player.get_or_create(discord_id=user.id)
+        if amount > player.rebirths and action.value == "remove":
             await interaction.followup.send(
                 "You cannot remove more rebirths than the amount of "
                 "rebirths the user currently has."
             )
             return
 
-        player.rebirths -= amount
+        if action.value == "add":
+            player.rebirths += amount
+        else:
+            player.rebirths -= amount
+
         await player.save()
         plural = "s" if amount > 1 else ""
+        word = "added" if action.value == "add" else "removed"
 
         await interaction.followup.send(
-            f"Successfully removed {amount} rebirth{plural} from {user.name}."
+            f"Successfully {word} {amount} rebirth{plural} to {user.name}."
         )
         await log_action(
-            f"{interaction.user} removed {amount} rebirth{plural} from {user.name}.", self.bot
+            f"{interaction.user} {word} {amount} rebirth{plural} to {user.name}.",
+            self.bot,
         )

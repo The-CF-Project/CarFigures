@@ -23,7 +23,7 @@ log = logging.getLogger("carfigures.packages.carfigures.components")
 
 class CarFigureNamePrompt(Modal):
     name = TextInput(
-        label="Name of this carfigure",
+        label=f"Name of this {appearance.collectibleSingular}",
         style=discord.TextStyle.short,
         placeholder="Your guess",
     )
@@ -46,10 +46,9 @@ class CarFigureNamePrompt(Modal):
 
     async def on_submit(self, interaction: discord.Interaction["CarFiguresBot"]):
         # TODO: use lock
+        await interaction.response.defer(thinking=True)
         if self.car.caught:
-            await interaction.response.send_message(
-                f"{interaction.user.mention} I was caught already!"
-            )
+            await interaction.followup.send(f"{interaction.user.mention} I was caught already!")
             return
         if self.car.model.catchNames:
             possible_names = (
@@ -60,7 +59,6 @@ class CarFigureNamePrompt(Modal):
             possible_names = (self.car.name.lower(),)
         if self.name.value.lower().strip() in possible_names:
             self.car.caught = True
-            await interaction.response.defer(thinking=True)
             car, has_caught_before = await self.catch_car(
                 interaction.client, cast(discord.Member, interaction.user)
             )
@@ -81,16 +79,12 @@ class CarFigureNamePrompt(Modal):
             self.button.disabled = True
             await interaction.followup.edit_message(self.car.message.id, view=self.button.view)
         else:
-            await interaction.response.send_message(f"{interaction.user.mention} Wrong name!")
+            await interaction.followup.send(f"{interaction.user.mention} Wrong name!")
 
     async def catch_car(
         self, bot: "CarFiguresBot", user: discord.Member
     ) -> tuple[CarInstance, bool]:
         player, _ = await Player.get_or_create(discord_id=user.id)
-
-        # stat may vary by +/- of base stat
-        bonusHorsepower = random.randint(*settings.bonusRate)
-        bonusWeight = random.randint(*settings.bonusRate)
 
         # check if we can spawn cards with the event card
         event: "Event | None" = None
@@ -107,12 +101,11 @@ class CarFigureNamePrompt(Modal):
         ]
 
         if exclusivePopulation:
-            if random.random() < settings.exclusivityChance:
-                common_weight = sum(1 - x.rarity for x in exclusivePopulation)
-                weights = [x.rarity for x in exclusivePopulation] + [common_weight]
-                exclusive = random.choices(
-                    population=exclusivePopulation + [None], weights=weights, k=1
-                )[0]
+            common_weight = sum(1 - x.rarity for x in exclusivePopulation)
+            weights = [x.rarity for x in exclusivePopulation] + [common_weight]
+            exclusive = random.choices(
+                population=exclusivePopulation + [None], weights=weights, k=1
+            )[0]
 
         if eventPopulation:
             # Here we try to determine what should be the chance of having a common card
@@ -132,19 +125,11 @@ class CarFigureNamePrompt(Modal):
             player=player,
             exclusive=exclusive,
             event=event,
-            horsepowerBonus=bonusHorsepower,
-            weightBonus=bonusWeight,
+            horsepowerBonus=random.randint(*settings.catchBonusRate),
+            weightBonus=random.randint(*settings.catchBonusRate),
             server=user.guild.id,
             spawnedTime=self.car.time,
         )
-        if user.id in bot.catch_log:
-            log.info(
-                f"{user} caught one {self.car.model}, {exclusive=} {event=}",
-            )
-        else:
-            log.debug(
-                f"{user} caught one {self.car.model}, {exclusive=} {event=}",
-            )
         if user.guild.member_count:
             caught_cars.labels(
                 fullName=self.car.model.fullName,
@@ -158,12 +143,12 @@ class CarFigureNamePrompt(Modal):
 
 class CatchButton(Button):
     def __init__(self, car: "CarFigure"):
-        super().__init__(style=discord.ButtonStyle.primary, label="Catch me!")
+        super().__init__(style=discord.ButtonStyle.primary, label=settings.catchButtonText)
         self.car = car
 
     async def callback(self, interaction: discord.Interaction):
         if self.car.caught:
-            await interaction.response.send_message("I was caught already!", ephemeral=True)
+            await interaction.response.send_message(settings.alreadyCaughtMessage, ephemeral=True)
         else:
             await interaction.response.send_modal(CarFigureNamePrompt(self.car, self))
 

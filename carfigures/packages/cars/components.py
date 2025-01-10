@@ -14,7 +14,7 @@ from carfigures.core.models import (
     PrivacyPolicy,
 )
 from carfigures.core.utils import menus
-from carfigures.core.utils.paginator import Pages
+from carfigures.core.utils.paginators import Pages
 
 from carfigures.settings import settings, appearance
 
@@ -28,16 +28,16 @@ class DonationRequest(View):
         bot: "CarFiguresBot",
         interaction: discord.Interaction,
         carfigure: CarInstance,
-        new_player: Player,
+        receiver: Player,
     ):
         super().__init__(timeout=120)
         self.bot = bot
         self.original_interaction = interaction
         self.carfigure = carfigure
-        self.new_player = new_player
+        self.receiver = receiver
 
     async def interaction_check(self, interaction: discord.Interaction, /) -> bool:
-        if interaction.user.id != self.new_player.discord_id:
+        if interaction.user.id != self.receiver.discord_id:
             await interaction.response.send_message(
                 "You are not allowed to interact with this menu.", ephemeral=True
             )
@@ -66,9 +66,9 @@ class DonationRequest(View):
             item.disabled = True  # type: ignore
         self.carfigure.favorite = False
         self.carfigure.trade_player = self.carfigure.player
-        self.carfigure.player = self.new_player
+        self.carfigure.player = self.receiver
         await self.carfigure.save()
-        trade = await Trade.create(user1=self.carfigure.trade_player, user2=self.new_player)
+        trade = await Trade.create(user1=self.carfigure.trade_player, user2=self.receiver)
         await TradeObject.create(
             trade=trade, carinstance=self.carfigure, player=self.carfigure.trade_player
         )
@@ -167,8 +167,7 @@ class CarFiguresViewer(CarFiguresSelector):
         file.close()
 
 
-async def inventory_privacy(
-    bot: "CarFiguresBot",
+async def inventoryPrivacyChecker(
     interaction: discord.Interaction,
     player: Player,
     player_obj: Union[discord.User, discord.Member],
@@ -178,31 +177,20 @@ async def inventory_privacy(
         if any(role.id in roles for role in interaction.user.roles):  # type: ignore
             return True
     match player.privacyPolicy:
-        case PrivacyPolicy.ALLOW:
+        case PrivacyPolicy.openInv:
             return True
-        case PrivacyPolicy.DENY:
+        case PrivacyPolicy.closedInv:
             if interaction.user.id != player_obj.id:
                 await interaction.followup.send(
                     "This user has set their inventory to private.", ephemeral=True
                 )
                 return False
-            else:
-                return True
-        case PrivacyPolicy.SAME_SERVER:
-            if not bot.intents.members:
+        case PrivacyPolicy.friendsOnly:
+            playe = await Player.get_or_none(discord_id=interaction.user.id)
+            if not playe or not player.is_friend(playe):
                 await interaction.followup.send(
-                    "This user has their policy set to `Same Server`, "
-                    "however I do not have the `members` intent to check this.",
+                    "Only this player's friends can view their garage",
                     ephemeral=True,
                 )
                 return False
-            elif interaction.guild is None:
-                await interaction.followup.send(
-                    "This user has set their inventory to private.", ephemeral=True
-                )
-                return False
-            elif interaction.guild.get_member(player_obj.id) is None:
-                await interaction.followup.send("This user is not in the server.", ephemeral=True)
-                return False
-            else:
-                return True
+    return True

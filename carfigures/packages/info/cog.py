@@ -9,8 +9,8 @@ from discord.ext import commands
 
 from carfigures.core.models import cars as carfigures
 from carfigures.core.utils.transformers import EventEnabledTransform
-from carfigures.core.utils.paginator import FieldPageSource, Pages
-from carfigures.core.utils.tortoise import row_count_estimate
+from carfigures.core.utils.paginators import FieldPageSource, Pages
+from carfigures.packages.info.components import row_count_estimate, mention_app_command
 
 from carfigures.settings import settings, information, appearance
 
@@ -20,19 +20,6 @@ if TYPE_CHECKING:
 log = logging.getLogger("carfigures.packages.info")
 
 
-def mention_app_command(app_command: app_commands.Command | app_commands.Group) -> str:
-    """
-    Generate a mention for the provided app command.
-    """
-    if "mention" in app_command.extras:
-        return app_command.extras["mention"]
-    else:
-        if isinstance(app_command, app_commands.ContextMenu):
-            return f"`{app_command.name}`"
-        else:
-            return f"`/{app_command.name}`"
-
-
 class Info(commands.GroupCog):
     """
     Simple info commands.
@@ -40,15 +27,6 @@ class Info(commands.GroupCog):
 
     def __init__(self, bot: "CarFiguresBot"):
         self.bot = bot
-
-    @app_commands.command()
-    async def ping(self, interaction: discord.Interaction):
-        """
-        Show the bot latency.
-        """
-        await interaction.response.send_message(
-            f"Pong! {round(self.bot.latency * 1000)}ms", ephemeral=True
-        )
 
     @app_commands.command()
     async def status(self, interaction: discord.Interaction):
@@ -124,12 +102,12 @@ class Info(commands.GroupCog):
             text=f"Python {v.major}.{v.minor}.{v.micro} • discord.py {discord.__version__}"
         )
 
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
     async def commands(self, interaction: discord.Interaction):
         """
-        Show information about the commands inside this bot, categorized by page.
+        Show information about the commands inside this bot.
         """
 
         assert self.bot.users
@@ -170,7 +148,7 @@ class Info(commands.GroupCog):
         source.embed.title = f"{settings.botName} Commands list"
         source.embed.colour = settings.defaultEmbedColor
         pages = Pages(source=source, interaction=interaction, compact=True)
-        await pages.start(ephemeral=True)
+        await pages.start()
 
     @app_commands.command()
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)

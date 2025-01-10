@@ -7,7 +7,7 @@ import discord
 
 from carfigures.core.models import GuildConfig, Car, cars
 from carfigures.packages.carfigures.components import CatchView
-from carfigures.settings import appearance
+from carfigures.settings import settings
 
 log = logging.getLogger("carfigures.packages.carfigures")
 
@@ -24,7 +24,7 @@ class CarFigure:
         self.time = datetime.now()
 
     @classmethod
-    async def get_random(cls):
+    async def getRandom(cls):
         """
         A method to get a random Car instance from a list of enabled cars based on their rarity.
         """
@@ -50,23 +50,32 @@ class CarFigure:
             in the logs if that's the case.
         """
 
-        def generate_random_name():
+        def generateRandomName():
             """
             Generate a random name.
             """
             source = string.ascii_uppercase + string.ascii_lowercase + string.ascii_letters
             return "".join(random.choices(source, k=15))
 
+        assert channel.guild
         extension = self.model.spawnPicture.split(".")[-1]
         fileLocation = "." + self.model.spawnPicture
-        filename = f"nt_{generate_random_name()}.{extension}"
+        filename = f"nt_{generateRandomName()}.{extension}"
         guild = await GuildConfig.get(guild_id=channel.guild.id)
-        spawnrole = f" <@&{guild.spawnRole}>" or None
+        role = channel.guild.get_role(guild.spawnRole) if guild.spawnRole else None
+        messagesListMessages = [x["message"] for x in settings.spawnMessages]
+        messagesListRarity = [int(x["rarity"]) for x in settings.spawnMessages]
+
+        message = random.choices(population=messagesListMessages, weights=messagesListRarity, k=1)[
+            0
+        ]
+        if role:
+            message += f" {role.mention}"
         try:
             permissions = channel.permissions_for(channel.guild.me)
             if permissions.attach_files and permissions.send_messages:
                 self.message = await channel.send(
-                    f"A wild {appearance.collectibleSingular} has appeared!{spawnrole or None}",
+                    message,
                     view=CatchView(self),
                     file=discord.File(fileLocation, filename=filename),
                 )

@@ -3,7 +3,7 @@ import logging
 import random
 from collections import deque, namedtuple
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import cast
 from carfigures.settings import settings
 
@@ -40,14 +40,18 @@ class SpawnCooldown:
 
     time: datetime
     # initialize partially started, to reduce the dead time after starting the bot
-    amount: float = field(default_factory=lambda: float(settings.spawnChanceRange[0] // 2))
-    chance: int = field(default_factory=lambda: random.randint(*settings.spawnChanceRange))
+    scaledMessageCount: float = field(
+        default_factory=lambda: float(settings.requiredMessageRange[0] // 2)
+    )
+    cachedMessagesSet: set[str] = field(default_factory=set)
+    chance: int = field(default_factory=lambda: random.randint(*settings.requiredMessageRange))
     lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False)
-    message_cache: deque[CachedMessage] = field(default_factory=lambda: deque(maxlen=100))
+    messageCache: deque[CachedMessage] = field(default_factory=lambda: deque(maxlen=100))
+    uniqueAuthors: set[int] = field(default_factory=set)
 
     def reset(self, time: datetime):
-        self.amount = 1.0
-        self.chance = random.randint(*settings.spawnChanceRange)
+        self.scaledMessageCount = 1.0
+        self.chance = random.randint(*settings.requiredMessageRange)
         try:
             self.lock.release()
         except RuntimeError:  # lock is not acquired
@@ -58,7 +62,7 @@ class SpawnCooldown:
         # this is a deque, not a list
         # its property is that, once the max length is reached (100 for us),
         # the oldest element is removed, thus we only have the last 100 messages in memory
-        self.message_cache.append(
+        self.messageCache.append(
             CachedMessage(content=message.content, author_id=message.author.id)
         )
 
@@ -66,25 +70,25 @@ class SpawnCooldown:
             return False
 
         async with self.lock:
-            amount = 1
-            if message.guild.member_count < 5 or message.guild.member_count > 1000:  # type: ignore
-                amount /= 2
+            messageMultiplier = 1
+            if message.content.lower() in [m.content.lower() for m in self.messageCache]:
+                messageMultiplier /= 2
+            if (
+                message.guild.member_count < settings.minimumMembersRequired
+                or message.guild.member_count > 1000
+            ):  # type: ignore
+                messageMultiplier /= 2
             if len(message.content) < 5:
-                amount /= 2
-            if len(set(x.author_id for x in self.message_cache)) < 4 or (
-                len(
-                    list(
-                        filter(
-                            lambda x: x.author_id == message.author.id,
-                            self.message_cache,
-                        )
-                    )
-                )
+                messageMultiplier /= 2
+            if (datetime.now(timezone.utc) - message.author.created_at).days < 7:
+                messageMultiplier /= 2
+            if len(self.uniqueAuthors) < 4 or (
+                len(list(filter(lambda x: x.author_id == message.author.id, self.messageCache)))
                 / self.message_cache.maxlen  # type: ignore
                 > 0.4
             ):
-                amount /= 2
-            self.amount += amount
+                messageMultiplier /= 2
+            self.scaledMessageCount += messageMultiplier
             await asyncio.sleep(10)
         return True
 
@@ -94,7 +98,7 @@ class SpawnManager:
     cooldowns: dict[int, SpawnCooldown] = field(default_factory=dict)
     cache: dict[int, int] = field(default_factory=dict)
 
-    async def handle_message(self, message: discord.Message):
+    async def handleMessage(self, message: discord.Message):
         guild = message.guild
         if not guild:
             return
@@ -104,38 +108,40 @@ class SpawnManager:
             cooldown = SpawnCooldown(message.created_at)
             self.cooldowns[guild.id] = cooldown
 
-        delta = (message.created_at - cooldown.time).total_seconds()
+        deltaTime = (message.created_at - cooldown.time).total_seconds()
         # change how the threshold varies according to the member count, while nuking farm servers
         if not guild.member_count:
             return
-        elif guild.member_count < 5:
-            multiplier = 0.1
         elif guild.member_count < 100:
             multiplier = 0.8
         elif guild.member_count < 1000:
             multiplier = 0.5
         else:
             multiplier = 0.2
-        chance = cooldown.chance - multiplier * (delta // 60)
+        chance = cooldown.chance - multiplier * (deltaTime // 60)
 
         # manager cannot be increased more than once per 5 seconds
         if not await cooldown.increase(message):
             return
 
         # normal increase, need to reach goal
-        if cooldown.amount <= chance:
+        if cooldown.scaledMessageCount <= chance:
             return
 
         # at this point, the goal is reached
-        if delta < 600:
+        if deltaTime < settings.coolDownTime:
             # wait for at least 10 minutes before spawning
             return
 
         # spawn carfigure
         cooldown.reset(message.created_at)
-        await self.spawn_carfigure(guild)
+        await self.spawnCarfigure(
+            guild
+        ) if guild.member_count > settings.minimumMembersRequired else log.warning(
+            f"{guild.name} ({guild.id}) is trying to farm."
+        )
 
-    async def spawn_carfigure(self, guild: discord.Guild):
+    async def spawnCarfigure(self, guild: discord.Guild):
         channel = guild.get_channel(self.cache[guild.id])
         if not channel:
             log.warning(f"Lost channel {self.cache[guild.id]} for guild {guild.name}.")
@@ -146,9 +152,6 @@ class SpawnManager:
                 f"Lost permissions to send messages in {channel.name} for guild {guild.name}."
             )
             return
-        if guild.member_count < 20:
-            log.warning("Not enough members to spawn car.")
-            return
 
-        car = await CarFigure.get_random()
+        car = await CarFigure.getRandom()
         await car.spawn(cast(discord.TextChannel, channel))

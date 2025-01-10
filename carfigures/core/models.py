@@ -2,15 +2,16 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
-from enum import IntEnum
 from io import BytesIO
 from typing import TYPE_CHECKING, Iterable, Tuple, Type
+from enum import IntEnum
 
 import discord
 from discord.utils import format_dt
 from tortoise import exceptions, fields, models, signals, timezone, validators
+from tortoise.expressions import Q
 from fastapi_admin.models import AbstractAdmin
-from carfigures.core.utils import imager
+from carfigures.core.utils import imagers
 from carfigures.settings import appearance
 
 if TYPE_CHECKING:
@@ -87,6 +88,7 @@ class CarType(models.Model):
 
     name = fields.CharField(max_length=64)
     image = fields.CharField(max_length=200, description="1428x2000 PNG image")
+    rebirthRequired = fields.IntField(default=0)
     fontsPack: fields.ForeignKeyRelation[FontsPack] = fields.ForeignKeyField(
         "models.FontsPack",
         description="The FontPack this exclusive uses",
@@ -189,7 +191,7 @@ class Event(models.Model):
         ordering = ["-startDate"]
 
     def drawBanner(self) -> BytesIO:
-        image = imager.drawBanner(self)
+        image = imagers.drawBanner(self)
         buffer = BytesIO()
         image.save(buffer, format="png")
         buffer.seek(0)
@@ -246,6 +248,8 @@ class Car(models.Model):
         max_length=200,
         description="Image used when displaying cars",
     )
+    optionalCard = fields.CharField(max_length=200, description="1428x2000 PNG image", null=True)
+    fontsMetaData = fields.JSONField(description="Effect of this capacity", default={})
     carCredits = fields.CharField(
         max_length=64,
         description="Author of the collection artwork",
@@ -431,7 +435,7 @@ class CarInstance(models.Model):
         return text
 
     def drawCard(self) -> BytesIO:
-        image = imager.drawCard(self)
+        image = imagers.drawCard(self)
         buffer = BytesIO()
         image.save(buffer, format="png")
         buffer.seek(0)
@@ -498,15 +502,16 @@ class CarInstance(models.Model):
 
 
 class DonationPolicy(IntEnum):
-    ALWAYS_ACCEPT = 1
-    REQUEST_APPROVAL = 2
-    ALWAYS_DENY = 3
+    alwaysAccept = 1
+    requestApproval = 2
+    alwaysDeny = 3
+    friendsOnly = 4
 
 
 class PrivacyPolicy(IntEnum):
-    ALLOW = 1
-    DENY = 2
-    SAME_SERVER = 3
+    openInv = 1
+    closedInv = 2
+    friendsOnly = 3
 
 
 class Player(models.Model):
@@ -518,18 +523,55 @@ class Player(models.Model):
     donationPolicy = fields.IntEnumField(
         DonationPolicy,
         description="How you want to handle donations",
-        default=DonationPolicy.ALWAYS_ACCEPT,
+        default=DonationPolicy.alwaysAccept,
     )
     privacyPolicy = fields.IntEnumField(
         PrivacyPolicy,
         description="How you want to handle privacy",
-        default=PrivacyPolicy.ALLOW,
+        default=PrivacyPolicy.openInv,
     )
+    bolts = fields.IntField(default=0)
+    friends: fields.BackwardFKRelation[Friendship]
     cars: fields.BackwardFKRelation[CarInstance]
     rebirths = fields.IntField(default=0)
 
     def __str__(self) -> str:
         return str(self.discord_id)
+
+    async def is_friend(self, other_player: "Player") -> bool:
+        return await Friendship.filter(
+            (Q(player1=self) & Q(player2=other_player))
+            | (Q(player1=other_player) & Q(player2=self))
+        ).exists()
+
+
+class Friendship(models.Model):
+    id: int
+    friender: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="player1", source_field="friender"
+    )
+    friended: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="player2", source_field="friended"
+    )
+    bestie = fields.BooleanField(default=False)
+    since = fields.DatetimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return str(self.pk)
+
+
+class FriendshipRequest(models.Model):
+    id: int
+    sender: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="requestSender", source_field="sender"
+    )
+    receiver: fields.ForeignKeyRelation[Player] = fields.ForeignKeyField(
+        "models.Player", related_name="requestReceiver", source_field="receiver"
+    )
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return str(self.pk)
 
 
 class BlacklistedUser(models.Model):

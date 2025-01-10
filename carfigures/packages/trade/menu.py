@@ -34,7 +34,9 @@ class TradeView(View):
         try:
             self.trade._get_trader(interaction.user)
         except RuntimeError:
-            await interaction.response.send_message("You are not allowed to interact with this trade.", ephemeral=True)
+            await interaction.response.send_message(
+                "You are not allowed to interact with this trade.", ephemeral=True
+            )
             return False
         else:
             return True
@@ -43,7 +45,9 @@ class TradeView(View):
     async def lock(self, interaction: discord.Interaction, button: Button):
         trader = self.trade._get_trader(interaction.user)
         if trader.locked:
-            await interaction.response.send_message("You have already locked your proposal!", ephemeral=True)
+            await interaction.response.send_message(
+                "You have already locked your proposal!", ephemeral=True
+            )
             return
         await self.trade.lock(trader)
         if self.trade.trader1.locked and self.trade.trader2.locked:
@@ -53,7 +57,8 @@ class TradeView(View):
             )
         else:
             await interaction.response.send_message(
-                "Your proposal has been locked. " "You can wait for the other user to lock their proposal.",
+                "Your proposal has been locked. "
+                "You can wait for the other user to lock their proposal.",
                 ephemeral=True,
             )
 
@@ -62,7 +67,8 @@ class TradeView(View):
         trader = self.trade._get_trader(interaction.user)
         if trader.locked:
             await interaction.response.send_message(
-                "You have locked your proposal, it cannot be edited! " "You can click the cancel button to stop the trade instead.",
+                "You have locked your proposal, it cannot be edited! "
+                "You can click the cancel button to stop the trade instead.",
                 ephemeral=True,
             )
         else:
@@ -90,16 +96,22 @@ class ConfirmView(View):
         try:
             self.trade._get_trader(interaction.user)
         except RuntimeError:
-            await interaction.response.send_message("You are not allowed to interact with this trade.", ephemeral=True)
+            await interaction.response.send_message(
+                "You are not allowed to interact with this trade.", ephemeral=True
+            )
             return False
         else:
             return True
 
-    @discord.ui.button(style=discord.ButtonStyle.success, emoji="\N{HEAVY CHECK MARK}\N{VARIATION SELECTOR-16}")
+    @discord.ui.button(
+        style=discord.ButtonStyle.success, emoji="\N{HEAVY CHECK MARK}\N{VARIATION SELECTOR-16}"
+    )
     async def accept_button(self, interaction: discord.Interaction, button: Button):
         trader = self.trade._get_trader(interaction.user)
         if trader.accepted:
-            await interaction.response.send_message("You have already accepted this trade.", ephemeral=True)
+            await interaction.response.send_message(
+                "You have already accepted this trade.", ephemeral=True
+            )
             return
         await interaction.response.defer(ephemeral=True, thinking=True)
         result = await self.trade.confirm(trader)
@@ -107,9 +119,13 @@ class ConfirmView(View):
             if result:
                 await interaction.followup.send("The trade is now concluded.", ephemeral=True)
             else:
-                await interaction.followup.send(":warning: An error occurred while concluding the trade.", ephemeral=True)
+                await interaction.followup.send(
+                    ":warning: An error occurred while concluding the trade.", ephemeral=True
+                )
         else:
-            await interaction.followup.send("You have accepted the trade, waiting for the other user...", ephemeral=True)
+            await interaction.followup.send(
+                "You have accepted the trade, waiting for the other user...", ephemeral=True
+            )
 
     @discord.ui.button(
         style=discord.ButtonStyle.danger,
@@ -160,7 +176,10 @@ class TradeMenu:
             "You can also lock with nothing if you're receiving a gift.\n\n"
             f"*This interaction ends {timestamp}.*"
         )
-        self.embed.set_footer(text="This message is updated every 15 seconds, " "but you can keep on editing your proposal.")
+        self.embed.set_footer(
+            text="This message is updated every 15 seconds, "
+            "but you can keep on editing your proposal."
+        )
 
     async def update_message_loop(self):
         """
@@ -168,11 +187,11 @@ class TradeMenu:
         """
 
         assert self.task
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         while True:
             await asyncio.sleep(15)
-            if datetime.utcnow() - start_time > timedelta(minutes=15):
+            if datetime.now(timezone.utc) - start_time > timedelta(minutes=15):
                 self.embed.colour = discord.Colour.dark_red()
                 await self.cancel("The trade timed out")
                 return
@@ -197,7 +216,8 @@ class TradeMenu:
         self._generate_embed()
         fill_trade_embed_fields(self.embed, self.bot, self.trader1, self.trader2)
         self.message = await self.channel.send(
-            content=f"Hey {self.trader2.user.mention}, {self.trader1.user.name} " "is proposing a trade with you!",
+            content=f"Hey {self.trader2.user.mention}, {self.trader1.user.name} "
+            "is proposing a trade with you!",
             embed=self.embed,
             view=self.current_view,
         )
@@ -233,7 +253,9 @@ class TradeMenu:
             fill_trade_embed_fields(self.embed, self.bot, self.trader1, self.trader2)
 
             self.embed.colour = discord.Colour.yellow()
-            self.embed.description = "Both users locked their propositions! Now confirm to conclude this trade."
+            self.embed.description = (
+                "Both users locked their propositions! Now confirm to conclude this trade."
+            )
             self.current_view = ConfirmView(self)
             await self.message.edit(content=None, embed=self.embed, view=self.current_view)
 
@@ -259,7 +281,9 @@ class TradeMenu:
             carfigure.trade_player = self.trader1.player
             carfigure.favorite = False
             valid_transferable_carfigures.append(carfigure)
-            await TradeObject.create(trade=trade, carinstance=carfigure, player=self.trader1.player)
+            await TradeObject.create(
+                trade=trade, carinstance=carfigure, player=self.trader1.player
+            )
 
         for carfigure in self.trader2.proposal:
             if carfigure.player.discord_id != self.trader2.player.discord_id:
@@ -269,7 +293,9 @@ class TradeMenu:
             carfigure.trade_player = self.trader2.player
             carfigure.favorite = False
             valid_transferable_carfigures.append(carfigure)
-            await TradeObject.create(trade=trade, carinstance=carfigure, player=self.trader2.player)
+            await TradeObject.create(
+                trade=trade, carinstance=carfigure, player=self.trader2.player
+            )
 
         for carfigure in valid_transferable_carfigures:
             await carfigure.unlock()
