@@ -119,17 +119,18 @@ class Core(commands.Cog):
         receiver: discord.User,
     ):
         """
-        Transfer someone's inventory to someone else
+        Transfer someone's inventory to someone else.
         """
-        oldPlayer = await Player.get(discord_id=gifter.id)
+        try:
+            oldPlayer = await Player.get(discord_id=gifter.id)
+        except DoesNotExist:
+            await ctx.send(f"Original player doesn't have any {appearance.collectiblePlural}.")
+            return
+        
+        newPlayer, _ = await Player.get_or_create(discord_id=receiver.id)
 
-        newPlayer = await Player.get(discord_id=receiver.id)
-
-        cars = await CarInstance.filter(player=oldPlayer)
-        for car in cars:
-            car.player = newPlayer
-            await car.save()
+        await CarInstance.filter(player=oldPlayer).update(player=newPlayer)
 
         await ctx.send(
-            f"The {appearance.garageName} of {gifter.display_name} has been transferred to {receiver.display_name}"
+            f"The {appearance.garageName} of {gifter.display_name} has been transferred to {receiver.display_name}."
         )
