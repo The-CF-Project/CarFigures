@@ -2,7 +2,7 @@ from discord import app_commands
 from tortoise import Tortoise
 
 
-def mention_app_command(app_command: app_commands.Command | app_commands.Group) -> str:
+def mentionAppCommand(app_command: app_commands.Command | app_commands.Group) -> str:
     """
     Generate a mention for the provided app command.
     """
@@ -15,7 +15,7 @@ def mention_app_command(app_command: app_commands.Command | app_commands.Group) 
             return f"`/{app_command.name}`"
 
 
-async def row_count_estimate(table_name: str, *, analyze: bool = True) -> int:
+async def rowCountEstimate(table_name: str, *, analyze: bool = True) -> int:
     """
     Estimate the number of rows in a table. This is *insanely* faster than querying all rows,
     but the number given is an estimation, not the real value.

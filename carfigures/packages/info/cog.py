@@ -7,10 +7,10 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from carfigures import botVersion
 from carfigures.core.models import cars as carfigures
 from carfigures.core.utils.transformers import EventEnabledTransform
-from carfigures.core.utils.paginators import FieldPageSource, Pages
-from carfigures.packages.info.components import row_count_estimate, mention_app_command
+from carfigures.packages.info.components import rowCountEstimate, mentionAppCommand
 
 from carfigures.settings import settings, information, appearance
 
@@ -39,8 +39,8 @@ class Info(commands.GroupCog):
         )
 
         cars_count = len([x for x in carfigures.values() if x.enabled])
-        players_count = await row_count_estimate("player")
-        cars_instances_count = await row_count_estimate("carinstance")
+        players_count = await rowCountEstimate("player")
+        cars_instances_count = await rowCountEstimate("carinstance")
         developers = "\n".join([f"\u200b **⋄** {dev}" for dev in information.developers])
         first_contributors = "\n".join(
             [f"\u200b **⋄** {contrib}" for contrib in information.contributors[:4]]
@@ -79,7 +79,7 @@ class Info(commands.GroupCog):
             f"{cars_instances_count:,} **Caught**\n"
             f"\u200b **⋄ Player Count: ** {players_count:,}\n"
             f"\u200b **⋄ Server Count: ** {len(self.bot.guilds):,}\n"
-            f"\u200b **⋄  Operating Version: [v2.1.4]({information.repositoryLink})**\n\n",
+            f"\u200b **⋄  Operating Version: [{botVersion}]({information.repositoryLink})**\n\n",
             inline=False,
         )
         # ⋋
@@ -118,37 +118,60 @@ class Info(commands.GroupCog):
             for appCommand in cog.walk_app_commands():
                 # Use cog name as category (unchangeable by users)
                 category = cog.qualified_name
-                if category == "SuperUser":
+                if category == "SuperUser" or category == "Info":
                     continue
+                if category == "Cars":
+                    category = appearance.cars.title()
                 categoryToCommands.setdefault(category, []).append(appCommand)
 
-        # Create the paginated source directly using categories dictionary
-        entries = []
-        for categoryName, cogCommands in categoryToCommands.items():
-            sortedCommands = sorted(
-                cogCommands, key=lambda c: c.name
-            )  # Sort commands alphabetically
-            commandDescriptions = {
-                c.name: c.description for c in sortedCommands
-            }  # Create temporary dictionary
+        # Create dropdown options for categories
+        options = [
+            discord.SelectOption(
+                label=category,
+                description=f"View commands for {category}",
+                value=category,
+            )
+            for category in categoryToCommands
+        ]
 
-            # Combine formatted command names with newlines
-            commandList = "\n".join(
-                [
-                    f"\u200b ⋄ {mention_app_command(c)}: {commandDescriptions[c.name]}"
-                    for c in sortedCommands
-                ]
+        select = discord.ui.Select(
+            placeholder="Choose a category...",
+            min_values=1,
+            max_values=1,
+            options=options,
+        )
+
+        embed = discord.Embed(
+            title="Select a category",
+            description="Choose a category to see its commands.",
+            color=settings.defaultEmbedColor,
+        )
+        view = discord.ui.View()
+
+        async def callback(interaction: discord.Interaction):
+            selectedCategory = select.values[0]
+            commandsInCategory = categoryToCommands[selectedCategory]
+            commandsList = "\n".join(
+                [f"⋄ {mentionAppCommand(cmd)}: {cmd.description}" for cmd in commandsInCategory]
             )
 
-            # Create an entry tuple (category name as title, list of commands)
-            entry = (f"**Category: {categoryName}**", f"{commandList}")
-            entries.append(entry)
+            embed = discord.Embed(
+                title=f"{settings.botName} Commands | {selectedCategory}",
+                description=commandsList or "No commands available.",
+                color=settings.defaultEmbedColor,
+            )
+            await interaction.response.edit_message(embed=embed, view=view)
 
-        source = FieldPageSource(entries=entries, per_page=2)  # Adjust per_page as needed
-        source.embed.title = f"{settings.botName} Commands list"
-        source.embed.colour = settings.defaultEmbedColor
-        pages = Pages(source=source, interaction=interaction, compact=True)
-        await pages.start()
+        # Create an embed explaining the purpose of the dropdown
+        embed = discord.Embed(
+            title=f"{settings.botName} Commands",
+            description="Select a category from the dropdown to view its commands.",
+            color=settings.defaultEmbedColor,
+        )
+        select.callback = callback  # type: ignore
+        view.add_item(select)
+
+        await interaction.response.send_message(embed=embed, view=view)
 
     @app_commands.command()
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)

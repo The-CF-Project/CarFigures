@@ -10,60 +10,50 @@ If you're using Docker:
 
 1. Install Docker.
 2. Run `docker compose build` at the root of this repository.
-3. Create an `.env` file with the following configuration:
-   ```env
-   CARFIGURESBOT_TOKEN=your discord token
-   POSTGRES_PASSWORD=a random string
-   ```
-
 4. Start PostgreSQL and Redis with `docker compose up -d postgres-db redis-cache`. Note that this will not start the bot.
+
 ----
 
 Without docker, check how to install and setup PostgreSQL and Redis-server on your OS.
-Export the appropriate environment variables as described in the
-[README](README.md#without-docker).
+Export the appropriate environment variables then you should be good to go.
 
 ### Installing the dependencies
 
-1. Get Python 3.10 and pip
+1. Get Python 3.12 and pip
 2. Install poetry with `pip install poetry`
 3. Run `poetry install`
-4. You may run commands inside the virtualenv with `poetry run ...`, or use `poetry shell`
-5. Set up your IDE Python version to the one from Poetry. The path to the virtualenv can
-   be obtained with `poetry show -v`.
+4. You may run commands inside the virtualenv with `poetry run ...`, or use `poetry env activate` to source the env
 
 ## Running the code
 
+Before running any command, you must be in the poetry virtualenv, with the following environment variables exported:
+
+```bash
+poetry shell
+export CARFIGURESBOT_DB_URL="postgres://ballsdex:defaultballsdexpassword@localhost:5432/ballsdex"
+export CARFIGURESBOT_REDIS_URL="redis://127.0.0.1"
+```
+
+If needed, feel free to change the host, port, user or password of the database or redis server.
+
 ### Starting the bot
 
-To start the bot, follow these steps:
+```bash
+python3 -m carfigures --dev --debug
+```
 
-- `poetry shell`
-- ```bash
-  CARFIGURESBOT_DB_URL="postgres://carfigures:password@localhost:5432/carfigures" \
-  python3 -m carfigures --dev --debug
-  ```
-
+You can do `python3 -m ballsdex -h` to see the available options.
 Replace `password` with the same value as the one in the `.env` file.
 If appropriate, you may also replace `localhost` and `5432` for the host and the port.
 
 ### Starting the Admin Panel
 
 **Warning: You need to run migrations from the bot at least once before starting the admin
-panel without the other components.**
+panel without the other components.** You can either run the bot once or do `aerich upgrade`.
 
-If you're not actively working on the admin panel, you can just do `docker compose up admin-panel`.
-Otherwise, follow these instructions to directly have the process without rebuilding.
-
-- `poetry shell`
-- ```bash
-  CARFIGURESBOT_DB_URL="postgres://carfigures:password@localhost:5432/carfigures" \
-  CARFIGURESBOT_REDIS_URL="redis://127.0.0.1" \
-  python3 -m carfigures --dev --debug
-  ```
-
-Once again, replace `password` with the same value as the one in the `.env` file.
-If appropriate, you may also replace `localhost` and `5432` for the host and the port.
+```bash
+uvicorn ballsdex.core.admin:_app --host 0.0.0.0 --reload
+```
 
 ## Migrations
 
@@ -75,7 +65,6 @@ When new migrations are available, you can either start the bot to run them auto
 execute the following command:
 
 ```sh
-CARFIGURESBOT_DB_URL="postgres://carfigures:password@localhost:5432/carfigures" \
 aerich upgrade
 ```
 
@@ -92,14 +81,13 @@ is not messy!** Aerich's behaviour can be odd if not in ideal conditions.
 Execute the following command to generate migrations, and push the created files:
 
 ```sh
-CARFIGURESBOT_DB_URL="postgres://carfigures:password@localhost:5432/carfigures" \
 aerich migrate
 ```
 
 ## Coding style
 
-The repo is validating code with `flake8` and formatting with `black`. They can be setup as a
-pre-commit hook to make them run before committing files:
+The repo is validating and formatting code with `ruff` and statically checked by `pyright`.
+They can be setup as a pre-commit hook to make them run before committing files:
 
 ```sh
 pre-commit install

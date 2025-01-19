@@ -84,7 +84,7 @@ class SpawnCooldown:
                 messageMultiplier /= 2
             if len(self.uniqueAuthors) < 4 or (
                 len(list(filter(lambda x: x.author_id == message.author.id, self.messageCache)))
-                / self.message_cache.maxlen  # type: ignore
+                / self.messageCache.maxlen  # type: ignore
                 > 0.4
             ):
                 messageMultiplier /= 2

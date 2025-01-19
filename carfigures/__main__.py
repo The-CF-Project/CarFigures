@@ -18,6 +18,7 @@ from discord.ext.commands import when_mentioned_or
 from rich import print
 from tortoise import Tortoise
 
+from carfigures import botVersion
 from carfigures.core.bot import CarFiguresBot
 from carfigures.settings import read_settings, settings
 
@@ -70,7 +71,7 @@ def print_welcome():
             "Discord.py version:", discord.__version__
         )
     )
-    print(" [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format("CF Version:", "v2.1.4"))
+    print(" [red]{0:<20}[/red] [yellow]{1:>10}[/yellow]".format("CF Version:", botVersion))
     print("")
 
 

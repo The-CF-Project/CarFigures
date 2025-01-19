@@ -214,7 +214,7 @@ class CarFiguresBot(commands.AutoShardedBot):
         models.cartypes.clear()
         for cartype in await models.CarType.all():
             models.cartypes[cartype.pk] = cartype
-        table.add_row(f"{appearance.cartype}s", str(len(models.cartypes)))
+        table.add_row(f"{appearance.album}s", str(len(models.cartypes)))
 
         models.countries.clear()
         for country in await models.Country.all():
@@ -278,17 +278,11 @@ class CarFiguresBot(commands.AutoShardedBot):
 
         # set bot owners
         assert self.application
-        if self.application.team:
-            if settings.teamMembersAreOwners:
-                self.owner_ids.update(m.id for m in self.application.team.members)
-            else:
-                self.owner_ids.add(self.application.team.owner_id)
-        else:
-            self.owner_ids.add(self.application.owner.id)
-        if settings.co_owners:
-            self.owner_ids.update(settings.co_owners)
+        self.owner_ids.add(self.application.owner.id)
+        if settings.roots:
+            self.owner_ids.update(settings.roots)
         if len(self.owner_ids) > 1:
-            log.info(f"{len(self.owner_ids)} users are set as bot owner.")
+            log.info(f"{len(self.owner_ids)} users are set as bot owners.")
         else:
             log.info(
                 f"{await self.fetch_user(next(iter(self.owner_ids)))} is the owner of this bot."

@@ -43,9 +43,9 @@ async def generate_card(
     request: Request,
     pk: str = Path(...),
 ):
-    car = await models.Car.get(pk=pk).prefetch_related("cartype", "country")
-    temp_instance = models.CarInstance(car=car, player=await models.Player.first(), count=1)
-    buffer = temp_instance.drawCard()
+    car = await models.Car.get(pk=pk).prefetch_related("cartype", "cartype__fontsPack", "country")
+    tempInstance = await models.CarInstance(car=car, player=await models.Player.first(), count=1)
+    buffer = tempInstance.drawCard()
     return Response(content=buffer.read(), media_type="image/png")
 
 
@@ -56,10 +56,14 @@ async def generate_event_card(
 ):
     event = await models.Event.get(pk=pk)
     try:
-        car = await models.Car.first().prefetch_related("cartype", "country")
+        car = await models.Car.first().prefetch_related("cartype", "cartype__fontsPack", "country")
     except DoesNotExist:
-        return Response(content="At least one entity must exist", status_code=422, media_type="text/html")
-    instance = models.CarInstance(car=car, event=event, player=await models.Player.first(), count=1)
+        return Response(
+            content="At least one entity must exist", status_code=422, media_type="text/html"
+        )
+    instance = models.CarInstance(
+        car=car, event=event, player=await models.Player.first(), count=1
+    )
     buffer = instance.drawCard()
     return Response(content=buffer.read(), media_type="image/png")
 
@@ -71,9 +75,13 @@ async def generate_exclusive_card(
 ):
     exclusive = await models.Exclusive.get(pk=pk)
     try:
-        car = await models.Car.first().prefetch_related("cartype", "country")
+        car = await models.Car.first().prefetch_related("cartype", "cartype__fontsPack", "country")
     except DoesNotExist:
-        return Response(content="At least one entity must exist", status_code=422, media_type="text/html")
-    instance = models.CarInstance(car=car, exclusive=exclusive, player=await models.Player.first(), count=1)
+        return Response(
+            content="At least one entity must exist", status_code=422, media_type="text/html"
+        )
+    instance = models.CarInstance(
+        car=car, exclusive=exclusive, player=await models.Player.first(), count=1
+    )
     buffer = instance.drawCard()
     return Response(content=buffer.read(), media_type="image/png")

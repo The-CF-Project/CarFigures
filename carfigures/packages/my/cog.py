@@ -79,7 +79,7 @@ class My(commands.GroupCog):
             f"\u200b **⋄ Privacy Policy:** {player.privacyPolicy.name}\n"
             f"\u200b **⋄ Donation Policy:** {player.donationPolicy.name}\n\n"
             f"**Ⅲ Player Info\n**"
-            f"\u200b **⋄ {appearance.collectiblePlural} Collected:** {await player.cars.filter().count()}\n"
+            f"\u200b **⋄ {appearance.collectiblePlural.title()} Collected:** {await player.cars.filter().count()}\n"
             f"\u200b **⋄ Rebirths Done:** {player.rebirths}\n"
         )
 
@@ -92,7 +92,9 @@ class My(commands.GroupCog):
         Restart the game
         """
 
+        player, _ = await models.Player.get_or_create(discord_id=interaction.user.id)
         bot_carfigures = {x: y.pk for x, y in models.cars.items() if y.enabled}
+
         filters = {
             "player__discord_id": interaction.user.id,
             "car__enabled": True,
@@ -130,7 +132,6 @@ class My(commands.GroupCog):
         await view.wait()
         if view.value is None or not view.value:
             return
-        player, _ = await models.Player.get_or_create(discord_id=interaction.user.id)
         player.rebirths += 1
         await player.save()
         await models.CarInstance.filter(player=player).delete()
@@ -144,7 +145,7 @@ class My(commands.GroupCog):
         """
         List all your friends' profiles
         """
-        player = await models.Player.get(discord_id=interaction.user.id)
+        player, _ = await models.Player.get_or_create(discord_id=interaction.user.id)
         friendships = await models.Friendship.filter(
             Q(friender=player) | Q(friended=player)
         ).prefetch_related("friender", "friended")
@@ -163,10 +164,10 @@ class My(commands.GroupCog):
                 else friendship.friender
             )
 
-            playeruser = await self.bot.fetch_user(friend_player.discord_id)
+            friend = await self.bot.fetch_user(friend_player.discord_id)
             options.append(
                 discord.SelectOption(
-                    label=f"{playeruser.display_name}",
+                    label=f"{friend.display_name}",
                     description=f"{'Bestie ' if friendship.bestie else ''}Since {friendship.since.strftime('%Y-%m-%d')}",
                     value=str(friendship.id),
                 )
@@ -197,9 +198,9 @@ class My(commands.GroupCog):
                 else friendship.friender
             )
 
-            friend_user = await self.bot.fetch_user(friend.discord_id)
+            friendUser = await self.bot.fetch_user(friend.discord_id)
             embed = discord.Embed(
-                title=f"❖ {friend_user.display_name}'s Profile",
+                title=f"❖ {friendUser.display_name}'s Profile",
                 description=(
                     f"**Ⅲ Player Settings**\n"
                     f"\u200b **⋄ Privacy Policy:** {friend.privacyPolicy.name}\n"
@@ -210,7 +211,7 @@ class My(commands.GroupCog):
                 ),
                 color=settings.defaultEmbedColor,
             )
-            embed.set_thumbnail(url=friend_user.display_avatar.url)
+            embed.set_thumbnail(url=friendUser.display_avatar.url)
             await interaction.response.edit_message(embed=embed, view=view)
 
         select.callback = select_callback  # type: ignore
@@ -349,7 +350,9 @@ class My(commands.GroupCog):
 
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    @server.command()
+    @server.command(
+        description=f"Set the channel where {appearance.collectiblePlural} will spawn."
+    )
     async def spawnchannel(
         self,
         interaction: discord.Interaction,
@@ -388,10 +391,10 @@ class My(commands.GroupCog):
             embed=activation_embed, view=AcceptTOSView(interaction, channel)
         )
 
-    @server.command()
+    @server.command(description=f"Disable or enable {settings.botName} from spawning.")
     async def spawnstate(self, interaction: discord.Interaction):
         """
-        Disable or enable carfigures spawning.
+        Disable or enable CarFigures from spawning.
         """
         guild = cast(discord.Guild, interaction.guild)  # guild-only command
         user = cast(discord.Member, interaction.user)
@@ -479,7 +482,7 @@ class My(commands.GroupCog):
             f"\u200b **⋄ Server Owner:** <@{guild.owner_id}>\n"
             f"\u200b **⋄ Member Count:** {guild.member_count}\n"
             f"\u200b **⋄ Created Since:** {format_dt(guild.created_at, style='R')}\n\n"
-            f"\u200b **⋄ {appearance.collectiblePlural} Caught Here:**"
+            f"\u200b **⋄ {appearance.collectiblePlural.title()} Caught Here:**"
             f" {await models.CarInstance.filter(server=guild.id).count()}"
         )
         embed.set_thumbnail(url=guild.icon.url if guild.icon else None)

@@ -324,13 +324,12 @@ class EntityResource(Model):
             display=displays.Image(width="40"),
             input_=inputs.Image(upload=upload, null=True),
         ),
-        Field(
-            name="optionalCard",
-            label="An optional Card to use (replacing the card provided by the album)",
-            display=displays.Image(width="40"),
-            input_=inputs.Image(upload=upload, null=True),
-        ),
-        "fontsMetaData",
+        # Field(
+        # name="optionalCard",
+        # label="An optional Card to use (replacing the card provided by the album)",
+        # display=displays.Image(width="40"),
+        # input_=inputs.Image(upload=upload, null=True),
+        # ),
         Field(
             name="carCredits",
             label="The Credits (artwork, suggester, etc)",

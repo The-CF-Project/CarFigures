@@ -47,16 +47,15 @@ class Settings:
     spawnMessages: list[dict[str, str]] = field(default_factory=list[dict[str, str]])
     requiredMessageRange: list[int] = field(default_factory=list)
     catchBonusRate: list[int] = field(default_factory=list)
-    alreadyCaughtMessage: str = ""
-    catchButtonText: str = ""
+    wrongNameMessages: list[dict[str, str]] = field(default_factory=list[dict[str, str]])
+    catchButtonMessages: list[dict[str, str]] = field(default_factory=list[dict[str, str]])
     coolDownTime: int = 0
     minimumMembersRequired: int = 0
 
     superGuilds: list[int] = field(default_factory=list)
     superUsers: list[int] = field(default_factory=list)
     logChannel: int | None = None
-    teamMembersAreOwners: bool = False
-    co_owners: list[int] = field(default_factory=list)
+    roots: list[int] = field(default_factory=list)
 
     # metrics and prometheus
     prometheusEnabled: bool = False
@@ -80,7 +79,7 @@ class Appearance:
 
     collectibleSingular: str = ""
     collectiblePlural: str = ""
-    cartype: str = ""
+    album: str = ""
     country: str = ""
     exclusive: str = ""
     horsepower: str = ""
@@ -90,16 +89,14 @@ class Appearance:
     cars: str = ""
     sudo: str = ""
     garageName: str = ""
-    exhibitName: str = ""
-    showName: str = ""
-    infoName: str = ""
-    lastName: str = ""
-    giftName: str = ""
     garageDesc: str = ""
+    exhibitName: str = ""
     exhibitDesc: str = ""
+    showName: str = ""
     showDesc: str = ""
+    infoName: str = ""
     infoDesc: str = ""
-    lastDesc: str = ""
+    giftName: str = ""
     giftDesc: str = ""
 
 
@@ -141,19 +138,21 @@ def read_settings(path: "Path"):
     settings.botToken = config["settings"]["botToken"]
     settings.botName = config["settings"]["botName"]
     settings.prefix = config["settings"]["prefix"]
+    settings.gatewayUrl = config["settings"].get("gatewayUrl", None)
+    settings.shardCount = config["settings"].get("shardCount", None)
+
     settings.defaultEmbedColor = int(config["settings"]["defaultEmbedColor"], 16)
 
     settings.requiredMessageRange = config["spawn-manager"]["requiredMessageRange"]
     settings.catchBonusRate = config["spawn-manager"]["catchBonusRate"]
-    settings.alreadyCaughtMessage = config["spawn-manager"]["alreadyCaughtMessage"]
+    settings.wrongNameMessages = config["spawn-manager"]["wrongNameMessages"]
+    settings.catchButtonMessages = config["spawn-manager"]["catchButtonMessages"]
     settings.spawnMessages = config["spawn-manager"]["spawnMessages"]
-    settings.catchButtonText = config["spawn-manager"]["catchButtonText"]
     settings.coolDownTime = config["spawn-manager"]["cooldownTime"]
     settings.minimumMembersRequired = config["spawn-manager"]["minimumMembersRequired"]
 
     settings.superGuilds = config["team"]["superGuilds"]
-    settings.teamMembersAreOwners = config["team"]["teamMembersAreOwners"]
-    settings.co_owners = config["team"]["co-owners"]
+    settings.roots = config["team"]["roots"]
     settings.superUsers = config["team"]["superUsers"]
     settings.logChannel = config["team"]["logChannel"]
 
@@ -161,30 +160,28 @@ def read_settings(path: "Path"):
     settings.prometheusHost = config["prometheus"]["host"]
     settings.prometheusPort = config["prometheus"]["port"]
 
-    appearance.collectiblePlural = config["appearance"]["interface"]["collectiblePlural"]
-    appearance.collectibleSingular = config["appearance"]["interface"]["collectibleSingular"]
-    appearance.cartype = config["appearance"]["interface"]["cartype"]
+    appearance.collectiblePlural = config["appearance"]["interface"]["collectible"]["plural"]
+    appearance.collectibleSingular = config["appearance"]["interface"]["collectible"]["singular"]
+    appearance.album = config["appearance"]["interface"]["album"]
     appearance.country = config["appearance"]["interface"]["country"]
     appearance.exclusive = config["appearance"]["interface"]["exclusive"]
-    appearance.horsepower = config["appearance"]["interface"]["horsepower"]
-    appearance.weight = config["appearance"]["interface"]["weight"]
-    appearance.hp = config["appearance"]["interface"]["hp"]
-    appearance.kg = config["appearance"]["interface"]["kg"]
+    appearance.horsepower = config["appearance"]["interface"]["horsepower"]["name"]
+    appearance.weight = config["appearance"]["interface"]["weight"]["name"]
+    appearance.hp = config["appearance"]["interface"]["horsepower"]["unit"]
+    appearance.kg = config["appearance"]["interface"]["weight"]["unit"]
 
-    appearance.cars = config["appearance"]["commands"]["names"]["cars"]
-    appearance.sudo = config["appearance"]["commands"]["names"]["sudo"]
-    appearance.garageName = config["appearance"]["commands"]["names"]["garage"]
-    appearance.exhibitName = config["appearance"]["commands"]["names"]["exhibit"]
-    appearance.showName = config["appearance"]["commands"]["names"]["show"]
-    appearance.infoName = config["appearance"]["commands"]["names"]["info"]
-    appearance.lastName = config["appearance"]["commands"]["names"]["last"]
-    appearance.giftName = config["appearance"]["commands"]["names"]["gift"]
-    appearance.garageDesc = config["appearance"]["commands"]["descs"]["garage"]
-    appearance.exhibitDesc = config["appearance"]["commands"]["descs"]["exhibit"]
-    appearance.showDesc = config["appearance"]["commands"]["descs"]["show"]
-    appearance.infoDesc = config["appearance"]["commands"]["descs"]["info"]
-    appearance.lastDesc = config["appearance"]["commands"]["descs"]["last"]
-    appearance.giftDesc = config["appearance"]["commands"]["descs"]["gift"]
+    appearance.cars = config["appearance"]["commands"]["cars"]
+    appearance.sudo = config["appearance"]["commands"]["sudo"]
+    appearance.garageName = config["appearance"]["commands"]["garage"]["name"]
+    appearance.garageDesc = config["appearance"]["commands"]["garage"]["desc"]
+    appearance.exhibitName = config["appearance"]["commands"]["exhibit"]["name"]
+    appearance.exhibitDesc = config["appearance"]["commands"]["exhibit"]["desc"]
+    appearance.showName = config["appearance"]["commands"]["show"]["name"]
+    appearance.showDesc = config["appearance"]["commands"]["show"]["desc"]
+    appearance.infoName = config["appearance"]["commands"]["info"]["name"]
+    appearance.infoDesc = config["appearance"]["commands"]["info"]["desc"]
+    appearance.giftName = config["appearance"]["commands"]["gift"]["name"]
+    appearance.giftDesc = config["appearance"]["commands"]["gift"]["desc"]
 
     information.repositoryLink = config["information"]["repositoryLink"]
     information.serverInvite = config["information"]["serverInvite"]

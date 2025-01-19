@@ -13,7 +13,7 @@ uvloop = { version = "^0.21.0", markers = "sys_platform != 'win32'" }
 
 # Panel
 fastapi = "^0.115.6"
-fastapi-admin = {git = "https://github.com/fastapi-admin/fastapi-admin", rev = "ebea3bf71689caa583fe55aa25db899cf8eeae31"}
+fastapi-admin = {git = "https://github.com/Ballsdex-Team/fastapi-admin", branch = "ballsdex"}
 uvicorn = "^0.34.0"
 
 # TortoiseORM

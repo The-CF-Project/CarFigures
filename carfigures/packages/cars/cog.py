@@ -153,9 +153,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
 
         player = await Player.get_or_none(discord_id=playerObj.id)
         if not player:
-            await interaction.response.send_message(
-                f"{pov} have any {appearance.collectiblePlural} yet."
-            )
+            await interaction.followup.send(f"{pov} have any {appearance.collectiblePlural} yet.")
             return
         if not await inventoryPrivacyChecker(interaction, player, playerObj):
             return
@@ -184,7 +182,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             }
 
         if not botCarfigures:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"There are no {appearance.collectiblePlural} registered on this bot yet.",
                 ephemeral=True,
             )
@@ -228,7 +226,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         if ownedInstances:
             # Getting the list of emoji IDs from the IDs of the owned carfigures
             fill_fields(
-                f"⋄ Owned {appearance.collectiblePlural} | {len(ownedInstances) or '0'} total",
+                f"⋄ Owned {appearance.collectiblePlural.title()} | {len(ownedInstances) or '0'} total",
                 set(botCarfigures[carfigure] for carfigure in ownedInstances),
             )
         else:
@@ -302,7 +300,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             description=(
                 f"**⋄ Short Name:** {carfigure.shortName}\n"
                 f"**⋄ Catch Names:** {''.join(carfigure.catchNames)}\n"
-                f"**⋄ {appearance.cartype}:** {carfigure.cachedCartype.name}\n"
+                f"**⋄ {appearance.album}:** {carfigure.cachedCartype.name}\n"
                 f"**⋄ {appearance.country}:** {carfigure.cachedCountry.name if carfigure.cachedCountry else 'None'}\n"
                 f"**⋄ Rarity:** {carfigure.rarity}\n"
                 f"**⋄ {appearance.horsepower}:** {carfigure.horsepower}\n"
@@ -317,7 +315,9 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             embed=embed
         )  # Send the car information embed as a response
 
-    @app_commands.command(name=appearance.lastName, description=appearance.lastDesc)
+    @app_commands.command(
+        description=f"Display info of your or another users last caught {appearance.collectibleSingular}"
+    )
     @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
     async def last(self, interaction: discord.Interaction, user: discord.User | None = None):
         """
@@ -404,7 +404,6 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
     @app_commands.command(
         name=appearance.giftName,
         description=appearance.giftDesc,
-        # extras={"trade": TradeCommandType.PICK},
     )
     async def gift(
         self,
@@ -453,14 +452,14 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
 
         await carfigure.lockForTrade()
         match receiver.donationPolicy:
-            case DonationPolicy.ALWAYS_DENY:
+            case DonationPolicy.alwaysDeny:
                 await interaction.response.send_message(
                     "This user does not accept donations. You can use trades instead.",
                     ephemeral=True,
                 )
                 await carfigure.unlock()
                 return
-            case DonationPolicy.REQUEST_APPROVAL:
+            case DonationPolicy.requestApproval:
                 await interaction.response.send_message(
                     f"Hey {user.mention}, {interaction.user.name} wants to give you "
                     f"{carfigure.description(include_emoji=True, bot=self.bot, is_trade=True)}!\n"

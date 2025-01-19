@@ -290,7 +290,7 @@ class EventEnabledTransformer(EventTransformer):
 
 
 class CarTypeTransformer(TTLModelTransformer[CarType]):
-    name = appearance.cartype.lower()
+    name = appearance.album.lower()
     model = CarType()
 
     def key(self, model: CarType) -> str:
