@@ -20,8 +20,8 @@
 Before starting the installation, ensure you have the following tools installed:
 
 - Git: Used for cloning the project and updating your bot to the latest versions. [Download Git](https://git-scm.com/downloads)
-- Docker Desktop: Provides an easy way to run your bot in isolated containers. [Download Docker Desktop](https://www.docker.com/products/docker-desktop)
-- Discord Bot Instance: Required to create and manage your bot on Discord. [Create a Discord Bot](https://discord.com/developers/applications)
+- Docker Desktop: Provides an easy way to run your bot in isolated containers. [Download Docker Desktop](https://www.docker.com/products/docker-desktop).
+- Discord Bot Instance: Required to create and manage your bot on Discord. [Create a Discord Bot](https://discord.com/developers/applications).
 - TextEditor: Used for editing the code/config file, if you don't know which one to use, I recommend using [Visual Studio Code](https://code.visualstudio.com/).
 - Terminal: Used for executing commands inside a shell.
 - - if you use Windows, I recommend using [Windows Terminal](https://apps.microsoft.com/detail/9n0dx20hk701?hl=en-US&gl=US) or [Fluent Terminal](https://apps.microsoft.com/detail/9p2krlmfxf9t?hl=en-us&gl=US).
@@ -115,7 +115,7 @@ weight = { name = "Weight", unit = "hp"}
 [appearance.commands]
 cars = "cars"
 sudo = "sudo"
-garage = { name = "garage", desc = "Show Your garage!" }
+garage = { name = "garage", desc = "Show your garage!" }
 exhibit = { name = "exhibit", desc = "Show your showroom in the bot." }
 show = { name = "show", desc = "Display info from your carfigures collection." }
 info = { name = "info", desc = "Display info for a specific carfigure." }
