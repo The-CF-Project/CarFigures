@@ -53,7 +53,7 @@ CarFigures is designed to be highly customizable, allowing you to tailor the bot
 this is part of CF's philosophy to make customizing your instance as easy as possible.
 
 Now, time to start making that file, Open VisualStudio Code or any other text edtior, then open the bot folder in vscode.\
-inside vscode, create a new file called config.toml, and start configuring the bot, 
+Inside vscode, create a new file called config.toml, and start configuring the bot, 
 read the comments I left in there to help you out!
 
 ```toml
