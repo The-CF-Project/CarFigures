@@ -159,8 +159,8 @@ After configuring and editing the config.toml file, it's time to start the bot i
 
 Start by getting docker desktop/engine up and running, then open your file explorer and head to the bot files.
 
-if you are using Windows, just right click the project folder and select (Open in Terminal).\
-if you use a Unix-like Os, you should just cd to the place, open a terminal and cd to the folder location.
+If you are using Windows, just right click the project folder and select (Open in Terminal).\
+If you use a Unix-like Os, you should just cd to the place, open a terminal and cd to the folder location.
 
 Now it's time for you to build the project image (the image of the containers like the database and bot's code/panel) using `docker compose build`.
 ![demo1](assets/demos/demo1.png)
