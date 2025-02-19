@@ -19,7 +19,7 @@
 ### Prerequisites
 Before starting the installation, ensure you have the following tools installed:
 
-- Git: Used for cloning the project and updating your bot to the latest versions. [Download Git](https://git-scm.com/downloads)
+- Git: Used for cloning the project and updating your bot to the latest versions. [Download Git](https://git-scm.com/downloads).
 - Docker Desktop: Provides an easy way to run your bot in isolated containers. [Download Docker Desktop](https://www.docker.com/products/docker-desktop).
 - Discord Bot Instance: Required to create and manage your bot on Discord. [Create a Discord Bot](https://discord.com/developers/applications).
 - TextEditor: Used for editing the code/config file, if you don't know which one to use, I recommend using [Visual Studio Code](https://code.visualstudio.com/).
@@ -53,7 +53,7 @@ CarFigures is designed to be highly customizable, allowing you to tailor the bot
 this is part of CF's philosophy to make customizing your instance as easy as possible.
 
 Now, time to start making that file, Open VisualStudio Code or any other text edtior, then open the bot folder in vscode.\
-inside vscode, create a new file called config.toml, and start configuring the bot, 
+Inside vscode, create a new file called config.toml, and start configuring the bot, 
 read the comments I left in there to help you out!
 
 ```toml
@@ -159,8 +159,8 @@ After configuring and editing the config.toml file, it's time to start the bot i
 
 Start by getting docker desktop/engine up and running, then open your file explorer and head to the bot files.
 
-if you are using Windows, just right click the project folder and select (Open in Terminal).\
-if you use a Unix-like Os, you should just cd to the place, open a terminal and cd to the folder location.
+If you are using Windows, just right click the project folder and select (Open in Terminal).\
+If you use a Unix-like Os, you should just cd to the place, open a terminal and cd to the folder location.
 
 Now it's time for you to build the project image (the image of the containers like the database and bot's code/panel) using `docker compose build`.
 ![demo1](assets/demos/demo1.png)
