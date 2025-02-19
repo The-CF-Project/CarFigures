@@ -389,13 +389,13 @@ class CarFiguresBot(commands.AutoShardedBot):
                 await context.send("The bot does not have the permission to do something.")
                 # log to know where permissions are lacking
                 log.warning(
-                    f"Missing permissions for text command {context.command.name}",
+                    f"Missing permissions for text command {context.command.qualified_name}",
                     exc_info=exception.original,
                 )
                 return
 
             log.error(
-                f"Error in text command {context.command.name}",
+                f"Error in text command {context.command.qualified_name}",
                 exc_info=exception.original,
             )
             await context.send(
@@ -406,7 +406,7 @@ class CarFiguresBot(commands.AutoShardedBot):
         await context.send(
             "An error occurred when running the command. Contact support if this persists."
         )
-        log.error(f"Unknown error in text command {context.command.name}", exc_info=exception)
+        log.error(f"Unknown error in text command {context.command.qualified_name}", exc_info=exception)
 
     async def on_application_command_error(
         self, interaction: discord.Interaction, error: app_commands.AppCommandError
@@ -429,7 +429,7 @@ class CarFiguresBot(commands.AutoShardedBot):
 
         if isinstance(error, app_commands.TransformerError):
             await send("One of the arguments provided cannot be parsed.")
-            log.debug("Failed running converter", exc_info=error)
+            log.debug("Failed running converter.", exc_info=error)
             return
 
         if isinstance(error, app_commands.CommandInvokeError):
@@ -439,7 +439,7 @@ class CarFiguresBot(commands.AutoShardedBot):
                 await send("The bot does not have the permission to do something.")
                 # log to know where permissions are lacking
                 log.warning(
-                    f"Missing permissions for app command {interaction.command.name}",
+                    f"Missing permissions for app command {interaction.command.qualified_name}",
                     exc_info=error.original,
                 )
                 return
@@ -448,14 +448,14 @@ class CarFiguresBot(commands.AutoShardedBot):
                 # most likely an interaction received twice (happens sometimes),
                 # or two instances are running on the same token.
                 log.warning(
-                    f"Tried invoking command {interaction.command.name}, but the "
+                    f"Tried invoking command {interaction.command.qualified_name}, but the "
                     "interaction was already responded to.",
                     exc_info=error.original,
                 )
                 # still including traceback because it may be a programming error
 
             log.error(
-                f"Error in slash command {interaction.command.name}",
+                f"Error in slash command {interaction.command.qualified_name}",
                 exc_info=error.original,
             )
             await send(
