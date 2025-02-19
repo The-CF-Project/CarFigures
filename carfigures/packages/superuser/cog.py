@@ -1009,7 +1009,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         self,
         interaction: discord.Interaction,
         user: discord.User,
-        percentage: int | None = None,
+        percentage: app_commands.Range[int, 1, 99] | None = None,
     ):
         """
         Reset a player's cars.
@@ -1025,11 +1025,6 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         if not player:
             await interaction.response.send_message(
                 "The user you gave does not exist.", ephemeral=True
-            )
-            return
-        if percentage and not 0 < percentage < 100:
-            await interaction.response.send_message(
-                "The percentage must be between 1 and 99.", ephemeral=True
             )
             return
         await interaction.response.defer(ephemeral=True, thinking=True)
