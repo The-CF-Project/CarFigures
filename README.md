@@ -20,20 +20,20 @@
 Before starting the installation, ensure you have the following tools installed:
 
 - Git: Used for cloning the project and updating your bot to the latest versions. [Download Git](https://git-scm.com/downloads)
-- Docker Desktop: Provides an easy way to run your bot in isolated containers. [Download Docker Desktop](https://www.docker.com/products/docker-desktop)
-- Discord Bot Instance: Required to create and manage your bot on Discord. [Create a Discord Bot](https://discord.com/developers/applications)
-- TextEditor: Used for editing the code/config file, if u don't know which one to use, i recommend using [Visual Studio Code](https://code.visualstudio.com/)
+- Docker Desktop: Provides an easy way to run your bot in isolated containers. [Download Docker Desktop](https://www.docker.com/products/docker-desktop).
+- Discord Bot Instance: Required to create and manage your bot on Discord. [Create a Discord Bot](https://discord.com/developers/applications).
+- TextEditor: Used for editing the code/config file, if you don't know which one to use, I recommend using [Visual Studio Code](https://code.visualstudio.com/).
 - Terminal: Used for executing commands inside a shell.
-- - if u use Windows, i recommend using [Windows Terminal](https://apps.microsoft.com/detail/9n0dx20hk701?hl=en-US&gl=US) or [Fluent Terminal](https://apps.microsoft.com/detail/9p2krlmfxf9t?hl=en-us&gl=US)
-- - if u use Unix-like OS, juts use ur favorite terminal.
+- - if you use Windows, I recommend using [Windows Terminal](https://apps.microsoft.com/detail/9n0dx20hk701?hl=en-US&gl=US) or [Fluent Terminal](https://apps.microsoft.com/detail/9p2krlmfxf9t?hl=en-us&gl=US).
+- - if you use Unix-like OS, just use your favorite terminal.
 
 > **Note:** If you are using Linux as your main desktop (like me) or hosting the bot on a Linux server, it is generally better to use [Docker Engine](https://docs.docker.com/engine/install).
 
 ### Installing
 Now since all this is done, let's start!
 
-open a new terminal, and clone the project using git!
-git gives u the ability to clone the project inside a new folder it creates with the name u specify, like:
+Open a new terminal, and clone the project using git!
+Git gives you the ability to clone the project inside a new folder it creates with the name you specify, like:
 ```bash
 git clone https://github.com/thecfproject/CarFigures showerdex
 ```
@@ -50,11 +50,11 @@ git clone https://github.com/thecfproject/CarFigures showerdex
 </h2>
 
 CarFigures is designed to be highly customizable, allowing you to tailor the bot's behavior and appearance to your liking,
-This is part of CF's philosophy to make customizing your instance as easy as possible.
+this is part of CF's philosophy to make customizing your instance as easy as possible.
 
-now, time to start making that file, Open VisualStudio Code or any other text edtior, then open the bot folder in vscode.\
+Now, time to start making that file, Open VisualStudio Code or any other text edtior, then open the bot folder in vscode.\
 inside vscode, create a new file called config.toml, and start configuring the bot, 
-Read the comments I left in there to help you out!
+read the comments I left in there to help you out!
 
 ```toml
 [settings]
@@ -66,7 +66,7 @@ maxFavorites = 50
 defaultEmbedColor = "5865F2"
 
 [spawn-manager]
-requiredMessageRange =  [22, 55] # the required number of messages to be sent after the cooldown to spawn
+requiredMessageRange =  [22, 55] # The required number of messages to be sent after the cooldown to spawn.
 spawnMessages = [
     { message = "A wild carfigure has appeared!", rarity = 10 },
     { message = "A blizzard blows in, and with it comes a carfigure!", rarity = 5 },
@@ -90,22 +90,22 @@ minimumMembersRequired = 20
 [team]
 # This section is meant for administrator commands logging and staff purposes.
 
-# A list of IDs that must be considered owners in addition to the application/team owner
+# A list of IDs that must be considered owners in addition to the application/team owner.
 # Separate IDs with commas (,)
 roots = [877557616094638112]
 
 # List of guild IDs where the /sudo command should be registered
-# and a List of role IDs that have access to the command
-# Separate IDs with commas (,)
+# and a list of role IDs that have access to the command.
+# Separate IDs with commas (,).
 superGuilds = [1289731116525158463]
 superUsers = [1290970226627842079]
 
-# Log channel ID for Admin Commands logging
+# Log channel ID for Admin commands logging.
 logChannel = 1319049297341452349
 
 
 [appearance.interface]
-collectible = { singular = "carfigure", plural = "carfigures" } # must be lowercased
+collectible = { singular = "carfigure", plural = "carfigures" } # Must be lowercased.
 album = "CarType"
 country = "Country"
 exclusive = "Exclusive"
@@ -115,7 +115,7 @@ weight = { name = "Weight", unit = "hp"}
 [appearance.commands]
 cars = "cars"
 sudo = "sudo"
-garage = { name = "garage", desc = "Show Your garage!" }
+garage = { name = "garage", desc = "Show your garage!" }
 exhibit = { name = "exhibit", desc = "Show your showroom in the bot." }
 show = { name = "show", desc = "Display info from your carfigures collection." }
 info = { name = "info", desc = "Display info for a specific carfigure." }
@@ -131,7 +131,7 @@ privacyPolicy = "https://github.com/thecfproject/CarFigures/blob/upstream/assets
 
 # While this is made to make it easier to include yourself and your team/contributors
 # you are NOT allowed to remove El Laggron or Array_YE.
-# Separate names with commas (,)
+# Separate names with commas (,).
 developers = [
     "El Laggron",
     "JRuntime",
@@ -141,7 +141,7 @@ contributors = [
     "HiboMan",
 ]
 
-[prometheus] # if u don't know what this do, don't touch it
+[prometheus] # If you don't know what does this do, don't touch it.
 enabled = false
 host = "0.0.0.0"
 port = 15260
@@ -159,19 +159,19 @@ After configuring and editing the config.toml file, it's time to start the bot i
 
 Start by getting docker desktop/engine up and running, then open your file explorer and head to the bot files.
 
-if u are using Windows, just right click the project folder and select (Open in Terminal).\
-if u use a Unix-like Os, You should just cd to the place, open a terminal and cd to the folder location.
+if you are using Windows, just right click the project folder and select (Open in Terminal).\
+if you use a Unix-like Os, you should just cd to the place, open a terminal and cd to the folder location.
 
-now its time for you to build the project image (the image of the containers like the database and bot's code/panel) using `docker compose build`.
+Now it's time for you to build the project image (the image of the containers like the database and bot's code/panel) using `docker compose build`.
 ![demo1](assets/demos/demo1.png)
 
-And now, Using `docker compose up` will make the docker start all the containers!
+And now, using `docker compose up` will make the docker start all the containers!
 And after doing it, the final results should be like this, with the end line saying "(your bot name) is now operational!"
 which means, your bot is now running with no issues!
 ![demo2](assets/demos/demo2.png)
 
 If you need help, have questions, or want to share your thoughts, don't hesitate to reach out!\
-u can open an issue or ask about it in the dev category inside the discord server.
+You can open an issue or ask about it in the dev category inside the discord server.
 
 <h2>
      <sub>
@@ -250,4 +250,4 @@ I'm excited about the future of the project and all the bots that use it!
 
 I am incredibly grateful to everyone who contributes to The CF Project. Whether you provide code, suggest features, report bugs, or offer emotional support, your efforts are deeply appreciated. Knowing I am not alone in this project and having a supportive community means the world to me.
 
-Thank you all from the bottom of my heart ❤️ 
+Thank you all from the bottom of my heart. ❤️ 
