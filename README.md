@@ -19,7 +19,7 @@
 ### Prerequisites
 Before starting the installation, ensure you have the following tools installed:
 
-- Git: Used for cloning the project and updating your bot to the latest versions. [Download Git](https://git-scm.com/downloads)
+- Git: Used for cloning the project and updating your bot to the latest versions. [Download Git](https://git-scm.com/downloads).
 - Docker Desktop: Provides an easy way to run your bot in isolated containers. [Download Docker Desktop](https://www.docker.com/products/docker-desktop).
 - Discord Bot Instance: Required to create and manage your bot on Discord. [Create a Discord Bot](https://discord.com/developers/applications).
 - TextEditor: Used for editing the code/config file, if you don't know which one to use, I recommend using [Visual Studio Code](https://code.visualstudio.com/).
