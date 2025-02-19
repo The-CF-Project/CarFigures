@@ -32,7 +32,7 @@ Before starting the installation, ensure you have the following tools installed:
 ### Installing
 Now since all this is done, let's start!
 
-Ppen a new terminal, and clone the project using git!
+Open a new terminal, and clone the project using git!
 Git gives you the ability to clone the project inside a new folder it creates with the name you specify, like:
 ```bash
 git clone https://github.com/thecfproject/CarFigures showerdex
