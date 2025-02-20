@@ -353,6 +353,12 @@ class My(commands.GroupCog):
     @server.command(
         description=f"Set the channel where {appearance.collectiblePlural} will spawn."
     )
+    @app_commands.checks.has_permissions(manage_guild=True)
+    @app_commands.checks.bot_has_permissions(
+        read_messages=True,
+        send_messages=True,
+        embed_links=True,
+    )
     async def spawnchannel(
         self,
         interaction: discord.Interaction,
@@ -362,13 +368,6 @@ class My(commands.GroupCog):
         Set the channel where carfigures will spawn.
         """
         guild = cast(discord.Guild, interaction.guild)  # guild-only command
-        user = cast(discord.Member, interaction.user)
-        if not user.guild_permissions.manage_guild:
-            await interaction.response.send_message(
-                "You need the permission to manage the server to use this.",
-                ephemeral=True,
-            )
-            return
         if not channel.permissions_for(guild.me).read_messages:
             await interaction.response.send_message(
                 f"I need the permission to read messages in {channel.mention}.",
