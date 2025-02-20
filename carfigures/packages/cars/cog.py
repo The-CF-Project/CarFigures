@@ -70,7 +70,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         """
         # simple variables
         playerObj = user or interaction.user
-        pov = "you don't" if not user else f"{playerObj.name} doesn't"
+        pov = "You don't" if not user else f"{playerObj.name} doesn't"
 
         await interaction.response.defer(thinking=True)
         player = await Player.get_or_none(discord_id=playerObj.id)
@@ -329,7 +329,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             The user you would like to see
         """
         playerObj = user or interaction.user
-        pov = "you don't" if not user else f"{playerObj.name} doesn't"
+        pov = "You don't" if not user else f"{playerObj.name} doesn't"
         await interaction.response.defer(thinking=True)
         # Try to check if the player have any carfigures
 
@@ -524,10 +524,10 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
 
         # Entering the filter selected in the bot then give back info based on it
         cars = await CarInstance.filter(**filters).count()
-        fullName = f"{carfigure.fullName} " if carfigure else ""
-        album_str = f"{album.name} " if album else ""
-        exclusive_str = f"{exclusive.name} " if exclusive else ""
-        event_str = f"{event.name} " if event else ""
+        fullName = f"{carfigure.fullName}" if carfigure else ""
+        album_str = f"{album.name}" if album else ""
+        exclusive_str = f"{exclusive.name}" if exclusive else ""
+        event_str = f"{event.name}" if event else ""
         guild = f" caught in {interaction.guild.name}" if spawnedhere else ""
         await interaction.followup.send(
             f"You have {cars} {album_str}{event_str}{exclusive_str}" f"{fullName}{guild}."
@@ -541,12 +541,12 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         reverse: bool = False,
     ):
         """
-        Show the rarity list of the bot
+        Show the rarity list of the bot.
 
         Parameters
         ----------
         reverse: bool
-            Whether to show the rarity list in reverse
+            Whether to show the rarity list in reverse.
         """
 
         # Filter enabled collectibles
@@ -599,14 +599,14 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         second: CarInstanceTransform,
     ):
         """
-        Compare two carfigures
+        Compare two carfigures.
 
         Parameters
         ----------
         first: Car
-            The first carfigure you want to compare
+            The first carfigure you want to compare.
         second: Car
-            The second carfigure you want to compare
+            The second carfigure you want to compare.
         """
 
         interaction.user
