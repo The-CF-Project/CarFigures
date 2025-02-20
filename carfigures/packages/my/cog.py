@@ -433,13 +433,13 @@ class My(commands.GroupCog):
             config.spawnRole = None  # type: ignore
             await config.save()
             await interaction.response.send_message(
-                f"{settings.botName} will no longer alert {role.mention} when {appearance.collectiblePlural} spawn.", allowed_mentions=discord.AllowedMentions(roles=False, everyone=False)
+                f"{settings.botName} will no longer alert {role.mention} when {appearance.collectiblePlural} spawn."
             )
         else:
             config.spawnRole = role.id
             await config.save()
             await interaction.response.send_message(
-                f"{settings.botName} will now alert {role.mention} when {appearance.collectiblePlural} spawn. Make sure that the bot has mention everyone permission.", allowed_mentions=discord.AllowedMentions(roles=False, everyone=False)
+                f"{settings.botName} will now alert {role.mention} when {appearance.collectiblePlural} spawn. Make sure that the bot has mention everyone permission."
             )
             return
 
