@@ -391,18 +391,12 @@ class My(commands.GroupCog):
         )
 
     @server.command(description=f"Disable or enable {settings.botName} from spawning.")
+    @app_commands.checks.has_permissions(manage_guild=True)
     async def spawnstate(self, interaction: discord.Interaction):
         """
         Disable or enable CarFigures from spawning.
         """
         guild = cast(discord.Guild, interaction.guild)  # guild-only command
-        user = cast(discord.Member, interaction.user)
-        if not user.guild_permissions.manage_guild:
-            await interaction.response.send_message(
-                "You need the permission to manage the server to use this.",
-                ephemeral=True,
-            )
-            return
         config, _ = await models.GuildConfig.get_or_create(guild_id=interaction.guild_id)
         if config.enabled:
             config.enabled = False  # type: ignore
@@ -429,30 +423,23 @@ class My(commands.GroupCog):
                 )
 
     @server.command()
+    @app_commands.checks.has_permissions(manage_guild=True)
     async def spawnrole(self, interaction: discord.Interaction, role: discord.Role):
         """
-        Set the role spawn alert for your server
+        Set the role spawn alert for your server.
         """
-
-        user = cast(discord.Member, interaction.user)
-        if not user.guild_permissions.manage_guild:
-            await interaction.response.send_message(
-                "You need the permission to manage the server to use this.",
-                ephemeral=True,
-            )
-            return
         config, _ = await models.GuildConfig.get_or_create(guild_id=interaction.guild_id)
         if config.spawnRole == role.id:
             config.spawnRole = None  # type: ignore
             await config.save()
             await interaction.response.send_message(
-                f"{settings.botName} will no longer alert {role.mention} when {appearance.collectiblePlural} spawn."
+                f"{settings.botName} will no longer alert {role.mention} when {appearance.collectiblePlural} spawn.", allowed_mentions=discord.AllowedMentions(roles=False, everyone=False)
             )
         else:
             config.spawnRole = role.id
             await config.save()
             await interaction.response.send_message(
-                f"{settings.botName} will now alert {role.mention} when {appearance.collectiblePlural} spawn."
+                f"{settings.botName} will now alert {role.mention} when {appearance.collectiblePlural} spawn. Make sure that the bot has mention everyone permission.", allowed_mentions=discord.AllowedMentions(roles=False, everyone=False)
             )
             return
 
