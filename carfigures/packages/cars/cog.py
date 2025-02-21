@@ -636,7 +636,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             name="◊ Name",
             value=f""
             f"• ID\n"
-            f"• {appearance.cartype}\n"
+            f"• {appearance.album}\n"
             f"• {appearance.country}\n"
             f"• Rarity\n"
             f"• {appearance.horsepower}\n"
