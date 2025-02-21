@@ -48,6 +48,6 @@ async def rowCountEstimate(table_name: str, *, analyze: bool = True) -> int:
     if result == -1 and analyze is True:
         # the cache wasn't built yet, let's ask for an analyze query
         await connection.execute_query(f"ANALYZE {table_name}")
-        return await row_count_estimate(table_name, analyze=False)  # prevent recursion error
+        return await rowCountEstimate(table_name, analyze=False)  # prevent recursion error
 
     return result
