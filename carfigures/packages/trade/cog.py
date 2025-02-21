@@ -31,13 +31,15 @@ if TYPE_CHECKING:
 
 class Trade(commands.GroupCog):
     """
-    Trade carfigures with other players
+    Trade carfigures with other players.
     """
 
     def __init__(self, bot: "CarFiguresBot"):
         self.bot = bot
         self.trades: TTLCache[int, dict[int, list[TradeMenu]]] = TTLCache(maxsize=999999, ttl=1800)
 
+    bulk = app_commands.Group(name="bulk", description="Bulk commands.")
+    
     def get_trade(
         self,
         interaction: discord.Interaction | None = None,
@@ -212,6 +214,60 @@ class Trade(commands.GroupCog):
         trader.proposal.append(carfigure)
         await interaction.followup.send(f"{carfigure.carfigure.fullName} added.", ephemeral=True)
 
+    @bulk.command(name="add", extras={"trade": TradeCommandType.PICK})
+    async def bulk_add(
+        self,
+        interaction: discord.Interaction,
+        countryball: BallEnabledTransform | None = None,
+        sort: SortingChoices | None = None,
+        special: SpecialEnabledTransform | None = None,
+    ):
+        """
+        Bulk add countryballs to the ongoing trade, with paramaters to aid with searching.
+
+        Parameters
+        ----------
+        countryball: Ball
+            The countryball you would like to filter the results to
+        sort: SortingChoices
+            Choose how countryballs are sorted. Can be used to show duplicates.
+        special: Special
+            Filter the results to a special event
+        """
+        await interaction.response.defer(ephemeral=True, thinking=True)
+        trade, trader = self.get_trade(interaction)
+        if not trade or not trader:
+            await interaction.followup.send("You do not have an ongoing trade.", ephemeral=True)
+            return
+        if trader.locked:
+            await interaction.followup.send(
+                "You have locked your proposal, it cannot be edited! "
+                "You can click the cancel button to stop the trade instead.",
+                ephemeral=True,
+            )
+            return
+        query = BallInstance.filter(player__discord_id=interaction.user.id)
+        if countryball:
+            query = query.filter(ball=countryball)
+        if special:
+            query = query.filter(special=special)
+        if sort:
+            query = sort_balls(sort, query)
+        balls = await query
+        if not balls:
+            await interaction.followup.send(
+                f"No {settings.plural_collectible_name} found.", ephemeral=True
+            )
+            return
+        balls = [x for x in balls if x.is_tradeable]
+
+        view = BulkAddView(interaction, balls, self)  # type: ignore
+        await view.start(
+            content=f"Select the {settings.plural_collectible_name} you want to add "
+            "to your proposal, note that the display will wipe on pagination however "
+            f"the selected {settings.plural_collectible_name} will remain."
+        )
+    
     @app_commands.command(extras={"trade": TradeCommandType.REMOVE})
     async def remove(
         self,
