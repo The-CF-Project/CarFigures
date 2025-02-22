@@ -190,7 +190,7 @@ class Event(models.Model):
     class Meta:
         ordering = ["-startDate"]
 
-    def drawBanner(self) -> BytesIO:
+    def draw_banner(self) -> BytesIO:
         image = imagers.drawBanner(self)
         buffer = BytesIO()
         image.save(buffer, format="png")
@@ -198,14 +198,14 @@ class Event(models.Model):
         image.close()
         return buffer
 
-    async def prepareForMessage(
+    async def prepare_for_message(
         self, interaction: discord.Interaction
     ) -> Tuple[str, discord.File]:
         # message content
         content = f"**Event Info:**\n**Event:** {self.name}\n**Description:** {self.description}"
         # draw image
         with ThreadPoolExecutor() as pool:
-            buffer = await interaction.client.loop.run_in_executor(pool, self.drawBanner)
+            buffer = await interaction.client.loop.run_in_executor(pool, self.draw_banner)
 
         return content, discord.File(buffer, "banner.png")
 

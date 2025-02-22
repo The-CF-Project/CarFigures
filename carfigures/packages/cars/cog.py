@@ -25,7 +25,7 @@ from carfigures.packages.cars.components import (
     SortingChoices,
     DonationRequest,
     CarFiguresViewer,
-    inventoryPrivacyChecker,
+    inventory_privacy_checker,
 )
 from carfigures.settings import settings, appearance
 
@@ -69,16 +69,16 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             Filter the list by a specific carfigure.
         """
         # simple variables
-        playerObj = user or interaction.user
-        pov = "you don't" if not user else f"{playerObj.name} doesn't"
+        player_obj = user or interaction.user
+        pov = "you don't" if not user else f"{player_obj.name} doesn't"
 
         await interaction.response.defer(thinking=True)
-        player = await Player.get_or_none(discord_id=playerObj.id)
+        player = await Player.get_or_none(discord_id=player_obj.id)
         if not player:
             await interaction.followup.send(f"{pov} have any {appearance.collectiblePlural} yet.")
             return
 
-        if not await inventoryPrivacyChecker(interaction, player, playerObj):
+        if not await inventory_privacy_checker(interaction, player, player_obj):
             return
 
         await player.fetch_related("cars")
@@ -121,7 +121,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         if not user:
             await paginator.start()
         else:
-            await paginator.start(content=f"Viewing {playerObj.name}'s {appearance.garageName}!")
+            await paginator.start(content=f"Viewing {player_obj.name}'s {appearance.garageName}!")
 
     @app_commands.command(name=appearance.exhibitName, description=appearance.exhibitDesc)
     @app_commands.checks.cooldown(1, 30, key=lambda i: i.user.id)
@@ -147,15 +147,15 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         """
         # checking if the user is selected or Nothing
         # also Verify if the player's exhibit is private
-        playerObj = user or interaction.user
-        pov = "you don't" if not user else f"{playerObj.name} doesn't"
+        player_obj = user or interaction.user
+        pov = "you don't" if not user else f"{player_obj.name} doesn't"
         await interaction.response.defer(thinking=True)
 
-        player = await Player.get_or_none(discord_id=playerObj.id)
+        player = await Player.get_or_none(discord_id=player_obj.id)
         if not player:
             await interaction.followup.send(f"{pov} have any {appearance.collectiblePlural} yet.")
             return
-        if not await inventoryPrivacyChecker(interaction, player, playerObj):
+        if not await inventory_privacy_checker(interaction, player, player_obj):
             return
 
         # Filter disabled cars, they do not count towards progression
@@ -163,7 +163,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         botCarfigures = {x: y.emoji for x, y in cars.items() if y.enabled}
 
         # Set of car IDs owned by the user
-        filters = {"player__discord_id": playerObj.id, "car__enabled": True}
+        filters = {"player__discord_id": player_obj.id, "car__enabled": True}
         if album:
             filters["car__cartype"] = album
             botCarfigures = {
@@ -256,7 +256,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             f"{round(len(ownedInstances) / len(botCarfigures) * 100, 1)}% | {len(ownedInstances)}/{len(botCarfigures)}**"
         )
         source.embed.colour = settings.defaultEmbedColor
-        source.embed.set_author(name=playerObj.display_name, icon_url=playerObj.display_avatar.url)
+        source.embed.set_author(name=player_obj.display_name, icon_url=player_obj.display_avatar.url)
 
         pages = Pages(source=source, interaction=interaction, compact=True)
         await pages.start()
@@ -328,19 +328,19 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         user: discord.Member
             The user you would like to see
         """
-        playerObj = user or interaction.user
-        pov = "you don't" if not user else f"{playerObj.name} doesn't"
+        player_obj = user or interaction.user
+        pov = "you don't" if not user else f"{player_obj.name} doesn't"
         await interaction.response.defer(thinking=True)
         # Try to check if the player have any carfigures
 
-        player = await Player.get_or_none(discord_id=playerObj.id)
+        player = await Player.get_or_none(discord_id=player_obj.id)
         if not player:
             await interaction.response.send_message(
                 f"{pov} have any {appearance.collectiblePlural} yet."
             )
             return
 
-        if not await inventoryPrivacyChecker(interaction, player, playerObj):
+        if not await inventory_privacy_checker(interaction, player, player_obj):
             return
         # Sort the cars in the player inventory by -id which means by id but reversed
         # Then Selects the first car in that list
@@ -550,9 +550,9 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
         """
 
         # Filter enabled collectibles
-        enabledCollectibles = [x for x in cars.values() if x.enabled]
+        enabled_collectibles = [x for x in cars.values() if x.enabled]
 
-        if not enabledCollectibles:
+        if not enabled_collectibles:
             await interaction.response.send_message(
                 f"There are no collectibles registered in {settings.botName} yet.",
                 ephemeral=True,
@@ -560,31 +560,30 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             return
 
         # Group collectibles by rarity
-        rarityToCollectibles = {}
-        for collectible in enabledCollectibles:
+        rarity_to_collectibles = {}
+        for collectible in enabled_collectibles:
             rarity = collectible.rarity
-            if rarity not in rarityToCollectibles:
-                rarityToCollectibles[rarity] = []
-            rarityToCollectibles[rarity].append(collectible)
+            if rarity not in rarity_to_collectibles:
+                rarity_to_collectibles[rarity] = []
+            rarity_to_collectibles[rarity].append(collectible)
 
-        # Sort the rarityToCollectibles dictionary by rarity
-        sortedRarities = sorted(rarityToCollectibles.keys(), reverse=reverse)
+        # Sort the rarity_to_collectibles dictionary by rarity
+        sorted_rarities = sorted(rarity_to_collectibles.keys(), reverse=reverse)
 
         # Display collectibles grouped by rarity
         entries = []
-        for rarity in sortedRarities:
+        for rarity in sorted_rarities:
             collectible_names = "\n".join(
                 [
                     f"\u200b ⋄ {self.bot.get_emoji(c.emoji) or 'N/A'} {c.fullName}"
-                    for c in rarityToCollectibles[rarity]
+                    for c in rarity_to_collectibles[rarity]
                 ]
             )
             entry = (f"∥ Rarity: {rarity}", f"{collectible_names}")
             entries.append(entry)
 
         # Starting the Pager
-        per_page = 2  # Number of collectibles displayed on one page
-        source = FieldPageSource(entries, per_page=per_page, inline=False, clear_description=False)
+        source = FieldPageSource(entries, per_page=2, inline=False, clear_description=False)
         source.embed.title = f"{settings.botName} Rarity List"
         source.embed.colour = settings.defaultEmbedColor
         pages = Pages(source=source, interaction=interaction, compact=False)

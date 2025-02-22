@@ -24,16 +24,15 @@ class CarFigure:
         self.time = datetime.now()
 
     @classmethod
-    async def getRandom(cls):
+    async def get_random(cls):
         """
         A method to get a random Car instance from a list of enabled cars based on their rarity.
         """
         carfigures = list(filter(lambda m: m.enabled, cars.values()))
         if not carfigures:
             raise RuntimeError("No car to spawn")
-        rarities = [x.rarity for x in carfigures]
-        cb = random.choices(population=carfigures, weights=rarities, k=1)[0]
-        return cls(cb)
+        cf = random.choices(population=carfigures, weights=[x.rarity for x in carfigures], k=1)[0]
+        return cls(cf)
 
     async def spawn(self, channel: discord.TextChannel) -> bool:
         """
@@ -50,7 +49,7 @@ class CarFigure:
             in the logs if that's the case.
         """
 
-        def generateRandomName():
+        def generate_random_name():
             """
             Generate a random name.
             """
@@ -59,16 +58,16 @@ class CarFigure:
 
         assert channel.guild
         extension = self.model.spawnPicture.split(".")[-1]
-        fileLocation = "." + self.model.spawnPicture
-        filename = f"nt_{generateRandomName()}.{extension}"
+        filelocation = "." + self.model.spawnPicture
+        filename = f"nt_{generate_random_name()}.{extension}"
         guild = await GuildConfig.get(guild_id=channel.guild.id)
         role = channel.guild.get_role(guild.spawnRole) if guild.spawnRole else None
-        messagesListMessages = [x["message"] for x in settings.spawnMessages]
-        messagesListRarity = [int(x["rarity"]) for x in settings.spawnMessages]
 
-        message = random.choices(population=messagesListMessages, weights=messagesListRarity, k=1)[
-            0
-        ]
+        message = random.choices(
+            population=[x["message"] for x in settings.spawnMessages],
+            weights=[int(x["rarity"]) for x in settings.spawnMessages],
+            k=1,
+        )[0]
         if role:
             message += f" {role.mention}"
         try:
@@ -77,7 +76,7 @@ class CarFigure:
                 self.message = await channel.send(
                     message,
                     view=CatchView(self),
-                    file=discord.File(fileLocation, filename=filename),
+                    file=discord.File(filelocation, filename=filename),
                 )
                 return True
             else:

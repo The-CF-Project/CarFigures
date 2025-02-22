@@ -1,6 +1,5 @@
 import logging
 import sys
-
 from typing import TYPE_CHECKING
 
 import discord
@@ -10,9 +9,8 @@ from discord.ext import commands
 from carfigures import botVersion
 from carfigures.core.models import cars as carfigures
 from carfigures.core.utils.transformers import EventEnabledTransform
-from carfigures.packages.info.components import rowCountEstimate, mentionAppCommand
-
-from carfigures.settings import settings, information, appearance
+from carfigures.packages.info.components import mention_app_command, row_count_estimate
+from carfigures.settings import appearance, information, settings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -39,8 +37,8 @@ class Info(commands.GroupCog):
         )
 
         cars_count = len([x for x in carfigures.values() if x.enabled])
-        players_count = await rowCountEstimate("player")
-        cars_instances_count = await rowCountEstimate("carinstance")
+        players_count = await row_count_estimate("player")
+        cars_instances_count = await row_count_estimate("carinstance")
         developers = "\n".join([f"\u200b **⋄** {dev}" for dev in information.developers])
         first_contributors = "\n".join(
             [f"\u200b **⋄** {contrib}" for contrib in information.contributors[:4]]
@@ -111,7 +109,7 @@ class Info(commands.GroupCog):
         """
 
         assert self.bot.users
-        categoryToCommands = {}  # Dictionary to store commands by category
+        category_to_commands = {}  # Dictionary to store commands by category
 
         # Group commands by cog (category)
         for cog in self.bot.cogs.values():
@@ -122,7 +120,7 @@ class Info(commands.GroupCog):
                     continue
                 if category == "Cars":
                     category = appearance.cars.title()
-                categoryToCommands.setdefault(category, []).append(appCommand)
+                category_to_commands.setdefault(category, []).append(appCommand)
 
         # Create dropdown options for categories
         options = [
@@ -131,7 +129,7 @@ class Info(commands.GroupCog):
                 description=f"View commands for {category}",
                 value=category,
             )
-            for category in categoryToCommands
+            for category in category_to_commands
         ]
 
         select = discord.ui.Select(
@@ -149,15 +147,15 @@ class Info(commands.GroupCog):
         view = discord.ui.View()
 
         async def callback(interaction: discord.Interaction):
-            selectedCategory = select.values[0]
-            commandsInCategory = categoryToCommands[selectedCategory]
-            commandsList = "\n".join(
-                [f"⋄ {mentionAppCommand(cmd)}: {cmd.description}" for cmd in commandsInCategory]
+            selected_category = select.values[0]
+            commands_in_category = category_to_commands[selected_category]
+            commands_list = "\n".join(
+                [f"⋄ {mention_app_command(cmd)}: {cmd.description}" for cmd in commands_in_category]
             )
 
             embed = discord.Embed(
-                title=f"{settings.botName} Commands | {selectedCategory}",
-                description=commandsList or "No commands available.",
+                title=f"{settings.botName} Commands | {selected_category}",
+                description=commands_list or "No commands available.",
                 color=settings.defaultEmbedColor,
             )
             await interaction.response.edit_message(embed=embed, view=view)
@@ -185,6 +183,6 @@ class Info(commands.GroupCog):
             The event u want to check info about!
         """
         await interaction.response.defer(thinking=True)
-        content, file = await event.prepareForMessage(interaction)
+        content, file = await event.prepare_for_message(interaction)
         await interaction.followup.send(content=content, file=file)
         file.close()

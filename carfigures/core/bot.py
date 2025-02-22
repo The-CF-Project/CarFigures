@@ -295,7 +295,7 @@ class CarFiguresBot(commands.AutoShardedBot):
                 f"{await self.fetch_user(next(iter(self.owner_ids)))} is the owner of this bot."
             )
 
-        await self.reloadCache()
+        await self.reload_cache()
         if self.blacklistedUsers:
             log.info(f"{len(self.blacklistedUsers)} blacklisted users.")
 

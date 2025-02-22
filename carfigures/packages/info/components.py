@@ -2,7 +2,7 @@ from discord import app_commands
 from tortoise import Tortoise
 
 
-def mentionAppCommand(app_command: app_commands.Command | app_commands.Group) -> str:
+def mention_app_command(app_command: app_commands.Command | app_commands.Group) -> str:
     """
     Generate a mention for the provided app command.
     """
@@ -15,7 +15,7 @@ def mentionAppCommand(app_command: app_commands.Command | app_commands.Group) ->
             return f"`/{app_command.name}`"
 
 
-async def rowCountEstimate(table_name: str, *, analyze: bool = True) -> int:
+async def row_count_estimate(table_name: str, *, analyze: bool = True) -> int:
     """
     Estimate the number of rows in a table. This is *insanely* faster than querying all rows,
     but the number given is an estimation, not the real value.
@@ -48,6 +48,6 @@ async def rowCountEstimate(table_name: str, *, analyze: bool = True) -> int:
     if result == -1 and analyze is True:
         # the cache wasn't built yet, let's ask for an analyze query
         await connection.execute_query(f"ANALYZE {table_name}")
-        return await rowCountEstimate(table_name, analyze=False)  # prevent recursion error
+        return await row_count_estimate(table_name, analyze=False)  # prevent recursion error
 
     return result

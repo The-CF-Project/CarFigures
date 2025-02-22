@@ -167,7 +167,7 @@ class CarFiguresViewer(CarFiguresSelector):
         file.close()
 
 
-async def inventoryPrivacyChecker(
+async def inventory_privacy_checker(
     interaction: discord.Interaction,
     player: Player,
     player_obj: Union[discord.User, discord.Member],

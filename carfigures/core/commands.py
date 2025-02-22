@@ -249,7 +249,7 @@ class Core(commands.Cog):
                     uploaded += 1
                     print(f"Uploaded {car}")
                     await asyncio.sleep(1)
-                await self.bot.load_cache()
+                await self.bot.reload_cache()
             task.cancel()
             assert self.bot.application
             await ctx.send(

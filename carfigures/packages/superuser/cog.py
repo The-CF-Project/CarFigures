@@ -14,11 +14,11 @@ from tortoise.exceptions import BaseORMException, DoesNotExist
 from tortoise.expressions import Q
 
 from carfigures.core import models
-from carfigures.core.utils import buttons, paginators, transformers
 from carfigures.core.bot import CarFiguresBot
+from carfigures.core.utils import buttons, paginators, transformers
 from carfigures.packages.trade.display import TradeViewFormat, fill_trade_embed_fields
 from carfigures.packages.trade.trade_user import TradingUser
-from carfigures.settings import settings, appearance
+from carfigures.settings import appearance, settings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -188,10 +188,10 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             )
             return
 
-        spawnManager = cast(
+        spawn_manager = cast(
             "CarFiguresSpawner", self.bot.get_cog("CarFiguresSpawner")
-        ).spawnManager
-        cooldown = spawnManager.cooldowns.get(guild.id)
+        ).spawn_manager
+        cooldown = spawn_manager.cooldowns.get(guild.id)
         if not cooldown:
             await interaction.response.send_message(
                 "No spawn manager could be found for that guild. Spawn may have been disabled.",
@@ -219,16 +219,16 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         penalties: list[str] = []
         if guild.member_count < 5 or guild.member_count > 1000:
             penalties.append("Server has less than 5 or more than 1000 members")
-        if any(len(x.content) < 5 for x in cooldown.messageCache):
+        if any(len(x.content) < 5 for x in cooldown.message_cache):
             penalties.append("Some cached messages are less than 5 characters long")
 
-        authors_set = set(x.author_id for x in cooldown.messageCache)
+        authors_set = set(x.author_id for x in cooldown.message_cache)
         low_chatters = len(authors_set) < 4
         # check if one author has more than 40% of messages in cache
         major_chatter = any(
             (
-                len(list(filter(lambda x: x.author_id == author, cooldown.messageCache)))
-                / cooldown.messageCache.maxlen  # type: ignore
+                len(list(filter(lambda x: x.author_id == author, cooldown.message_cache)))
+                / cooldown.message_cache.maxlen  # type: ignore
                 > 0.4
             )
             for author in authors_set
@@ -258,12 +258,12 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         embed.description = (
             f"Manager initiated **{format_dt(cooldown.time, style='R')}**\n"
             f"Initial number of points to reach: **{cooldown.chance}**\n"
-            f"Message cache length: **{len(cooldown.messageCache)}**\n\n"
+            f"Message cache length: **{len(cooldown.message_cache)}**\n\n"
             f"Time-based multiplier: **x{multiplier}** *({range} members)*\n"
             "*This affects how much the number of points to reach reduces over time*\n"
             f"Penalty multiplier: **x{penality_multiplier}**\n"
             "*This affects how much a message sent increases the number of points*\n\n"
-            f"__Current count: **{cooldown.scaledMessageCount}/{chance}**__\n\n"
+            f"__Current count: **{cooldown.scaled_message_count}/{chance}**__\n\n"
         )
 
         information: list[str] = []

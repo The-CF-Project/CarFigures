@@ -79,12 +79,12 @@ class CarFigureNamePrompt(Modal):
             self.button.disabled = True
             await interaction.followup.edit_message(self.car.message.id, view=self.button.view)
         else:
-            wrongNameMessages = [x["message"] for x in settings.wrongNameMessages]
-            wrongNameRarity = [float(x["rarity"]) for x in settings.wrongNameMessages]
-            wrongMessage = random.choices(
-                population=wrongNameMessages, weights=wrongNameRarity, k=1
+            wrong_message = random.choices(
+                population=[x["message"] for x in settings.wrongNameMessages],
+                weights=[float(x["rarity"]) for x in settings.wrongNameMessages],
+                k=1,
             )[0]
-            await interaction.followup.send(f"{interaction.user.mention} " + wrongMessage)
+            await interaction.followup.send(f"{interaction.user.mention} " + wrong_message)
 
     async def catch_car(
         self, bot: "CarFiguresBot", user: discord.Member
@@ -94,35 +94,35 @@ class CarFigureNamePrompt(Modal):
         event: "Event | None" = None
         exclusive: "Exclusive | None" = None
         chance = random.randint(1, 2048) == 1
-        exclusivePopulation = [
+        exclusive_population = [
             exclusive
             for exclusive in exclusives.values()
             if exclusive.rebirthRequired <= player.rebirths
         ]
-        eventPopulation = [
+        event_population = [
             event
             for event in events.values()
             if event.startDate <= datetime_now() <= event.endDate
         ]
 
-        if chance and exclusivePopulation:
-            common_weight = sum(1 - x.rarity for x in exclusivePopulation)
-            weights = [x.rarity for x in exclusivePopulation] + [common_weight]
+        if chance and exclusive_population:
+            common_weight = sum(1 - x.rarity for x in exclusive_population)
+            weights = [x.rarity for x in exclusive_population] + [common_weight]
             exclusive = random.choices(
-                population=exclusivePopulation + [None], weights=weights, k=1
+                population=exclusive_population + [None], weights=weights, k=1
             )[0]
 
-        if eventPopulation:
+        if event_population:
             # Here we try to determine what should be the chance of having a common card
             # since the rarity field is a value between 0 and 1, 1 being no common
             # and 0 only common, we get the remaining value by doing (1-rarity)
             # We then sum each value for each current event, and we should get an algorithm
             # that kinda makes sense.
-            commonWeight = sum(1 - x.rarity for x in eventPopulation)
+            commonWeight = sum(1 - x.rarity for x in event_population)
 
-            weights = [x.rarity for x in eventPopulation] + [commonWeight]
+            weights = [x.rarity for x in event_population] + [commonWeight]
             # None is added representing the common carfigure
-            event = random.choices(population=eventPopulation + [None], weights=weights, k=1)[0]
+            event = random.choices(population=event_population + [None], weights=weights, k=1)[0]
 
         is_new = not await CarInstance.filter(player=player, car=self.car.model).exists()
         car = await CarInstance.create(
@@ -148,15 +148,12 @@ class CarFigureNamePrompt(Modal):
 
 class CatchButton(Button):
     def __init__(self, car: "CarFigure"):
-        catchButtonMessages = [x["message"] for x in settings.catchButtonMessages]
-        catchButtonRarity = [float(x["rarity"]) for x in settings.catchButtonMessages]
-        if not catchButtonRarity or not catchButtonMessages:
-            log.info(f"{catchButtonMessages} or {catchButtonRarity} is empty!")
-
-        catchButtonMessage = random.choices(
-            population=catchButtonMessages, weights=catchButtonRarity, k=1
+        catch_button_message = random.choices(
+            population=[x["message"] for x in settings.catchButtonMessages],
+            weights=[float(x["rarity"]) for x in settings.catchButtonMessages],
+            k=1,
         )[0]
-        super().__init__(style=discord.ButtonStyle.primary, label=catchButtonMessage)
+        super().__init__(style=discord.ButtonStyle.primary, label=catch_button_message)
         self.car = car
 
     async def callback(self, interaction: discord.Interaction):

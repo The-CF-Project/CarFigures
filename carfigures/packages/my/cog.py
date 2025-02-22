@@ -1,8 +1,7 @@
-import discord
 import logging
-
 from typing import TYPE_CHECKING, cast
 
+import discord
 from discord import app_commands
 from discord.ext import commands
 from discord.utils import format_dt
@@ -14,8 +13,7 @@ from carfigures.packages.my.components import (
     AcceptTOSView,
     activation_embed,
 )
-
-from carfigures.settings import settings, appearance
+from carfigures.settings import appearance, settings
 
 if TYPE_CHECKING:
     from carfigures.core.bot import CarFiguresBot
@@ -198,9 +196,9 @@ class My(commands.GroupCog):
                 else friendship.friender
             )
 
-            friendUser = await self.bot.fetch_user(friend.discord_id)
+            friend_user = await self.bot.fetch_user(friend.discord_id)
             embed = discord.Embed(
-                title=f"❖ {friendUser.display_name}'s Profile",
+                title=f"❖ {friend_user.display_name}'s Profile",
                 description=(
                     f"**Ⅲ Player Settings**\n"
                     f"\u200b **⋄ Privacy Policy:** {friend.privacyPolicy.name}\n"
@@ -211,7 +209,7 @@ class My(commands.GroupCog):
                 ),
                 color=settings.defaultEmbedColor,
             )
-            embed.set_thumbnail(url=friendUser.display_avatar.url)
+            embed.set_thumbnail(url=friend_user.display_avatar.url)
             await interaction.response.edit_message(embed=embed, view=view)
 
         select.callback = select_callback  # type: ignore
@@ -231,7 +229,7 @@ class My(commands.GroupCog):
             )
             return
 
-        existingRequest = (
+        existing_request = (
             await models.FriendshipRequest.filter(
                 (
                     Q(sender__discord_id=sender.discord_id)
@@ -246,12 +244,12 @@ class My(commands.GroupCog):
             .prefetch_related("sender", "receiver")
         )
 
-        if existingRequest:
+        if existing_request:
             await interaction.response.send_message(
                 "You have already sent a friend request to {user.display_name}", ephemeral=True
             )
             return
-        existingFriendship = await models.Friendship.filter(
+        existing_friendship = await models.Friendship.filter(
             Q(
                 friender__discord_id=sender.discord_id,
                 friended__discord_id=receiver.discord_id,
@@ -262,7 +260,7 @@ class My(commands.GroupCog):
             )
         ).first()
 
-        if existingFriendship:
+        if existing_friendship:
             await interaction.response.send_message(
                 f"You are already friends with {user.display_name}!",
                 ephemeral=True,
@@ -316,12 +314,12 @@ class My(commands.GroupCog):
 
         async def select_callback(interaction: discord.Interaction):
             request_id = int(select.values[0])
-            friendRequest = await models.FriendshipRequest.get(id=request_id).prefetch_related(
+            friend_request = await models.FriendshipRequest.get(id=request_id).prefetch_related(
                 "sender"
             )
             view = ConfirmChoiceView(interaction)
             await interaction.response.send_message(
-                f"you sure u want to accept this request from {friendRequest.sender.discord_id}?",
+                f"you sure u want to accept this request from {friend_request.sender.discord_id}?",
                 view=view,
                 ephemeral=True,
             )
@@ -329,16 +327,16 @@ class My(commands.GroupCog):
             await view.wait()
             if view.value:
                 await models.Friendship.create(
-                    friender=await friendRequest.sender,
-                    friended=await friendRequest.receiver,
+                    friender=await friend_request.sender,
+                    friended=await friend_request.receiver,
                 )
-                await friendRequest.delete()
+                await friend_request.delete()
                 await interaction.followup.send(
                     "you have accepted this request",
                     ephemeral=True,
                 )
             else:
-                await friendRequest.delete()
+                await friend_request.delete()
                 await interaction.followup.send(
                     "you have rejected this request",
                     ephemeral=True,
@@ -466,8 +464,6 @@ class My(commands.GroupCog):
 
         guild = cast(discord.Guild, interaction.guild)
         config = await models.GuildConfig.get(guild_id=guild.id)
-        spawnChannel = guild.get_channel(config.spawnChannel)
-        spawnRole = guild.get_role(config.spawnRole)
         embed = discord.Embed(
             title=f"❖ {guild.name} Server Info",
             color=settings.defaultEmbedColor,
@@ -475,8 +471,8 @@ class My(commands.GroupCog):
         embed.description = (
             f"**Ⅲ Server Settings**\n"
             f"\u200b **⋄ Spawn State:** {'Enabled' if config.enabled else 'Disabled'}\n"
-            f"\u200b **⋄ Spawn Channel:** {spawnChannel or 'Not set'}\n"
-            f"\u200b **⋄ Spawn Alert Role:** {spawnRole or 'Not set'}\n\n"
+            f"\u200b **⋄ Spawn Channel:** {guild.get_channel(config.spawnChannel) or 'Not set'}\n"
+            f"\u200b **⋄ Spawn Alert Role:** {guild.get_role(config.spawnRole) or 'Not set'}\n\n"
             f"**Ⅲ Server Info**\n"
             f"\u200b **⋄ Server ID:** {guild.id}\n"
             f"\u200b **⋄ Server Owner:** <@{guild.owner_id}>\n"
