@@ -24,7 +24,7 @@ rich = "^13.9.4"
 python-dateutil = "^2.9.0"
 Pillow = "^11.1.0"
 aerich = "^0.6.3"
-cachetools = "^5.5.0"
+cachetools = "^5.5.2"
 discord-py = "^2.5.0"
 
 [tool.poetry.group.dev.dependencies]
