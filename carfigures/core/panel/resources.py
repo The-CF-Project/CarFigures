@@ -169,6 +169,12 @@ class EventResource(Model):
             input_=inputs.Switch(),
             display=displays.Boolean(),
         ),
+        Field(
+            name="hidden",
+            label="Hide the Event from the Players?",
+            input_=inputs.Switch(),
+            display=displays.Boolean(),
+        ),
     ]
 
     async def get_actions(self, request: Request) -> List[Action]:

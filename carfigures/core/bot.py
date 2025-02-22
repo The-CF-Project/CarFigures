@@ -154,6 +154,7 @@ class CarFiguresBot(commands.AutoShardedBot):
         self.blacklistedUsers: set[int] = set()
         self.blacklistedServers: set[int] = set()
         self.locked_cars = TTLCache(maxsize=99999, ttl=60 * 30)
+        self.application_emojis: dict[int, discord.Emoji] = {}
 
         self.owner_ids: set
 
@@ -190,11 +191,17 @@ class CarFiguresBot(commands.AutoShardedBot):
                     bot_command,
                     cast(list[app_commands.AppCommandGroup], synced_command.options),
                 )
-
-    async def reloadCache(self):
+    def get_emoji(self, id: int) -> discord.Emoji | None:
+        return self.application_emojis.get(id) or super().get_emoji(id)
+    
+    async def reload_cache(self):
         table = Table(box=box.SIMPLE)
         table.add_column("Model", style="cyan")
         table.add_column("Count", justify="right", style="green")
+
+        self.application_emojis.clear()
+        for emoji in await self.fetch_application_emojis():
+            self.application_emojis[emoji.id] = emoji
 
         self.blacklistedUsers = set()
         for blacklistedUser in await models.BlacklistedUser.all().only("discord_id"):

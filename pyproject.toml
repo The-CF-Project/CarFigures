@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "carfigures"
-version = "2.2.0"
-description = ""
+version = "2.2.2"
+description = "a fork of ballsdex that aims to provide a different experience."
 authors = ["array_ye <array_ye@proton.me>"]
 license = "MIT"
 
@@ -25,11 +25,11 @@ python-dateutil = "^2.9.0"
 Pillow = "^11.1.0"
 aerich = "^0.6.3"
 cachetools = "^5.5.0"
-discord-py = "^2.4.0"
+discord-py = "^2.5.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.5.0"
-ruff = "^0.9.0"
+ruff = "^0.9.7"
 
 [tool.poetry.group.metrics.dependencies]
 prometheus-client = "^0.16.0"
