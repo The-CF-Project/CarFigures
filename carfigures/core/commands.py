@@ -171,7 +171,7 @@ class Core(commands.Cog):
         to_upload: list[tuple[Car, discord.Emoji]] = []
 
         for car in cars:
-            emote = self.bot.get_emoji(car.emoji_id)
+            emote = self.bot.get_emoji(car.emoji)
             if not emote:
                 not_found.add(car)
             elif emote.is_application_owned():
@@ -196,21 +196,21 @@ class Core(commands.Cog):
 
         text = ""
         if not_found:
-            not_found_str = ", ".join(f"{x.country} ({x.emoji_id})" for x in not_found)
+            not_found_str = ", ".join(f"{x.fullName} ({x.emoji})" for x in not_found)
             text += f"### {len(not_found)} emojis not found\n{not_found_str}\n"
         if matching_name:
-            matching_name_str = ", ".join(f"{x[1]} {x[0].country}" for x in matching_name)
+            matching_name_str = ", ".join(f"{x[1]} {x[0].fullName}" for x in matching_name)
             text += (
                 f"### {len(matching_name)} emojis with conflicting names\n{matching_name_str}\n"
             )
         if already_uploaded:
-            already_uploaded_str = ", ".join(f"{x[1]} {x[0].country}" for x in already_uploaded)
+            already_uploaded_str = ", ".join(f"{x[1]} {x[0].fullName}" for x in already_uploaded)
             text += (
                 f"### {len(already_uploaded)} emojis are already "
                 f"application emojis\n{already_uploaded_str}\n"
             )
         if to_upload:
-            to_upload_str = ", ".join(f"{x[1]} {x[0].country}" for x in to_upload)
+            to_upload_str = ", ".join(f"{x[1]} {x[0].fullName}" for x in to_upload)
             text += f"## {len(to_upload)} emojis to migrate\n{to_upload_str}"
         else:
             text += "\n**No emojis can be migrated at this time.**"
@@ -244,7 +244,7 @@ class Core(commands.Cog):
                     new_emote = await self.bot.create_application_emoji(
                         name=emote.name, image=await emote.read()
                     )
-                    car.emoji_id = new_emote.id
+                    car.emoji = new_emote.id
                     await car.save()
                     uploaded += 1
                     print(f"Uploaded {car}")
