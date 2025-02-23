@@ -446,7 +446,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
                 ephemeral=True,
             )
             return
-        if receiver.discord_id in self.bot.blacklistedUsers:
+        if receiver.discord_id in self.bot.blacklisted_users:
             await interaction.response.send_message(
                 "You cannot donate to a blacklisted user", ephemeral=True
             )
