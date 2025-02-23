@@ -32,11 +32,11 @@ class Info(commands.GroupCog):
         Show information about this bot.
         """
         embed = discord.Embed(
-            title=f"❑ {settings.botName} Bot Status",
-            color=settings.defaultEmbedColor,
+            title=f"❑ {settings.bot_name} Bot Status",
+            color=settings.default_embed_color,
         )
 
-        cars_count = len([x for x in carfigures.values() if x.enabled])
+        cars_count = len([car for car in carfigures.values() if car.enabled])
         players_count = await row_count_estimate("player")
         cars_instances_count = await row_count_estimate("carinstance")
         developers = "\n".join([f"\u200b **⋄** {dev}" for dev in information.developers])
@@ -73,11 +73,11 @@ class Info(commands.GroupCog):
 
         embed.add_field(
             name="∆ Bot Info\n",
-            value=f"\u200b **⋄ {appearance.collectiblePlural.title()}s Count: ** {cars_count:,} • "
+            value=f"\u200b **⋄ {appearance.collectible_plural.title()}s Count: ** {cars_count:,} • "
             f"{cars_instances_count:,} **Caught**\n"
             f"\u200b **⋄ Player Count: ** {players_count:,}\n"
             f"\u200b **⋄ Server Count: ** {len(self.bot.guilds):,}\n"
-            f"\u200b **⋄  Operating Version: [{botVersion}]({information.repositoryLink})**\n\n",
+            f"\u200b **⋄  Operating Version: [{botVersion}]({information.repository_link})**\n\n",
             inline=False,
         )
         # ⋋
@@ -88,10 +88,10 @@ class Info(commands.GroupCog):
 
         embed.add_field(
             name="⋇ Links",
-            value=f"[Discord server]({information.serverInvite}) • [Invite me]({invite_link}) • "
-            f"[Source code and issues]({information.repositoryLink})\n"
-            f"[Terms of Service]({information.termsOfService}) • "
-            f"[Privacy policy]({information.privacyPolicy}) • ",
+            value=f"[Discord server]({information.server_invite}) • [Invite me]({invite_link}) • "
+            f"[Source code and issues]({information.repository_link})\n"
+            f"[Terms of Service]({information.terms_of_service}) • "
+            f"[Privacy policy]({information.privacy_policy}) • ",
             inline=False,
         )
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
@@ -113,14 +113,14 @@ class Info(commands.GroupCog):
 
         # Group commands by cog (category)
         for cog in self.bot.cogs.values():
-            for appCommand in cog.walk_app_commands():
+            for app_command in cog.walk_app_commands():
                 # Use cog name as category (unchangeable by users)
                 category = cog.qualified_name
                 if category == "SuperUser" or category == "Info":
                     continue
                 if category == "Cars":
                     category = appearance.cars.title()
-                category_to_commands.setdefault(category, []).append(appCommand)
+                category_to_commands.setdefault(category, []).append(app_command)
 
         # Create dropdown options for categories
         options = [
@@ -142,7 +142,7 @@ class Info(commands.GroupCog):
         embed = discord.Embed(
             title="Select a category",
             description="Choose a category to see its commands.",
-            color=settings.defaultEmbedColor,
+            color=settings.default_embed_color,
         )
         view = discord.ui.View()
 
@@ -154,17 +154,17 @@ class Info(commands.GroupCog):
             )
 
             embed = discord.Embed(
-                title=f"{settings.botName} Commands | {selected_category}",
+                title=f"{settings.bot_name} Commands | {selected_category}",
                 description=commands_list or "No commands available.",
-                color=settings.defaultEmbedColor,
+                color=settings.default_embed_color,
             )
             await interaction.response.edit_message(embed=embed, view=view)
 
         # Create an embed explaining the purpose of the dropdown
         embed = discord.Embed(
-            title=f"{settings.botName} Commands",
+            title=f"{settings.bot_name} Commands",
             description="Select a category from the dropdown to view its commands.",
-            color=settings.defaultEmbedColor,
+            color=settings.default_embed_color,
         )
         select.callback = callback  # type: ignore
         view.add_item(select)

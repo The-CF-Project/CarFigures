@@ -11,21 +11,21 @@ CARD_CORNERS = ((0, 181), (1428, 948))
 artwork_size = [b - a for a, b in zip(*CARD_CORNERS)]
 
 
-def drawCard(instance: "CarInstance"):
+def draw_card(instance: "CarInstance"):
     car = instance.carfigure
     car_weight = (255, 255, 255, 255)
 
-    if instance.exclusiveCard:
-        image = Image.open("." + instance.exclusiveCard.image)
-        fonts = instance.exclusiveCard.cachedFontsPack
-    elif instance.eventCard:
-        image = Image.open("." + instance.eventCard.card)
-        fonts = instance.eventCard.cachedFontsPack
+    if instance.exclusive_card:
+        image = Image.open("." + instance.exclusive_card.image)
+        fonts = instance.exclusive_card.cachedFontsPack
+    elif instance.event_card:
+        image = Image.open("." + instance.event_card.card)
+        fonts = instance.event_card.cachedFontsPack
     else:
-        image = Image.open("." + car.cachedCartype.image)
-        fonts = car.cachedCartype.cachedFontsPack
+        image = Image.open("." + car.cached_album.image)
+        fonts = car.cached_album.cachedFontsPack
     image = image.convert("RGBA")
-    icon = Image.open("." + car.cachedCountry.image).convert("RGBA") if car.cachedCountry else None
+    icon = Image.open("." + car.cached_country.image).convert("RGBA") if car.cached_country else None
 
     # Load fonts with dynamic sizes
     titleFont = ImageFont.truetype("." + fonts.title, 140)
@@ -98,7 +98,7 @@ def drawCard(instance: "CarInstance"):
     return image
 
 
-def drawBanner(event: "Event"):
+def draw_banner(event: "Event"):
     image = Image.open("." + event.banner)
     image = image.convert("RGBA")
     draw = ImageDraw.Draw(image)
@@ -107,20 +107,20 @@ def drawBanner(event: "Event"):
     fonts = event.cachedFontsPack
 
     # Dynamically Resize the text based on the banner size
-    titlefont = ImageFont.truetype(str("." + fonts.title), int(imageWidth * 0.03))
-    descriptionfont = ImageFont.truetype(str("." + fonts.capacityd), int(imageWidth * 0.025))
-    statusfont = ImageFont.truetype(str("." + fonts.capacityn), int(imageWidth * 0.02))
-    creditsfont = ImageFont.truetype(str("." + fonts.stats), int(imageWidth * 0.015))
+    title_font = ImageFont.truetype(str("." + fonts.title), int(imageWidth * 0.03))
+    description_font = ImageFont.truetype(str("." + fonts.capacityd), int(imageWidth * 0.025))
+    status_font = ImageFont.truetype(str("." + fonts.capacityn), int(imageWidth * 0.02))
+    credits_font = ImageFont.truetype(str("." + fonts.stats), int(imageWidth * 0.015))
 
     # Dynamically position the text
-    titleposition = (int(imageWidth * 0.015), int(imageHeight * 0.01))
-    descriptionposition = int(imageHeight * 0.15)
-    statusposition = (int(imageWidth * 0.01), int(imageHeight * 0.95))
-    creditsposition = (int(imageWidth * 0.99), int(imageHeight * 0.95))
+    title_position = (int(imageWidth * 0.015), int(imageHeight * 0.01))
+    description_position = int(imageHeight * 0.15)
+    status_position = (int(imageWidth * 0.01), int(imageHeight * 0.95))
+    credits_position = (int(imageWidth * 0.99), int(imageHeight * 0.95))
     draw.text(
-        titleposition,
+        title_position,
         event.name,
-        font=titlefont,
+        font=title_font,
         fill=(255, 255, 255, 255),
         stroke_fill=(0, 0, 0, 255),
         stroke_width=2,
@@ -128,36 +128,36 @@ def drawBanner(event: "Event"):
 
     for i, line in enumerate(textwrap.wrap(event.description, width=100)):
         draw.text(
-            (titleposition[0], descriptionposition + i * int(imageWidth * 0.025) * 2),
+            (title_position[0], description_position + i * int(imageWidth * 0.025) * 2),
             line,
-            font=descriptionfont,
+            font=description_font,
             fill=(255, 255, 255, 255),
             stroke_fill=(0, 0, 0, 255),
             stroke_width=2,
         )
 
     draw.text(
-        statusposition,
+        status_position,
         "Event Status:",
-        font=statusfont,
+        font=status_font,
         fill=(255, 255, 255, 255),
         stroke_fill=(0, 0, 0, 255),
         stroke_width=1,
     )
     eventstatus = "Live!" if event.endDate > datetime.now(timezone.utc) else "Ended!"
     draw.text(
-        (statusposition[0] + int(imageWidth * 0.12), statusposition[1]),
+        (status_position[0] + int(imageWidth * 0.12), status_position[1]),
         eventstatus,
-        font=statusfont,
+        font=status_font,
         fill=(0, 255, 0, 255) if eventstatus == "Live!" else (255, 0, 0, 255),
         stroke_fill=(0, 0, 0, 255),
         stroke_width=1,
     )
 
     draw.text(
-        creditsposition,
+        credits_position,
         "Created by Array_YE",
-        font=creditsfont,
+        font=credits_font,
         fill=(255, 255, 255, 255),
         stroke_fill=(0, 0, 0, 255),
         stroke_width=2,

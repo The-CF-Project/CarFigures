@@ -22,7 +22,7 @@ class TradeViewFormat(menus.ListPageSource):
         embed = discord.Embed(
             title=f"Trade history for {self.header}",
             description=f"Trade ID: {trade.pk:0X}",
-            colour=settings.defaultEmbedColor,
+            colour=settings.default_embed_color,
             timestamp=trade.date,
         )
         embed.set_footer(
@@ -57,11 +57,11 @@ def _build_list_of_strings(
     i = 0
 
     for carfigure in trader.proposal:
-        cb_text = carfigure.description(short=short, include_emoji=True, bot=bot, is_trade=True)
+        cf_text = carfigure.description(short=short, include_emoji=True, bot=bot, is_trade=True)
         if trader.locked:
-            text = f"- *{cb_text}*\n"
+            text = f"- *{cf_text}*\n"
         else:
-            text = f"- {cb_text}\n"
+            text = f"- {cf_text}\n"
         if trader.cancelled:
             text = f"~~{text}~~"
 

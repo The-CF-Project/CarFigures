@@ -167,10 +167,10 @@ class TradeMenu:
         remove_command = self.cog.remove.extras.get("mention", "`/trade remove`")
         timestamp = f"<t:{self.end_time}:R>"
 
-        self.embed.title = f"{appearance.collectiblePlural.title()} trading"
-        self.embed.color = settings.defaultEmbedColor
+        self.embed.title = f"{appearance.collectible_plural.title()} trading"
+        self.embed.color = settings.default_embed_color
         self.embed.description = (
-            f"Add or remove {appearance.collectiblePlural} you want to propose to the other player "
+            f"Add or remove {appearance.collectible_plural} you want to propose to the other player "
             f"using the {add_command} and {remove_command} commands.\n"
             "Once you're finished, click the lock button below to confirm your proposal.\n"
             "You can also lock with nothing if you're receiving a gift.\n\n"
@@ -326,7 +326,7 @@ class TradeMenu:
             except InvalidTradeOperation:
                 log.warning(f"Illegal trade operation between {self.trader1=} and {self.trader2=}")
                 self.embed.description = (
-                    f":warning: An attempt to modify the {appearance.collectibleSingular} "
+                    f":warning: An attempt to modify the {appearance.collectible_singular} "
                     "during the trade was detected and the trade was cancelled."
                 )
                 self.embed.colour = discord.Colour.red()

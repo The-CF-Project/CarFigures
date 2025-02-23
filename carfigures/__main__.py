@@ -63,7 +63,7 @@ def parse_cli_flags(arguments: list[str]) -> CLIFlags:
 
 
 def print_welcome():
-    print("[green]{0:-^50}[/green]".format(f" {settings.botName} "))
+    print("[green]{0:-^50}[/green]".format(f" {settings.bot_name} "))
     print("[blue]{0:^50}[/blue]".format("Based on The CF Project, Made by Array_YE"))
     print("")
     print(
@@ -275,10 +275,10 @@ def main():
     try:
         queue_listener = init_logger(cli_flags.disable_rich, cli_flags.debug)
 
-        token = settings.botToken
+        token = settings.bot_token
         if not token:
             log.error("Token not found!")
-            print("[red]You must provide a token inside the settings.toml file.[/red]")
+            print("[red]You must provide a token inside the config.toml file.[/red]")
             time.sleep(1)
             sys.exit(0)
 

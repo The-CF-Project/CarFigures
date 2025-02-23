@@ -8,12 +8,12 @@ from carfigures.settings import settings, information, appearance
 
 
 activation_embed = discord.Embed(
-    colour=settings.defaultEmbedColor,
-    title=f"{settings.botName} activation",
-    description=f"To enable {settings.botName} in your server, you must "
-    f"read and accept the [Terms of Service]({information.termsOfService}).\n\n"
+    colour=settings.default_embed_color,
+    title=f"{settings.bot_name} activation",
+    description=f"To enable {settings.bot_name} in your server, you must "
+    f"read and accept the [Terms of Service]({information.terms_of_service}).\n\n"
     "As a summary, these are the rules of the bot:\n"
-    f"- No farming (spamming or creating servers for {appearance.collectiblePlural})\n"
+    f"- No farming (spamming or creating servers for {appearance.collectible_plural})\n"
     "- Do not attempt to abuse the bot's internals\n"
     "**Not respecting these rules will lead to a blacklist**",
 )
@@ -32,14 +32,14 @@ class AcceptTOSView(View):
             Button(
                 style=discord.ButtonStyle.link,
                 label="Terms of Service",
-                url=f"{information.termsOfService}",
+                url=f"{information.terms_of_service}",
             )
         )
         self.add_item(
             Button(
                 style=discord.ButtonStyle.link,
                 label="Privacy Policy",
-                url=f"{information.privacyPolicy}",
+                url=f"{information.privacy_policy}",
             )
         )
 
@@ -57,7 +57,7 @@ class AcceptTOSView(View):
         )
         self.stop()
         await interaction.response.send_message(
-            f"{appearance.collectiblePlural.title()} will start spawning as"
+            f"{appearance.collectible_plural.title()} will start spawning as"
             " users talk unless the bot is disabled."
         )
 

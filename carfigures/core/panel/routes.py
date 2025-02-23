@@ -45,7 +45,7 @@ async def generate_card(
 ):
     car = await models.Car.get(pk=pk).prefetch_related("cartype", "cartype__fontsPack", "country")
     tempInstance = await models.CarInstance(car=car, player=await models.Player.first(), count=1)
-    buffer = tempInstance.drawCard()
+    buffer = tempInstance.draw_card()
     return Response(content=buffer.read(), media_type="image/png")
 
 
@@ -64,7 +64,7 @@ async def generate_event_card(
     instance = models.CarInstance(
         car=car, event=event, player=await models.Player.first(), count=1
     )
-    buffer = instance.drawCard()
+    buffer = instance.draw_card()
     return Response(content=buffer.read(), media_type="image/png")
 
 
@@ -83,5 +83,5 @@ async def generate_exclusive_card(
     instance = models.CarInstance(
         car=car, exclusive=exclusive, player=await models.Player.first(), count=1
     )
-    buffer = instance.drawCard()
+    buffer = instance.draw_card()
     return Response(content=buffer.read(), media_type="image/png")

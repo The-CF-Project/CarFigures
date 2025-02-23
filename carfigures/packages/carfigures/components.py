@@ -23,13 +23,13 @@ log = logging.getLogger("carfigures.packages.carfigures.components")
 
 class CarFigureNamePrompt(Modal):
     name = TextInput(
-        label=f"Name of this {appearance.collectibleSingular}",
+        label=f"Name of this {appearance.collectible_singular}",
         style=discord.TextStyle.short,
         placeholder="Your guess",
     )
 
     def __init__(self, car: "CarFigure", button: CatchButton):
-        super().__init__(title=f"Catch this {appearance.collectibleSingular}!")
+        super().__init__(title=f"Catch this {appearance.collectible_singular}!")
         self.car = car
         self.button = button
 
@@ -37,11 +37,11 @@ class CarFigureNamePrompt(Modal):
         log.exception("An error occurred in carfigure catching prompt", exc_info=error)
         if interaction.response.is_done():
             await interaction.followup.send(
-                f"An error occurred with this {appearance.collectibleSingular}."
+                f"An error occurred with this {appearance.collectible_singular}."
             )
         else:
             await interaction.response.send_message(
-                f"An error occurred with this {appearance.collectibleSingular}."
+                f"An error occurred with this {appearance.collectible_singular}."
             )
 
     async def on_submit(self, interaction: discord.Interaction["CarFiguresBot"]):
@@ -64,12 +64,12 @@ class CarFigureNamePrompt(Modal):
             )
 
             event = ""
-            if car.exclusiveCard and car.exclusiveCard.catchPhrase:
-                event += f"*{car.exclusiveCard.catchPhrase}*\n"
-            if car.eventCard and car.eventCard.catchPhrase:
-                event += f"*{car.eventCard.catchPhrase}*\n"
+            if car.exclusive_card and car.exclusive_card.catchPhrase:
+                event += f"*{car.exclusive_card.catchPhrase}*\n"
+            if car.event_card and car.event_card.catchPhrase:
+                event += f"*{car.event_card.catchPhrase}*\n"
             if has_caught_before:
-                event += f"This is a **new {appearance.collectibleSingular}** that has been added to your {appearance.garageName}!"
+                event += f"This is a **new {appearance.collectible_singular}** that has been added to your {appearance.garage_name}!"
 
             await interaction.followup.send(
                 f"{interaction.user.mention} You caught **{self.car.name}!** "
@@ -80,8 +80,8 @@ class CarFigureNamePrompt(Modal):
             await interaction.followup.edit_message(self.car.message.id, view=self.button.view)
         else:
             wrong_message = random.choices(
-                population=[x["message"] for x in settings.wrongNameMessages],
-                weights=[float(x["rarity"]) for x in settings.wrongNameMessages],
+                population=[message["message"] for message in settings.wrong_name_messages],
+                weights=[float(message["rarity"]) for message in settings.wrong_name_messages],
                 k=1,
             )[0]
             await interaction.followup.send(f"{interaction.user.mention} " + wrong_message)
@@ -106,8 +106,8 @@ class CarFigureNamePrompt(Modal):
         ]
 
         if chance and exclusive_population:
-            common_weight = sum(1 - x.rarity for x in exclusive_population)
-            weights = [x.rarity for x in exclusive_population] + [common_weight]
+            common_weight = sum(1 - exclusive.rarity for exclusive in exclusive_population)
+            weights = [exclusive.rarity for exclusive in exclusive_population] + [common_weight]
             exclusive = random.choices(
                 population=exclusive_population + [None], weights=weights, k=1
             )[0]
@@ -118,9 +118,9 @@ class CarFigureNamePrompt(Modal):
             # and 0 only common, we get the remaining value by doing (1-rarity)
             # We then sum each value for each current event, and we should get an algorithm
             # that kinda makes sense.
-            commonWeight = sum(1 - x.rarity for x in event_population)
+            common_weight = sum(1 - event.rarity for event in event_population)
 
-            weights = [x.rarity for x in event_population] + [commonWeight]
+            weights = [event.rarity for event in event_population] + [common_weight]
             # None is added representing the common carfigure
             event = random.choices(population=event_population + [None], weights=weights, k=1)[0]
 
@@ -130,8 +130,8 @@ class CarFigureNamePrompt(Modal):
             player=player,
             exclusive=exclusive,
             event=event,
-            horsepowerBonus=random.randint(*settings.catchBonusRate),
-            weightBonus=random.randint(*settings.catchBonusRate),
+            horsepowerBonus=random.randint(*settings.catch_bonus_rate),
+            weightBonus=random.randint(*settings.catch_bonus_rate),
             server=user.guild.id,
             spawnedTime=self.car.time,
         )
@@ -149,8 +149,8 @@ class CarFigureNamePrompt(Modal):
 class CatchButton(Button):
     def __init__(self, car: "CarFigure"):
         catch_button_message = random.choices(
-            population=[x["message"] for x in settings.catchButtonMessages],
-            weights=[float(x["rarity"]) for x in settings.catchButtonMessages],
+            population=[message["message"] for message in settings.catch_button_messages],
+            weights=[float(message["rarity"]) for message in settings.catch_button_messages],
             k=1,
         )[0]
         super().__init__(style=discord.ButtonStyle.primary, label=catch_button_message)

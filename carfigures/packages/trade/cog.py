@@ -131,7 +131,7 @@ class Trade(commands.GroupCog):
 
         player1, _ = await Player.get_or_create(discord_id=interaction.user.id)
         player2, _ = await Player.get_or_create(discord_id=user.id)
-        if player2.discord_id in self.bot.blacklistedUsers:
+        if player2.discord_id in self.bot.blacklisted_users:
             await interaction.response.send_message(
                 "You cannot trade with a blacklisted user.", ephemeral=True
             )
@@ -148,7 +148,7 @@ class Trade(commands.GroupCog):
     async def add(
         self,
         interaction: discord.Interaction,
-        carfigure: CarInstanceTransform,
+        carfigure: CarInstanceTransform | None = None,
         event: EventEnabledTransform | None = None,
         exclusive: ExclusiveTransform | None = None,
     ):
@@ -166,7 +166,7 @@ class Trade(commands.GroupCog):
         """
         if not carfigure:
             return
-        if not carfigure.isTradeable:
+        if not carfigure.is_tradeable:
             await interaction.response.send_message(
                 "You cannot trade this carfigure.", ephemeral=True
             )
@@ -196,11 +196,11 @@ class Trade(commands.GroupCog):
             return
         if carfigure in trader.proposal:
             await interaction.followup.send(
-                f"You already have this {appearance.collectibleSingular} in your proposal.",
+                f"You already have this {appearance.collectible_singular} in your proposal.",
                 ephemeral=True,
             )
             return
-        if await carfigure.isLocked():
+        if await carfigure.is_locked():
             await interaction.followup.send(
                 "This carfigure is currently in an active trade or donation, "
                 "please try again later.",
@@ -208,7 +208,7 @@ class Trade(commands.GroupCog):
             )
             return
 
-        await carfigure.lockForTrade()
+        await carfigure.lock_for_trade()
         trader.proposal.append(carfigure)
         await interaction.followup.send(f"{carfigure.carfigure.fullName} added.", ephemeral=True)
 
@@ -244,7 +244,7 @@ class Trade(commands.GroupCog):
             return
         if carfigure not in trader.proposal:
             await interaction.response.send_message(
-                f"That {appearance.collectibleSingular} is not in your proposal.", ephemeral=True
+                f"That {appearance.collectible_singular} is not in your proposal.", ephemeral=True
             )
             return
         trader.proposal.remove(carfigure)

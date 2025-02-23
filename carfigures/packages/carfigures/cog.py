@@ -20,15 +20,15 @@ class CarFiguresSpawner(commands.Cog):
         self.bot = bot
 
     async def load_cache(self):
-        i = 0
+        amount = 0
         async for config in GuildConfig.all():
             if not config.enabled:
                 continue
             if not config.spawnChannel:
                 continue
             self.spawn_manager.cache[config.guild_id] = config.spawnChannel
-            i += 1
-        log.info(f"Loaded {i} guilds in cache")
+            amount += 1
+        log.info(f"Loaded {amount} guilds in cache")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -39,7 +39,7 @@ class CarFiguresSpawner(commands.Cog):
             return
         if guild.id not in self.spawn_manager.cache:
             return
-        if guild.id in self.bot.blacklistedServers:
+        if guild.id in self.bot.blacklisted_servers:
             return
         await self.spawn_manager.handle_message(message)
 

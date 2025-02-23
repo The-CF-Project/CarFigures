@@ -29,10 +29,10 @@ FILENAME_RE = re.compile(r"^(.+)(\.\S+)$")
 
 
 async def log_action(message: str, bot: CarFiguresBot):
-    if settings.logChannel:
-        channel = bot.get_channel(settings.logChannel)
+    if settings.log_channel:
+        channel = bot.get_channel(settings.log_channel)
         if not channel:
-            log.warning(f"Channel {settings.logChannel} not found")
+            log.warning(f"Channel {settings.log_channel} not found")
             return
         if not isinstance(channel, discord.TextChannel):
             log.warning(f"Channel {channel.name} is not a text channel")  # type: ignore
@@ -53,8 +53,8 @@ async def save_file(attachment: discord.Attachment) -> Path:
     return path
 
 
-@app_commands.guilds(*settings.superGuilds)
-@app_commands.checks.has_any_role(*settings.superUsers)
+@app_commands.guilds(*settings.superguilds)
+@app_commands.checks.has_any_role(*settings.superusers)
 @app_commands.default_permissions(administrator=True)
 class SuperUser(commands.GroupCog, group_name=appearance.sudo):
     """
@@ -326,12 +326,12 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         if not guilds:
             if self.bot.intents.members:
                 await interaction.response.send_message(
-                    f"The user does not own any server with {settings.botName}.",
+                    f"The user does not own any server with {settings.bot_name}.",
                     ephemeral=True,
                 )
             else:
                 await interaction.response.send_message(
-                    f"The user does not own any server with {settings.botName}.\n"
+                    f"The user does not own any server with {settings.bot_name}.\n"
                     ":warning: *The bot cannot be aware of the member's presence in servers, "
                     "it is only aware of server ownerships.*",
                     ephemeral=True,
@@ -451,7 +451,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                             await models.BlacklistedUser.create(
                                 discord_id=user.id, reason=final_reason
                             )
-                            self.bot.blacklistedUsers.add(user.id)
+                            self.bot.blacklisted_users.add(user.id)
                         await interaction.response.send_message(
                             f"{user.display_name} is now blacklisted.", ephemeral=True
                         )
@@ -469,7 +469,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                             return
                         else:
                             await models.BlacklistedUser.filter(discord_id=user.id).delete()
-                            self.bot.blacklistedUsers.remove(user.id)
+                            self.bot.blacklisted_users.remove(user.id)
                             await interaction.response.send_message(
                                 f"{user.display_name} is now removed from blacklist.",
                                 ephemeral=True,
@@ -524,7 +524,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                                 f"{server.name} was already blacklisted.", ephemeral=True
                             )
                         else:
-                            self.bot.blacklistedServers.add(server.id)
+                            self.bot.blacklisted_servers.add(server.id)
                             await models.BlacklistedGuild.create(guild_id=server.id)
                             await interaction.response.send_message(
                                 f"{server.name} is now blacklisted.", ephemeral=True
@@ -541,7 +541,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                             )
                         else:
                             await models.BlacklistedGuild.filter(guild_id=server.id).delete()
-                            self.bot.blacklistedServers.remove(server.id)
+                            self.bot.blacklisted_servers.remove(server.id)
                             await interaction.response.send_message(
                                 f"{server.name} is now removed from blacklist.", ephemeral=True
                             )
@@ -578,7 +578,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         entity=[
             app_commands.Choice(name="User", value="user"),
             app_commands.Choice(name="Trade", value="trade"),
-            app_commands.Choice(name=appearance.collectibleSingular.title(), value="car"),
+            app_commands.Choice(name=appearance.collectible_singular.title(), value="car"),
         ],
         sorting=[
             app_commands.Choice(name="Most Recent", value="-date"),
@@ -640,7 +640,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                     pk = int(id, 16)
                 except ValueError:
                     await interaction.followup.send(
-                        f"The {appearance.collectibleSingular} ID you gave is not valid.",
+                        f"The {appearance.collectible_singular} ID you gave is not valid.",
                         ephemeral=True,
                     )
                     return
@@ -648,7 +648,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                 car = await models.CarInstance.get_or_none(id=pk)
                 if not car:
                     await interaction.followup.send(
-                        f"The {appearance.collectibleSingular} ID you gave does not exist.",
+                        f"The {appearance.collectible_singular} ID you gave does not exist.",
                         ephemeral=True,
                     )
                     return
@@ -665,7 +665,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                 )
                 pages = paginators.Pages(
                     source=TradeViewFormat(
-                        trades, f"{appearance.collectibleSingular} {car}", self.bot
+                        trades, f"{appearance.collectible_singular} {car}", self.bot
                     ),
                     interaction=interaction,
                 )
@@ -760,14 +760,14 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                         f"\u200b **⋄ Privacy Policy:** {player.privacyPolicy.name}\n"
                         f"\u200b **⋄ Donation Policy:** {player.donationPolicy.name}\n\n"
                         f"**Ⅲ Player Info\n**"
-                        f"\u200b **⋄ {appearance.collectiblePlural.title()} Collected in {days} days/in Total:** "
+                        f"\u200b **⋄ {appearance.collectible_plural.title()} Collected in {days} days/in Total:** "
                         f"{len(total_user_cars)} | {await player.cars.all().count()}\n"
-                        f"\u200b **⋄ Servers with {appearance.collectiblePlural.title()} caught in {days} days/in Total:**"
+                        f"\u200b **⋄ Servers with {appearance.collectible_plural.title()} caught in {days} days/in Total:**"
                         f"{set([x.server for x in total_user_cars])}/{len(set([x.server for x in total_user_cars]))}\n"
                         # f"\u200b **⋄ "
                         f"\u200b **⋄ Rebirths Done:** {player.rebirths}\n"
                     ),
-                    color=settings.defaultEmbedColor,
+                    color=settings.default_embed_color,
                 )
                 embed.set_thumbnail(url=user.display_avatar.url)  # type: ignore
                 await interaction.followup.send(embed=embed, ephemeral=True)
@@ -800,22 +800,22 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                     embed = discord.Embed(
                         title=f"{guild.name} ({guild.id})",
                         description=f"Owner: {owner} ({guild.owner_id})",
-                        color=settings.defaultEmbedColor,
+                        color=settings.default_embed_color,
                     )
                 else:
                     embed = discord.Embed(
                         title=f"{guild.name} ({guild.id})",
-                        color=settings.defaultEmbedColor,
+                        color=settings.default_embed_color,
                     )
                 embed.add_field(name="Members", value=guild.member_count)
                 embed.add_field(name="Spawn Enabled", value=spawn_enabled)
                 embed.add_field(name="Created at", value=format_dt(guild.created_at, style="R"))
                 embed.add_field(
-                    name=f"{appearance.collectiblePlural.title()} Caught ({days} days)",
+                    name=f"{appearance.collectible_plural.title()} Caught ({days} days)",
                     value=len(total_server_cars),
                 )
                 embed.add_field(
-                    name=f"Amount of Users who caught {appearance.collectiblePlural} ({days} days)",
+                    name=f"Amount of Users who caught {appearance.collectible_plural} ({days} days)",
                     value=len(set([x.player.discord_id for x in total_server_cars])),
                 )
 
@@ -829,7 +829,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                     pk = int(id, 16)
                 except ValueError:
                     await interaction.followup.send(
-                        f"The {appearance.collectibleSingular} ID you gave is not valid.",
+                        f"The {appearance.collectible_singular} ID you gave is not valid.",
                         ephemeral=True,
                     )
                     return
@@ -838,7 +838,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                 )
                 if not car:
                     await interaction.followup.send(
-                        f"The {appearance.collectibleSingular} ID you gave does not exist.",
+                        f"The {appearance.collectible_singular} ID you gave does not exist.",
                         ephemeral=True,
                     )
                     return
@@ -850,7 +850,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                 )
                 embed = discord.Embed(
                     title="{}",
-                    description=f"**{appearance.collectibleSingular.title()} ID:** {car.pk}\n"
+                    description=f"**{appearance.collectible_singular.title()} ID:** {car.pk}\n"
                     f"**Player:** {car.player}\n"
                     f"**Name:** {car.carfigure}\n"
                     f"**{appearance.horsepower} bonus:** {car.horsepowerBonus}\n"
@@ -862,7 +862,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
                     f"**Catch time:** {catch_time} seconds\n"
                     f"**Caught in:** {car.server if car.server else 'N/A'}\n"
                     f"**Traded:** {car.trade_player}\n",
-                    color=settings.defaultEmbedColor,
+                    color=settings.default_embed_color,
                 )
                 embed.set_thumbnail(url=self.bot.user.display_avatar.url)
                 await interaction.followup.send(embed=embed, ephemeral=True)
@@ -902,8 +902,8 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         await interaction.response.defer(ephemeral=True, thinking=True)
 
         player, _ = await models.Player.get_or_create(discord_id=user.id)
-        hpBonus = horsepowerbonus or random.randint(*settings.catchBonusRate)
-        kgBonus = weightbonus or random.randint(*settings.catchBonusRate)
+        hpBonus = horsepowerbonus or random.randint(*settings.catch_bonus_rate)
+        kgBonus = weightbonus or random.randint(*settings.catch_bonus_rate)
         for _ in range(amount):
             await models.CarInstance.create(
                 car=car,
@@ -944,7 +944,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             carIdConverted = int(car_id, 16)
         except ValueError:
             await interaction.response.send_message(
-                f"The {appearance.collectibleSingular} ID you gave is not valid.",
+                f"The {appearance.collectible_singular} ID you gave is not valid.",
                 ephemeral=True,
             )
             return
@@ -952,13 +952,13 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             car = await models.CarInstance.get(id=carIdConverted)
         except DoesNotExist:
             await interaction.response.send_message(
-                f"The {appearance.collectibleSingular} ID you gave does not exist.",
+                f"The {appearance.collectible_singular} ID you gave does not exist.",
                 ephemeral=True,
             )
             return
         await car.delete()
         await interaction.response.send_message(
-            f"{appearance.collectibleSingular.title()} {car_id} deleted.", ephemeral=True
+            f"{appearance.collectible_singular.title()} {car_id} deleted.", ephemeral=True
         )
         await log_action(f"{interaction.user} deleted {car} ({car.pk})", self.bot)
 
@@ -978,7 +978,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             carIdConverted = int(car_id, 16)
         except ValueError:
             await interaction.response.send_message(
-                f"The {appearance.collectibleSingular} ID you gave is not valid.",
+                f"The {appearance.collectible_singular} ID you gave is not valid.",
                 ephemeral=True,
             )
             return
@@ -987,7 +987,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             original_player = car.player
         except DoesNotExist:
             await interaction.response.send_message(
-                f"The {appearance.collectibleSingular} ID you gave does not exist.",
+                f"The {appearance.collectible_singular} ID you gave does not exist.",
                 ephemeral=True,
             )
             return
@@ -1030,11 +1030,11 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         await interaction.response.defer(ephemeral=True, thinking=True)
 
         if not percentage:
-            text = f"Are you sure you want to delete {user}'s {appearance.collectiblePlural}?"
+            text = f"Are you sure you want to delete {user}'s {appearance.collectible_plural}?"
         else:
             text = (
                 f"Are you sure you want to delete {percentage}% of "
-                f"{user}'s {appearance.collectiblePlural}?"
+                f"{user}'s {appearance.collectible_plural}?"
             )
         view = buttons.ConfirmChoiceView(interaction)
         await interaction.followup.send(
@@ -1054,7 +1054,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         else:
             count = await models.CarInstance.filter(player=player).delete()
         await interaction.followup.send(
-            f"{count} {appearance.collectiblePlural} from {user} have been reset.",
+            f"{count} {appearance.collectible_plural} from {user} have been reset.",
             ephemeral=True,
         )
         await log_action(
@@ -1095,7 +1095,7 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             filters["player__discord_id"] = user.id
         await interaction.response.defer(ephemeral=True, thinking=True)
         cars = await models.CarInstance.filter(**filters).count()
-        full_name = f"{car.fullName} " if car else f"{appearance.collectiblePlural}"
+        full_name = f"{car.fullName} " if car else f"{appearance.collectible_plural}"
         event_str = f"{event.name} " if event else ""
         exclusive_str = f"{exclusive.name} " if exclusive else ""
         if user:
@@ -1220,28 +1220,28 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
         except BaseORMException as e:
             log.exception("Failed creating carfigure with admin command", exc_info=True)
             await interaction.followup.send(
-                f"Failed creating the {appearance.collectibleSingular}.\n"
+                f"Failed creating the {appearance.collectible_singular}.\n"
                 f"Partial error: {', '.join(str(x) for x in e.args)}\n"
                 "The full error is in the bot logs."
             )
         else:
             message = (
-                f"Successfully created a {appearance.collectibleSingular} with ID {car.pk}! "
+                f"Successfully created a {appearance.collectible_singular} with ID {car.pk}! "
                 "The internal cache was reloaded.\n"
-                f"{fullname=} {appearance.cartype}={cartype.name} "
+                f"{fullname=} {appearance.album}={cartype.name} "
                 f"{appearance.country}={country.name if country else None} "
                 f"{weight=} {horsepower=} {rarity=} {enabled=} {tradeable=} emoji={emoji}"
             )
             if not spawnpicture and not default_path.exists():
                 message += (
                     "**Warning:** The default spawn image is not set. This will result in errors when "
-                    f"attempting to spawn this {appearance.collectibleSingular}. You can edit this on the "
+                    f"attempting to spawn this {appearance.collectible_singular}. You can edit this on the "
                     "web panel or add an image at static/uploads called default.png.\n"
                 )
             files = [await collectionpicture.to_file()]
             if spawnpicture:
                 files.append(await spawnpicture.to_file())
-            await self.bot.reloadCache()
+            await self.bot.reload_cache()
             await interaction.followup.send(
                 message,
                 files=files,
@@ -1287,13 +1287,11 @@ class SuperUser(commands.GroupCog, group_name=appearance.sudo):
             player.rebirths -= amount
 
         await player.save()
-        plural = "s" if amount > 1 else ""
+        rebirth = f"{amount} rebirths" if amount > 1 else "a rebirth"
         word = "added" if action.value == "add" else "removed"
 
-        await interaction.followup.send(
-            f"Successfully {word} {amount} rebirth{plural} to {user.name}."
-        )
+        await interaction.followup.send(f"Successfully {word} {rebirth} to {user.name}.")
         await log_action(
-            f"{interaction.user} {word} {amount} rebirth{plural} to {user.name}.",
+            f"{interaction.user} {word} {rebirth} to {user.name}.",
             self.bot,
         )

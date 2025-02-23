@@ -28,10 +28,10 @@ class CarFigure:
         """
         A method to get a random Car instance from a list of enabled cars based on their rarity.
         """
-        carfigures = list(filter(lambda m: m.enabled, cars.values()))
+        carfigures = list(filter(lambda carfigure: carfigure.enabled, cars.values()))
         if not carfigures:
             raise RuntimeError("No car to spawn")
-        cf = random.choices(population=carfigures, weights=[x.rarity for x in carfigures], k=1)[0]
+        cf = random.choices(population=carfigures, weights=[carfigure.rarity for carfigure in carfigures], k=1)[0]
         return cls(cf)
 
     async def spawn(self, channel: discord.TextChannel) -> bool:
@@ -64,8 +64,8 @@ class CarFigure:
         role = channel.guild.get_role(guild.spawnRole) if guild.spawnRole else None
 
         message = random.choices(
-            population=[x["message"] for x in settings.spawnMessages],
-            weights=[int(x["rarity"]) for x in settings.spawnMessages],
+            population=[mmessage["message"] for mmessage in settings.spawn_messages],
+            weights=[int(mmessage["rarity"]) for mmessage in settings.spawn_messages],
             k=1,
         )[0]
         if role:

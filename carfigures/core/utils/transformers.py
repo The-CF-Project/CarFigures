@@ -149,7 +149,7 @@ class ModelTransformer(app_commands.Transformer, Generic[T]):
 
 
 class CarInstanceTransformer(ModelTransformer[CarInstance]):
-    name = appearance.collectibleSingular.lower()
+    name = appearance.collectible_singular.lower()
     model = CarInstance  # type: ignore
 
     async def get_from_pk(self, value: int) -> CarInstance:
@@ -158,7 +158,7 @@ class CarInstanceTransformer(ModelTransformer[CarInstance]):
     async def validate(self, interaction: discord.Interaction["CarFiguresBot"], item: CarInstance):
         # checking if the car does belong to user, and a custom ID wasn't forced
         if item.player.discord_id != interaction.user.id:
-            raise ValidationError(f"That {appearance.collectibleSingular} doesn't belong to you.")
+            raise ValidationError(f"That {appearance.collectible_singular} doesn't belong to you.")
 
     async def get_options(
         self, interaction: Interaction["CarFiguresBot"], value: str
@@ -253,7 +253,7 @@ class TTLModelTransformer(ModelTransformer[T]):
 
 
 class CarTransformer(TTLModelTransformer[Car]):
-    name = appearance.collectibleSingular.lower()
+    name = appearance.collectible_singular.lower()
     model = Car()
 
     def key(self, model: Car) -> str:

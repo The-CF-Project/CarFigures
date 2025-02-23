@@ -191,7 +191,7 @@ class Event(models.Model):
         ordering = ["-startDate"]
 
     def draw_banner(self) -> BytesIO:
-        image = imagers.drawBanner(self)
+        image = imagers.draw_banner(self)
         buffer = BytesIO()
         image.save(buffer, format="png")
         buffer.seek(0)
@@ -271,11 +271,11 @@ class Car(models.Model):
         return self.fullName
 
     @property
-    def cachedCartype(self) -> CarType:
+    def cached_album(self) -> CarType:
         return cartypes.get(self.cartype_id, self.cartype)
 
     @property
-    def cachedCountry(self) -> Country | None:
+    def cached_country(self) -> Country | None:
         return countries.get(self.country_id, self.country)
 
 
@@ -331,11 +331,11 @@ class CarInstance(models.Model):
         unique_together = ("player", "id")
 
     @property
-    def isTradeable(self) -> bool:
+    def is_tradeable(self) -> bool:
         return (
             self.tradeable
             and self.carfigure.tradeable
-            and getattr(self.eventCard, "tradeable", True)
+            and getattr(self.event_card, "tradeable", True)
         )
 
     @property
@@ -353,59 +353,59 @@ class CarInstance(models.Model):
         return cars.get(self.car_id, self.car)
 
     @property
-    def exclusiveCard(self) -> Exclusive | None:
+    def exclusive_card(self) -> Exclusive | None:
         return exclusives.get(self.exclusive_id, self.exclusive)
 
     @property
-    def eventCard(self) -> Event | None:
+    def event_card(self) -> Event | None:
         return events.get(self.event_id, self.event)
 
     def __str__(self) -> str:
-        return self.toString()
+        return self.to_string()
 
-    def toString(self, bot: discord.Client | None = None, is_trade: bool = False) -> str:
+    def to_string(self, bot: discord.Client | None = None, is_trade: bool = False) -> str:
         emotes = ""
         if bot and self.pk in bot.locked_cars and not is_trade:  # type: ignore
             emotes += "🔒"
         if self.favorite:
             emotes += "❤️"
-        if self.exclusiveCard:
-            emotes += self.exclusiveEmoji(bot)
+        if self.exclusive_card:
+            emotes += self.exclusive_emoji(bot)
         if emotes:
             emotes += " "
-        if self.eventCard:
-            emotes += self.eventEmoji(bot)
+        if self.event_card:
+            emotes += self.event_emoji(bot)
         full_name = (
             self.carfigure.fullName if isinstance(self.carfigure, Car) else f"<Car {self.car_id}>"
         )
         return f"{emotes}#{self.pk:0X} {full_name}"
 
-    def exclusiveEmoji(self, bot: discord.Client | None, use_custom_emoji: bool = True) -> str:
-        if self.exclusiveCard:
+    def exclusive_emoji(self, bot: discord.Client | None, use_custom_emoji: bool = True) -> str:
+        if self.exclusive_card:
             if not use_custom_emoji:
                 return "⚡ "
             exclusive_emoji = ""
             try:
-                emoji_id = int(self.exclusiveCard.emoji)
+                emoji_id = int(self.exclusive_card.emoji)
                 exclusive_emoji = bot.get_emoji(emoji_id) if bot else "⚡ "
             except ValueError:
-                exclusive_emoji = self.exclusiveCard.emoji
+                exclusive_emoji = self.exclusive_card.emoji
             except TypeError:
                 return ""
             if exclusive_emoji:
                 return f"{exclusive_emoji} "
         return ""
 
-    def eventEmoji(self, bot: discord.Client | None, use_custom_emoji: bool = True) -> str:
-        if self.eventCard:
+    def event_emoji(self, bot: discord.Client | None, use_custom_emoji: bool = True) -> str:
+        if self.event_card:
             if not use_custom_emoji:
                 return "⚡ "
             event_emoji = ""
             try:
-                emoji_id = int(self.eventCard.emoji)
+                emoji_id = int(self.event_card.emoji)
                 event_emoji = bot.get_emoji(emoji_id) if bot else "⚡ "
             except ValueError:
-                event_emoji = self.eventCard.emoji
+                event_emoji = self.event_card.emoji
             except TypeError:
                 return ""
             if event_emoji:
@@ -434,45 +434,45 @@ class CarInstance(models.Model):
                     text = f"{emoji} {text}"
         return text
 
-    def drawCard(self) -> BytesIO:
-        image = imagers.drawCard(self)
+    def draw_card(self) -> BytesIO:
+        image = imagers.draw_card(self)
         buffer = BytesIO()
         image.save(buffer, format="png")
         buffer.seek(0)
         image.close()
         return buffer
 
-    async def prepareForMessage(
+    async def prepare_for_message(
         self, interaction: discord.Interaction
     ) -> Tuple[str, discord.File]:
         # message content
         trade_content = ""
         await self.fetch_related("trade_player", "event")
         if self.trade_player:
-            originalPlayer = None
+            original_player = None
             # we want to avoid calling fetch_player if possible
             # (heavily rate-limited call)
             if interaction.guild:
                 try:
-                    originalPlayer = await interaction.guild.fetch_member(
+                    original_player = await interaction.guild.fetch_member(
                         int(self.trade_player.discord_id)
                     )
                 except discord.NotFound:
                     pass
-            elif originalPlayer is None:  # try again if not found in guild
+            elif original_player is None:  # try again if not found in guild
                 try:
-                    originalPlayer = await interaction.client.fetch_user(
+                    original_player = await interaction.client.fetch_user(
                         int(self.trade_player.discord_id)
                     )
                 except discord.NotFound:
                     pass
 
-            originalPlayerName = (
-                originalPlayer.name
-                if originalPlayer
+            original_player_name = (
+                original_player.name
+                if original_player
                 else f"player with ID {self.trade_player.discord_id}"
             )
-            trade_content = f"Obtained by trade with {originalPlayerName}.\n"
+            trade_content = f"Obtained by trade with {original_player_name}.\n"
         content = (
             f"ID: `#{self.pk:0X}`\n"
             f"Caught on {format_dt(self.catchDate)} ({format_dt(self.catchDate, style='R')}).\n"
@@ -483,11 +483,11 @@ class CarInstance(models.Model):
 
         # draw image
         with ThreadPoolExecutor() as pool:
-            buffer = await interaction.client.loop.run_in_executor(pool, self.drawCard)
+            buffer = await interaction.client.loop.run_in_executor(pool, self.draw_card)
 
         return content, discord.File(buffer, "card.png")
 
-    async def lockForTrade(self):
+    async def lock_for_trade(self):
         self.locked = timezone.now()
         await self.save(update_fields=("locked",))
 
@@ -495,7 +495,7 @@ class CarInstance(models.Model):
         self.locked = None  # type: ignore
         await self.save(update_fields=("locked",))
 
-    async def isLocked(self):
+    async def is_locked(self):
         await self.refresh_from_db(fields=("locked",))
         self.locked
         return self.locked is not None and (self.locked + timedelta(minutes=30)) > timezone.now()

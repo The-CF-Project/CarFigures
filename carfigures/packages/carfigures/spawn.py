@@ -41,17 +41,17 @@ class SpawnCooldown:
     time: datetime
     # initialize partially started, to reduce the dead time after starting the bot
     scaled_message_count: float = field(
-        default_factory=lambda: float(settings.requiredMessageRange[0] // 2)
+        default_factory=lambda: float(settings.required_message_range[0] // 2)
     )
     cached_messages_set: set[str] = field(default_factory=set)
-    chance: int = field(default_factory=lambda: random.randint(*settings.requiredMessageRange))
+    chance: int = field(default_factory=lambda: random.randint(*settings.required_message_range))
     lock: asyncio.Lock = field(default_factory=asyncio.Lock, init=False)
     message_cache: deque[CachedMessage] = field(default_factory=lambda: deque(maxlen=100))
     unique_authors: set[int] = field(default_factory=set)
 
     def reset(self, time: datetime):
         self.scaled_message_count = 1.0
-        self.chance = random.randint(*settings.requiredMessageRange)
+        self.chance = random.randint(*settings.required_message_range)
         try:
             self.lock.release()
         except RuntimeError:  # lock is not acquired
@@ -73,10 +73,7 @@ class SpawnCooldown:
             message_multiplier = 1
             if message.content.lower() in [m.content.lower() for m in self.message_cache]:
                 message_multiplier /= 2
-            if (
-                message.guild.member_count < settings.minimumMembersRequired
-                or message.guild.member_count > 1000
-            ):  # type: ignore
+            if message.guild.member_count > 1000:  # type: ignore
                 message_multiplier /= 2
             if len(message.content) < 5:
                 message_multiplier /= 2
@@ -125,11 +122,11 @@ class SpawnManager:
             return
 
         # normal increase, need to reach goal
-        if cooldown.scaledMessageCount <= chance:
+        if cooldown.scaled_message_count <= chance:
             return
 
         # at this point, the goal is reached
-        if deltaTime < settings.coolDownTime:
+        if deltaTime < settings.cooldown_time:
             # wait for at least 10 minutes before spawning
             return
 
@@ -137,7 +134,7 @@ class SpawnManager:
         cooldown.reset(message.created_at)
         await self.spawn_carfigure(
             guild
-        ) if guild.member_count > settings.minimumMembersRequired else log.warning(
+        ) if guild.member_count > settings.minimum_members_required else log.warning(
             f"{guild.name} ({guild.id}) is trying to farm."
         )
 

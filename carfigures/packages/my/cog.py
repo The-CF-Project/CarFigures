@@ -70,14 +70,14 @@ class My(commands.GroupCog):
         # Creating the Embed and Storting the variables in it
         embed = discord.Embed(
             title=f" ❖ {interaction.user.display_name}'s Profile",
-            color=settings.defaultEmbedColor,
+            color=settings.default_embed_color,
         )
         embed.description = (
             f"**Ⅲ Player Settings**\n"
             f"\u200b **⋄ Privacy Policy:** {player.privacyPolicy.name}\n"
             f"\u200b **⋄ Donation Policy:** {player.donationPolicy.name}\n\n"
             f"**Ⅲ Player Info\n**"
-            f"\u200b **⋄ {appearance.collectiblePlural.title()} Collected:** {await player.cars.filter().count()}\n"
+            f"\u200b **⋄ {appearance.collectible_plural.title()} Collected:** {await player.cars.filter().count()}\n"
             f"\u200b **⋄ Rebirths Done:** {player.rebirths}\n"
         )
 
@@ -91,7 +91,7 @@ class My(commands.GroupCog):
         """
 
         player, _ = await models.Player.get_or_create(discord_id=interaction.user.id)
-        bot_carfigures = {x: y.pk for x, y in models.cars.items() if y.enabled}
+        bot_carfigures = {carfigure_id: carfigure.pk for carfigure_id, carfigure in models.cars.items() if carfigure.enabled}
 
         filters = {
             "player__discord_id": interaction.user.id,
@@ -102,7 +102,7 @@ class My(commands.GroupCog):
         }
         if not bot_carfigures:
             await interaction.response.send_message(
-                f"There are no {appearance.collectiblePlural} registered on this bot yet.",
+                f"There are no {appearance.collectible_plural} registered on this bot yet.",
                 ephemeral=True,
             )
             return
@@ -123,7 +123,7 @@ class My(commands.GroupCog):
 
         view = ConfirmChoiceView(interaction)
         await interaction.response.send_message(
-            f"Are you sure you want to delete all your {appearance.collectiblePlural} for advantages?",
+            f"Are you sure you want to delete all your {appearance.collectibl_plural} for advantages?",
             view=view,
         )
 
@@ -181,7 +181,7 @@ class My(commands.GroupCog):
         embed = discord.Embed(
             title="Select your friend!",
             description="Please select a friend to view their profile.",
-            color=settings.defaultEmbedColor,
+            color=settings.default_embed_color,
         )
         view = discord.ui.View()
 
@@ -204,10 +204,10 @@ class My(commands.GroupCog):
                     f"\u200b **⋄ Privacy Policy:** {friend.privacyPolicy.name}\n"
                     f"\u200b **⋄ Donation Policy:** {friend.donationPolicy.name}\n\n"
                     f"**Ⅲ Player Info\n**"
-                    f"\u200b **⋄ {appearance.collectiblePlural.title()} Collected:** {await friend.cars.filter().count()}\n"
+                    f"\u200b **⋄ {appearance.collectible_plural.title()} Collected:** {await friend.cars.filter().count()}\n"
                     f"\u200b **⋄ Rebirths Done:** {friend.rebirths}\n"
                 ),
-                color=settings.defaultEmbedColor,
+                color=settings.default_embed_color,
             )
             embed.set_thumbnail(url=friend_user.display_avatar.url)
             await interaction.response.edit_message(embed=embed, view=view)
@@ -292,7 +292,7 @@ class My(commands.GroupCog):
         embed = discord.Embed(
             title="Coming Friend requests!",
             description="select one of the requests to view!",
-            color=settings.defaultEmbedColor,
+            color=settings.default_embed_color,
         )
 
         options = []
@@ -349,7 +349,7 @@ class My(commands.GroupCog):
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     @server.command(
-        description=f"Set the channel where {appearance.collectiblePlural} will spawn."
+        description=f"Set the channel where {appearance.collectible_plural} will spawn."
     )
     async def spawnchannel(
         self,
@@ -389,7 +389,7 @@ class My(commands.GroupCog):
             embed=activation_embed, view=AcceptTOSView(interaction, channel)
         )
 
-    @server.command(description=f"Disable or enable {settings.botName} from spawning.")
+    @server.command(description=f"Disable or enable {settings.bot_name} from spawning.")
     async def spawnstate(self, interaction: discord.Interaction):
         """
         Disable or enable CarFigures from spawning.
@@ -408,8 +408,8 @@ class My(commands.GroupCog):
             await config.save()
             self.bot.dispatch("carfigures_settings_change", guild, enabled=False)
             await interaction.response.send_message(
-                f"{settings.botName} is now disabled in this server. Commands will still be "
-                f"available, but the spawn of new {appearance.collectiblePlural} is suspended.\n"
+                f"{settings.bot_name} is now disabled in this server. Commands will still be "
+                f"available, but the spawn of new {appearance.collectible_plural} is suspended.\n"
                 "To re-enable the spawn, use the same command."
             )
         else:
@@ -418,12 +418,12 @@ class My(commands.GroupCog):
             self.bot.dispatch("carfigures_settings_change", guild, enabled=True)
             if config.spawnChannel and (channel := guild.get_channel(config.spawnChannel)):
                 await interaction.response.send_message(
-                    f"{settings.botName} is now enabled in this server, "
-                    f"{appearance.collectiblePlural} will start spawning soon in {channel.mention}."
+                    f"{settings.bot_name} is now enabled in this server, "
+                    f"{appearance.collectible_plural} will start spawning soon in {channel.mention}."
                 )
             else:
                 await interaction.response.send_message(
-                    f"{settings.botName} is now enabled in this server, however there is no "
+                    f"{settings.bot_name} is now enabled in this server, however there is no "
                     "spawning channel set. Please configure one with `/my server spawnchannel`."
                 )
 
@@ -445,13 +445,13 @@ class My(commands.GroupCog):
             config.spawnRole = None  # type: ignore
             await config.save()
             await interaction.response.send_message(
-                f"{settings.botName} will no longer alert {role.mention} when {appearance.collectiblePlural} spawn."
+                f"{settings.bot_name} will no longer alert {role.mention} when {appearance.collectible_plural} spawn."
             )
         else:
             config.spawnRole = role.id
             await config.save()
             await interaction.response.send_message(
-                f"{settings.botName} will now alert {role.mention} when {appearance.collectiblePlural} spawn."
+                f"{settings.bot_name} will now alert {role.mention} when {appearance.collectible_plural} spawn."
             )
             return
 
@@ -466,7 +466,7 @@ class My(commands.GroupCog):
         config = await models.GuildConfig.get(guild_id=guild.id)
         embed = discord.Embed(
             title=f"❖ {guild.name} Server Info",
-            color=settings.defaultEmbedColor,
+            color=settings.default_embed_color,
         )
         embed.description = (
             f"**Ⅲ Server Settings**\n"
@@ -478,7 +478,7 @@ class My(commands.GroupCog):
             f"\u200b **⋄ Server Owner:** <@{guild.owner_id}>\n"
             f"\u200b **⋄ Member Count:** {guild.member_count}\n"
             f"\u200b **⋄ Created Since:** {format_dt(guild.created_at, style='R')}\n\n"
-            f"\u200b **⋄ {appearance.collectiblePlural.title()} Caught Here:**"
+            f"\u200b **⋄ {appearance.collectible_plural.title()} Caught Here:**"
             f" {await models.CarInstance.filter(server=guild.id).count()}"
         )
         embed.set_thumbnail(url=guild.icon.url if guild.icon else None)

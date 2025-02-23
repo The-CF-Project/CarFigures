@@ -125,7 +125,7 @@ class Core(commands.Cog):
                 try:
                     car_model = await Car.get(fullName__iexact=car.lower())
                 except DoesNotExist:
-                    await ctx.send(f"No such {appearance.collectibleSingular} exists.")
+                    await ctx.send(f"No such {appearance.collectible_singular} exists.")
                     return
                 carfigure = CarFigure(car_model)
             await carfigure.spawn(channel or ctx.channel)
@@ -144,7 +144,7 @@ class Core(commands.Cog):
         try:
             oldPlayer = await Player.get(discord_id=gifter.id)
         except DoesNotExist:
-            await ctx.send(f"Original player doesn't have any {appearance.collectiblePlural}.")
+            await ctx.send(f"Original player doesn't have any {appearance.collectible_plural}.")
             return
         
         newPlayer, _ = await Player.get_or_create(discord_id=receiver.id)
@@ -152,7 +152,7 @@ class Core(commands.Cog):
         await CarInstance.filter(player=oldPlayer).update(player=newPlayer)
 
         await ctx.send(
-            f"The {appearance.garageName} of {gifter.display_name} has been transferred to {receiver.display_name}."
+            f"The {appearance.garage_name} of {gifter.display_name} has been transferred to {receiver.display_name}."
         )
 
     @commands.command()
@@ -160,7 +160,7 @@ class Core(commands.Cog):
     async def migrateemotes(self, ctx: commands.Context):
         cars = await Car.all()
         if not cars:
-            await ctx.send(f"No {appearance.collectiblePlural} found.")
+            await ctx.send(f"No {appearance.collectible_plural} found.")
             return
 
         application_emojis = set(x.name for x in await self.bot.fetch_application_emojis())
@@ -183,7 +183,7 @@ class Core(commands.Cog):
 
         if len(already_uploaded) == len(cars):
             await ctx.send(
-                f"All of your {appearance.collectiblePlural} already use application emojis."
+                f"All of your {appearance.collectible_plural} already use application emojis."
             )
             return
         if len(to_upload) + len(application_emojis) > 2000:

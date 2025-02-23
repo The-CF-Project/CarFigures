@@ -135,8 +135,8 @@ class CarFiguresSelector(Pages):
         for car in cars:
             emoji = self.bot.get_emoji(int(car.carfigure.emoji))
             favorite = "❤️ " if car.favorite else ""
-            exclusive = car.exclusiveEmoji(self.bot, True)
-            event = car.eventEmoji(self.bot, True)
+            exclusive = car.exclusive_emoji(self.bot, True)
+            event = car.event_emoji(self.bot, True)
             options.append(
                 discord.SelectOption(
                     label=f"{favorite}{exclusive}{event}#{car.pk:0X} {car.carfigure.fullName}",
@@ -162,7 +162,7 @@ class CarFiguresSelector(Pages):
 
 class CarFiguresViewer(CarFiguresSelector):
     async def car_selected(self, interaction: discord.Interaction, instance: CarInstance):
-        content, file = await instance.prepareForMessage(interaction)
+        content, file = await instance.prepare_for_message(interaction)
         await interaction.followup.send(content=content, file=file)
         file.close()
 
@@ -172,8 +172,8 @@ async def inventory_privacy_checker(
     player: Player,
     player_obj: Union[discord.User, discord.Member],
 ):
-    if interaction.guild and interaction.guild.id in settings.superGuilds:
-        roles = settings.superUsers
+    if interaction.guild and interaction.guild.id in settings.superguilds:
+        roles = settings.superusers
         if any(role.id in roles for role in interaction.user.roles):  # type: ignore
             return True
     match player.privacyPolicy:
