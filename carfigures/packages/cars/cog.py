@@ -229,7 +229,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             # Getting the list of emoji IDs from the IDs of the owned carfigures
             fill_fields(
                 f"⋄ Owned {appearance.collectible_plural.title()} | {len(owned_instances)} total",
-                set(owned_instances[carfigure] for carfigure in owned_instances),
+                set(bot_carfigures[carfigure] for carfigure in owned_instances),
             )
         else:
             entries.append(
