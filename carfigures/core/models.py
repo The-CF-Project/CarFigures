@@ -420,7 +420,7 @@ class CarInstance(models.Model):
         bot: discord.Client | None = None,
         is_trade: bool = False,
     ) -> str:
-        text = self.toString(bot, is_trade=is_trade)
+        text = self.to_string(bot, is_trade=is_trade)
         if not short:
             text += f" {appearance.hp}:{self.horsepowerBonus:+d}% {appearance.kg}:{self.weightBonus:+d}%"
         if include_emoji:
