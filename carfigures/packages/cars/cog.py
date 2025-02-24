@@ -208,7 +208,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
 
                 text = f"{emoji} "
                 if len(buffer) + len(text) > 1024:
-                    # Gitting embed limits, adding an intermediate field.
+                    # Hitting embed limits, adding an intermediate field.
                     if first_field_added:
                         entries.append(("\u200b", buffer))
                     else:
@@ -390,7 +390,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
                 f"is now a favorite {appearance.collectibleSingular}!",
                 ephemeral=True,
             )
-        # Unfavorite the carfigure
+        # Unfavorite the carfigure.
         else:
             carfigure.favorite = False  # type: ignore
             await carfigure.save()
@@ -549,7 +549,7 @@ class Cars(commands.GroupCog, group_name=appearance.cars):
             Whether to show the rarity list in reverse.
         """
 
-        # Filter enabled collectibles
+        # Filter enabled collectibles.
         enabledCollectibles = [x for x in cars.values() if x.enabled]
 
         if not enabledCollectibles:
